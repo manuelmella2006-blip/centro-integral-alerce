@@ -1,34 +1,33 @@
-# Gradle files
-.gradle/
+# Archivos de NetBeans
+nbproject/private/
 build/
+dist/
+nbbuild/
+nbdist/
+nbactions.xml
+nb-configuration.xml
 
-# Local configuration file (sdk path, etc)
-local.properties
+# Archivos de configuración de VS Code
+.vscode/
 
-# Log/OS Files
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos temporales
 *.log
+*.tmp
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
+# Archivos de compilación Java
+*.class
+*.jar
+*.war
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+# Dependencias (si se agregan librerías externas)
+lib/
 
-# Keystore files
-*.jks
-*.keystore
+# Carpeta de salida
+out/
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
-*.hprof
+# Configuración local
+*.env
