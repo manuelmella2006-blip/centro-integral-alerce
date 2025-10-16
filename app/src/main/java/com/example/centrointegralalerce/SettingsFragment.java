@@ -1,0 +1,4 @@
+package com.example.centrointegralalerce;
+
+public class SettingsFragment {
+}
