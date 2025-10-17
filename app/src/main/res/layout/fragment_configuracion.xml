@@ -1,213 +1,481 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gris_claro"
-    android:padding="16dp">
+    android:background="@color/grisClaro">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Información del usuario -->
-        <TextView
-            android:id="@+id/tv_user_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/usuario"
-            android:textSize="18sp"
-            android:textColor="@color/gris_oscuro"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_user_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="user@email.com"
-            android:textColor="@color/gris_medio"
-            android:layout_marginTop="4dp"/>
-
-        <!-- Rol del usuario -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_user_role"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Rol"
-            android:layout_marginTop="8dp"/>
-
-        <!-- Sección de opciones -->
-        <LinearLayout
+        <!-- Card de perfil de usuario -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="24dp">
+            android:layout_marginBottom="16dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/blanco">
 
             <LinearLayout
-                android:id="@+id/item_mantenedores"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/blanco"
-                android:layout_marginBottom="8dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:padding="20dp"
+                android:gravity="center_vertical">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_people"
-                    android:contentDescription="@string/mantenedores"/>
+                    android:id="@+id/iv_user_avatar"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    android:background="@drawable/bg_icon_circle"
+                    app:tint="@color/verdeSantoTomas" />
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/mantenedores"
+                    android:layout_weight="1"
                     android:layout_marginStart="16dp"
-                    android:textColor="@color/gris_oscuro"
-                    android:textSize="16sp"/>
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_user_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Usuario Administrador"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/grisOscuro"
+                        tools:text="Carlos Pérez" />
+
+                    <TextView
+                        android:id="@+id/tv_user_email"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="admin@centrointegralalerce.cl"
+                        android:textSize="14sp"
+                        android:textColor="@color/grisMedio"
+                        android:layout_marginTop="4dp"
+                        tools:text="carlos@ust.cl" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_user_role"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Administrador"
+                        app:chipBackgroundColor="@color/verdeClaro"
+                        app:chipStrokeWidth="0dp"
+                        style="@style/Widget.Material3.Chip.Assist" />
+
+                </LinearLayout>
+
             </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sección: Administración -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ADMINISTRACIÓN"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/grisMedio"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="4dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/blanco">
 
             <LinearLayout
-                android:id="@+id/item_gestionar_usuarios"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/blanco"
-                android:layout_marginBottom="8dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_person"
-                    android:contentDescription="@string/gestionar_usuarios"/>
+                <!-- Mantenedores -->
+                <LinearLayout
+                    android:id="@+id/item_mantenedores"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/gestionar_usuarios"
-                    android:layout_marginStart="16dp"
-                    android:textColor="@color/gris_oscuro"
-                    android:textSize="16sp"/>
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_sort_by_size"
+                        app:tint="@color/verdeSantoTomas" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Mantenedores"
+                        android:textSize="15sp"
+                        android:textColor="@color/grisOscuro" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        android:rotation="180"
+                        app:tint="@color/grisMedio" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="60dp"
+                    android:background="@color/grisBorde" />
+
+                <!-- Gestionar Usuarios -->
+                <LinearLayout
+                    android:id="@+id/item_gestionar_usuarios"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_myplaces"
+                        app:tint="@color/verdeSantoTomas" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Gestionar Usuarios"
+                        android:textSize="15sp"
+                        android:textColor="@color/grisOscuro" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        android:rotation="180"
+                        app:tint="@color/grisMedio" />
+
+                </LinearLayout>
+
             </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sección: Preferencias -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PREFERENCIAS"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/grisMedio"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="4dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/blanco">
 
             <LinearLayout
-                android:id="@+id/item_dias_aviso"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/blanco"
-                android:layout_marginBottom="8dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_notifications"
-                    android:contentDescription="@string/dias_aviso"/>
+                <!-- Notificaciones -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dias_aviso"
-                    android:layout_marginStart="16dp"
-                    android:textColor="@color/gris_oscuro"
-                    android:textSize="16sp"/>
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_popup_reminder"
+                        app:tint="@color/verdeSantoTomas" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Notificaciones"
+                        android:textSize="15sp"
+                        android:textColor="@color/grisOscuro" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_notifications"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="60dp"
+                    android:background="@color/grisBorde" />
+
+                <!-- Días de aviso -->
+                <LinearLayout
+                    android:id="@+id/item_dias_aviso"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_recent_history"
+                        app:tint="@color/verdeSantoTomas" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Días de aviso"
+                        android:textSize="15sp"
+                        android:textColor="@color/grisOscuro" />
+
+                    <TextView
+                        android:id="@+id/tv_dias_aviso_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3 días"
+                        android:textSize="14sp"
+                        android:textColor="@color/grisMedio"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        android:rotation="180"
+                        app:tint="@color/grisMedio" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
-            <Switch
-                android:id="@+id/switch_notifications"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/notificaciones"
-                android:layout_marginTop="8dp"/>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sección: Cuenta -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CUENTA"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/grisMedio"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="4dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/blanco">
 
             <LinearLayout
-                android:id="@+id/item_change_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/blanco"
-                android:layout_marginTop="16dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_lock"
-                    android:contentDescription="@string/cambiar_contrasena"/>
+                <!-- Cambiar contraseña -->
+                <LinearLayout
+                    android:id="@+id/item_change_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cambiar_contrasena"
-                    android:layout_marginStart="16dp"
-                    android:textColor="@color/gris_oscuro"
-                    android:textSize="16sp"/>
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_lock_lock"
+                        app:tint="@color/verdeSantoTomas" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Cambiar contraseña"
+                        android:textSize="15sp"
+                        android:textColor="@color/grisOscuro" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        android:rotation="180"
+                        app:tint="@color/grisMedio" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="60dp"
+                    android:background="@color/grisBorde" />
+
+                <!-- Cerrar sesión -->
+                <LinearLayout
+                    android:id="@+id/item_logout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_revert"
+                        app:tint="@color/rojoError" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Cerrar sesión"
+                        android:textSize="15sp"
+                        android:textColor="@color/rojoError" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        android:rotation="180"
+                        app:tint="@color/grisMedio" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/item_logout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/blanco"
-                android:layout_marginTop="8dp"
-                android:clickable="true"
-                android:focusable="true">
+        </com.google.android.material.card.MaterialCardView>
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_logout"
-                    android:contentDescription="@string/cerrar_sesion"/>
+        <!-- Sección: Información -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="INFORMACIÓN"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/grisMedio"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="4dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cerrar_sesion"
-                    android:layout_marginStart="16dp"
-                    android:textColor="@color/gris_oscuro"
-                    android:textSize="16sp"/>
-            </LinearLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/blanco">
 
             <LinearLayout
                 android:id="@+id/item_about"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@color/blanco"
-                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_info"
-                    android:contentDescription="@string/acerca_de"/>
+                    android:src="@android:drawable/ic_menu_info_details"
+                    app:tint="@color/verdeSantoTomas" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:text="Acerca de"
+                    android:textSize="15sp"
+                    android:textColor="@color/grisOscuro" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/acerca_de"
-                    android:layout_marginStart="16dp"
-                    android:textColor="@color/gris_oscuro"
-                    android:textSize="16sp"/>
+                    android:text="v1.0"
+                    android:textSize="14sp"
+                    android:textColor="@color/grisMedio"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_media_play"
+                    android:rotation="180"
+                    app:tint="@color/grisMedio" />
+
             </LinearLayout>
 
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 
