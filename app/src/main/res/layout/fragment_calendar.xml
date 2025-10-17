@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:padding="8dp"
     android:background="@color/verdeClaro">
 
     <TextView
@@ -18,12 +18,97 @@
         android:layout_gravity="center_horizontal"
         android:paddingBottom="16dp"/>
 
+    <!-- Header con días de la semana -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:background="@color/verdeSantoTomas"
+        android:padding="2dp">
+
+        <!-- Espacio para la columna de horas -->
+        <View
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:background="@color/verdeSantoTomas"/>
+
+        <!-- Días de la semana -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Lun"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Mar"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Mié"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Jue"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Vie"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Sáb"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Dom"
+            android:textSize="14sp"
+            android:textColor="@color/blanco"
+            android:textStyle="bold"
+            android:gravity="center"/>
+    </LinearLayout>
+
+    <!-- RecyclerView para el calendario -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvWeekSchedule"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingBottom="8dp"/>
-
+        android:clipToPadding="false"/>
 </LinearLayout>
