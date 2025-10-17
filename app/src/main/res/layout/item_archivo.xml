@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardElevation="1dp"
+    app:cardCornerRadius="8dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/gris_borde"
+    app:cardBackgroundColor="@color/gris_claro">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/iv_file_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_file"
+            android:background="@drawable/bg_icon_circle"
+            app:tint="@color/verde_santo_tomas"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_file_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:text="Planificacion_Taller.pdf"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/gris_oscuro"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintTop_toTopOf="@id/iv_file_icon"
+            app:layout_constraintStart_toEndOf="@id/iv_file_icon"
+            app:layout_constraintEnd_toStartOf="@id/btn_download"
+            tools:text="Planificacion_Taller.pdf" />
+
+        <TextView
+            android:id="@+id/tv_file_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:text="2.5 MB • 10 Oct 2024"
+            android:textSize="12sp"
+            android:textColor="@color/gris_medio"
+            app:layout_constraintTop_toBottomOf="@id/tv_file_name"
+            app:layout_constraintStart_toEndOf="@id/iv_file_icon"
+            app:layout_constraintEnd_toStartOf="@id/btn_download"
+            tools:text="2.5 MB • 10 Oct 2024" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_download"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/ic_download"
+            app:iconTint="@color/verde_santo_tomas"
+            app:iconPadding="0dp"
+            app:iconGravity="textStart"
+            style="@style/Widget.Material3.Button.IconButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

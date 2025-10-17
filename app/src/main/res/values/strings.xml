@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">CentroIntegralAlerce</string>
+
+    <!-- Fragment Calendario -->
+    <string name="semana_anterior">Semana anterior</string>
+    <string name="semana_siguiente">Semana siguiente</string>
+    <string name="nueva_actividad">Nueva actividad</string>
+    <string name="no_hay_actividades">No hay actividades esta semana</string>
+
+    <!-- Fragment Configuración -->
+    <string name="usuario">Usuario</string>
+    <string name="mantenedores">Mantenedores</string>
+    <string name="gestionar_usuarios">Gestionar usuarios</string>
+    <string name="notificaciones">Notificaciones</string>
+    <string name="dias_aviso">Días de aviso</string>
+    <string name="cambiar_contrasena">Cambiar contraseña</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+    <string name="acerca_de">Acerca de</string>
 </resources>

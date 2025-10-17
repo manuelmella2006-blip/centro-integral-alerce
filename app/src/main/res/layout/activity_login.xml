@@ -40,35 +40,38 @@
         android:id="@+id/loginButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Iniciar sesión"
+        android:layout_marginTop="52dp"
         android:onClick="onLoginClick"
-        app:layout_constraintTop_toBottomOf="@id/passwordEditText"
+        android:text="Iniciar sesión"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/passwordEditText" />
 
     <Button
         android:id="@+id/guestLoginButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Iniciar sesión como invitado"
+        android:layout_marginTop="28dp"
         android:onClick="onGuestLoginClick"
-        app:layout_constraintTop_toBottomOf="@id/loginButton"
+        android:text="Iniciar sesión como invitado"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/loginButton" />
 
     <TextView
         android:id="@+id/tvRecoverPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingTop="8dp"
         android:text="¿Olvidaste tu contraseña?"
         android:textColor="@color/verdeSantoTomas"
         android:textSize="14sp"
-        android:paddingTop="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintTop_toBottomOf="@id/guestLoginButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guestLoginButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

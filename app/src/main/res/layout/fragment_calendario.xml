@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/gris_claro">
+
+    <!-- Contenedor vacío cuando no hay actividades -->
+    <LinearLayout
+        android:id="@+id/layout_empty_calendar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_hay_actividades"
+            android:textColor="@color/gris_medio"
+            android:textSize="16sp"/>
+    </LinearLayout>
+
+    <!-- Contenedor principal del calendario -->
+    <LinearLayout
+        android:id="@+id/layout_calendar_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Barra de navegación de la semana -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <ImageButton
+                android:id="@+id/btn_prev_week"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_left"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@color/gris_oscuro"/>
+
+            <TextView
+                android:id="@+id/tv_current_week"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Semana Actual"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textColor="@color/gris_oscuro"/>
+
+            <ImageButton
+                android:id="@+id/btn_next_week"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_right"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@color/gris_oscuro"/>
+        </LinearLayout>
+
+        <!-- RecyclerView con los días de la semana -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_calendar_week"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+
+    <!-- Botón flotante para nueva actividad -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_new_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_add"
+        android:tint="@color/blanco"
+        android:backgroundTint="@color/verde_santo_tomas"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"/>
+</RelativeLayout>
