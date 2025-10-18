@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="roles_array">
+        <item>Administrador</item>
+        <item>Usuario Normal</item>
+        <!-- Puedes agregar otros roles si quieres -->
+        <!-- <item>Supervisor</item> -->
+    </string-array>
+</resources>

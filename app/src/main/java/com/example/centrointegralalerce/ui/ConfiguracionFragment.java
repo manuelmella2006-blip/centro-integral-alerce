@@ -1,5 +1,6 @@
 package com.example.centrointegralalerce.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,8 @@ import com.example.centrointegralalerce.R;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ConfiguracionFragment extends Fragment {
 
@@ -25,13 +28,15 @@ public class ConfiguracionFragment extends Fragment {
     private SwitchMaterial switchNotifications;
     private LinearLayout itemDiasAviso, itemChangePassword, itemLogout, itemAbout;
 
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_configuracion, container, false);
 
-        // ✅ Inicializar vistas
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvUserEmail = view.findViewById(R.id.tv_user_email);
         chipUserRole = view.findViewById(R.id.chip_user_role);
@@ -43,24 +48,45 @@ public class ConfiguracionFragment extends Fragment {
         itemLogout = view.findViewById(R.id.item_logout);
         itemAbout = view.findViewById(R.id.item_about);
 
-        setupUserInfo();
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        cargarInfoUsuario();
         setupListeners();
 
         return view;
     }
 
-    private void setupUserInfo() {
-        tvUserName.setText("Usuario Administrador");
-        tvUserEmail.setText("admin@centrointegralalerce.cl");
-        chipUserRole.setText("Administrador");
+    private void cargarInfoUsuario() {
+        String uid = auth.getCurrentUser().getUid();
+        db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String nombre = documentSnapshot.getString("nombre");
+                String email = documentSnapshot.getString("email");
+                String rol = documentSnapshot.getString("rol");
+
+                tvUserName.setText(nombre);
+                tvUserEmail.setText(email);
+                chipUserRole.setText(rol);
+
+                // 🔹 Mostrar solo si es administrador
+                if ("Administrador".equals(rol)) {
+                    itemGestionarUsuarios.setVisibility(View.VISIBLE);
+                } else {
+                    itemGestionarUsuarios.setVisibility(View.GONE);
+                }
+            }
+        });
     }
 
     private void setupListeners() {
         itemMantenedores.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Mantenedores - Por implementar", Toast.LENGTH_SHORT).show());
 
-        itemGestionarUsuarios.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Gestión de Usuarios - Por implementar", Toast.LENGTH_SHORT).show());
+        itemGestionarUsuarios.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), RegisterActivity.class);
+            startActivity(intent);
+        });
 
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) ->
                 Toast.makeText(requireContext(),
@@ -88,10 +114,10 @@ public class ConfiguracionFragment extends Fragment {
                 .setTitle("Cerrar sesión")
                 .setMessage("¿Estás seguro que deseas cerrar sesión?")
                 .setPositiveButton("Cerrar sesión", (dialog, which) -> {
-                    Toast.makeText(requireContext(), "Cerrando sesión...", Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
 }
+
