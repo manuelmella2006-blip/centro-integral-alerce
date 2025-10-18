@@ -1,5 +1,6 @@
 package com.example.centrointegralalerce.ui;
 
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Cita;
@@ -17,10 +19,12 @@ public class WeekCalendarAdapter extends RecyclerView.Adapter<WeekCalendarAdapte
 
     private final List<Cita> citas;
     private final List<String> horas;
+    private final FragmentManager fragmentManager; // <-- FragmentManager agregado
 
-    public WeekCalendarAdapter(List<Cita> citas, List<String> horas) {
+    public WeekCalendarAdapter(List<Cita> citas, List<String> horas, FragmentManager fragmentManager) {
         this.citas = citas;
         this.horas = horas;
+        this.fragmentManager = fragmentManager; // <-- inicializado
     }
 
     @NonNull
@@ -49,27 +53,13 @@ public class WeekCalendarAdapter extends RecyclerView.Adapter<WeekCalendarAdapte
         for (Cita cita : citas) {
             if (cita.getHora().equals(horaActual)) {
                 switch (cita.getDiaSemana()) {
-                    case 0: // Lunes
-                        agregarEventoACelda(holder.cellLun, cita);
-                        break;
-                    case 1: // Martes
-                        agregarEventoACelda(holder.cellMar, cita);
-                        break;
-                    case 2: // Miércoles
-                        agregarEventoACelda(holder.cellMie, cita);
-                        break;
-                    case 3: // Jueves
-                        agregarEventoACelda(holder.cellJue, cita);
-                        break;
-                    case 4: // Viernes
-                        agregarEventoACelda(holder.cellVie, cita);
-                        break;
-                    case 5: // Sábado
-                        agregarEventoACelda(holder.cellSab, cita);
-                        break;
-                    case 6: // Domingo
-                        agregarEventoACelda(holder.cellDom, cita);
-                        break;
+                    case 0: agregarEventoACelda(holder.cellLun, cita); break;
+                    case 1: agregarEventoACelda(holder.cellMar, cita); break;
+                    case 2: agregarEventoACelda(holder.cellMie, cita); break;
+                    case 3: agregarEventoACelda(holder.cellJue, cita); break;
+                    case 4: agregarEventoACelda(holder.cellVie, cita); break;
+                    case 5: agregarEventoACelda(holder.cellSab, cita); break;
+                    case 6: agregarEventoACelda(holder.cellDom, cita); break;
                 }
             }
         }
@@ -83,30 +73,28 @@ public class WeekCalendarAdapter extends RecyclerView.Adapter<WeekCalendarAdapte
     private void agregarEventoACelda(LinearLayout cell, Cita cita) {
         TextView tvEvent = new TextView(cell.getContext());
 
-        // Formato mejorado para mostrar en la celda
-        String textoEvento = cita.getActividad();
-        tvEvent.setText(textoEvento);
-
-        tvEvent.setBackgroundColor(getColorForTipo(cita.getTipoActividad(), cell));
-        tvEvent.setTextColor(ContextCompat.getColor(cell.getContext(), R.color.blanco));
+        tvEvent.setText(cita.getActividad());
         tvEvent.setTextSize(10f);
-        tvEvent.setPadding(8, 4, 8, 4);
+        tvEvent.setTextColor(ContextCompat.getColor(cell.getContext(), R.color.blanco));
+        tvEvent.setPadding(8, 6, 8, 6);
         tvEvent.setMaxLines(2);
         tvEvent.setEllipsize(TextUtils.TruncateAt.END);
-        tvEvent.setGravity(View.TEXT_ALIGNMENT_CENTER);
+        tvEvent.setGravity(Gravity.CENTER);
 
-        // Tooltip con información completa
-        String infoCompleta = cita.getHora() + " - " + cita.getActividad() +
-                "\nLugar: " + cita.getLugar() +
-                "\nTipo: " + cita.getTipoActividad();
-        tvEvent.setTooltipText(infoCompleta);
+        tvEvent.setBackgroundColor(getColorForTipo(cita.getTipoActividad(), cell));
 
-        // Hacer que ocupe toda la celda
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
+                LinearLayout.LayoutParams.WRAP_CONTENT
         );
+        params.setMargins(2,2,2,2); // pequeño margen entre citas
         tvEvent.setLayoutParams(params);
+
+        // Evento clic usando el FragmentManager pasado al Adapter
+        tvEvent.setOnClickListener(v -> {
+            CitaDetalleDialog dialog = new CitaDetalleDialog(cita);
+            dialog.show(fragmentManager, "detalleCita");
+        });
 
         cell.addView(tvEvent);
     }

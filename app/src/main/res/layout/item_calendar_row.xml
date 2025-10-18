@@ -1,84 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="80dp"
     android:orientation="horizontal"
-    android:background="@color/blanco"
-    android:padding="2dp">
+    android:background="@color/blanco">
 
-    <!-- Columna para la hora -->
+    <!-- Columna con la hora -->
     <TextView
         android:id="@+id/tvHour"
         android:layout_width="60dp"
         android:layout_height="match_parent"
-        android:text="08:00"
-        android:textSize="12sp"
-        android:textColor="@color/verdeSantoTomas"
         android:gravity="center"
         android:padding="4dp"
-        android:background="@color/blanco"/>
+        android:text="08:00"
+        android:textColor="@color/verdeSantoTomas"
+        android:textStyle="bold"
+        android:textSize="12sp"
+        android:background="@drawable/border_hour" />
 
-    <!-- Celdas para los días -->
+    <!-- Lunes -->
     <LinearLayout
         android:id="@+id/cellLun"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
 
+    <!-- Martes -->
     <LinearLayout
         android:id="@+id/cellMar"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
 
+    <!-- Miércoles -->
     <LinearLayout
         android:id="@+id/cellMie"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
 
+    <!-- Jueves -->
     <LinearLayout
         android:id="@+id/cellJue"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
 
+    <!-- Viernes -->
     <LinearLayout
         android:id="@+id/cellVie"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
 
+    <!-- Sábado -->
     <LinearLayout
         android:id="@+id/cellSab"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
 
+    <!-- Domingo -->
     <LinearLayout
         android:id="@+id/cellDom"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
         android:orientation="vertical"
-        android:background="@color/verdeClaro"
-        android:padding="1dp"/>
+        android:gravity="center"
+        android:background="@drawable/border_cell"
+        android:padding="2dp" />
+
 </LinearLayout>

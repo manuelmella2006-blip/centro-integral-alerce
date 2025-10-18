@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout para cada página/semana del ViewPager -->
+<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/horizontal_scroll_calendar"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="horizontal">
+
+    <LinearLayout
+        android:id="@+id/calendar_scroll_content"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Encabezado de días (Lun-Dom) con columna de horas -->
+        <LinearLayout
+            android:id="@+id/header_week_days"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@color/blanco"
+            android:elevation="2dp">
+
+            <!-- Celda para la columna de horas -->
+            <TextView
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:text="Hora"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="@color/gris_oscuro"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp" />
+
+            <!-- Lunes -->
+            <TextView
+                android:id="@+id/tv_day_0"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Lun"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Martes -->
+            <TextView
+                android:id="@+id/tv_day_1"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Mar"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Miércoles -->
+            <TextView
+                android:id="@+id/tv_day_2"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Mié"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Jueves -->
+            <TextView
+                android:id="@+id/tv_day_3"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Jue"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Viernes -->
+            <TextView
+                android:id="@+id/tv_day_4"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Vie"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Sábado -->
+            <TextView
+                android:id="@+id/tv_day_5"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Sáb"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Domingo -->
+            <TextView
+                android:id="@+id/tv_day_6"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Dom"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+
+        <!-- RecyclerView del calendario -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_calendar_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never" />
+    </LinearLayout>
+</HorizontalScrollView>

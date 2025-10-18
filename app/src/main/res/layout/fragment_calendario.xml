@@ -20,17 +20,17 @@
             android:layout_height="wrap_content"
             android:text="@string/no_hay_actividades"
             android:textColor="@color/gris_medio"
-            android:textSize="16sp"/>
+            android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- Contenedor principal del calendario -->
+    <!-- Contenedor principal -->
     <LinearLayout
         android:id="@+id/layout_calendar_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Barra de navegación de la semana -->
+        <!-- Barra superior: cambio de semana -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,7 +44,8 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_chevron_left"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="@color/gris_oscuro"/>
+                app:tint="@color/gris_oscuro"
+                android:contentDescription="Semana anterior" />
 
             <TextView
                 android:id="@+id/tv_current_week"
@@ -54,7 +55,7 @@
                 android:text="Semana Actual"
                 android:gravity="center"
                 android:textSize="16sp"
-                android:textColor="@color/gris_oscuro"/>
+                android:textColor="@color/gris_oscuro" />
 
             <ImageButton
                 android:id="@+id/btn_next_week"
@@ -62,19 +63,20 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_chevron_right"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="@color/gris_oscuro"/>
+                app:tint="@color/gris_oscuro"
+                android:contentDescription="Semana siguiente" />
         </LinearLayout>
 
-        <!-- RecyclerView con los días de la semana -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_calendar_week"
+        <!-- ViewPager2 para scroll horizontal entre semanas -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewpager_calendar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"/>
-
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal" />
     </LinearLayout>
 
-    <!-- Botón flotante para nueva actividad -->
+    <!-- Botón flotante -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_new_activity"
         android:layout_width="wrap_content"
@@ -84,5 +86,6 @@
         android:backgroundTint="@color/verde_santo_tomas"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"/>
+        android:layout_margin="16dp"
+        android:contentDescription="Nueva actividad" />
 </RelativeLayout>

@@ -32,7 +32,7 @@ public class CalendarFragment extends Fragment {
             horas.add(String.format("%02d:00", i));
         }
 
-        adapter = new WeekCalendarAdapter(listaCitas, horas);
+        //adapter = new WeekCalendarAdapter(listaCitas, horas);
         rvWeekSchedule.setLayoutManager(new LinearLayoutManager(getContext()));
         rvWeekSchedule.setAdapter(adapter);
 
