@@ -1,58 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ============================================ -->
-    <!-- COLORES ORIGINALES (NO BORRAR - en uso actual) -->
+    <!-- PALETA DE COLORES SANTO TOMÁS -->
+    <!-- Universidad Santo Tomás - Centro Integral Alerce -->
     <!-- ============================================ -->
-    <color name="verdeSantoTomas">#1B5E20</color>
-    <color name="verdeSecundario">#2E7D32</color>
-    <color name="verdeClaro">#E8F5E8</color>
+
+    <!-- COLORES PRIMARIOS -->
+    <color name="verde_santo_tomas">#1B5E20</color>
+    <color name="verde_secundario">#2E7D32</color>
+    <color name="verde_claro">#E8F5E8</color>
     <color name="blanco">#FFFFFF</color>
 
-    <color name="grisOscuro">#2C3E50</color>
-    <color name="grisMedio">#7F8C8D</color>
-    <color name="grisClaro">#F8F9FA</color>
-    <color name="grisBorde">#E9ECEF</color>
+    <!-- COLORES DE APOYO (Grises) -->
+    <color name="gris_oscuro">#2C3E50</color>
+    <color name="gris_medio">#7F8C8D</color>
+    <color name="gris_claro">#F8F9FA</color>
+    <color name="gris_borde">#E9ECEF</color>
 
-    <color name="verdeExito">#28A745</color>
-    <color name="amarrilloAdvertencia">#FFC107</color>
-    <color name="rojoError">#DC3545</color>
-    <color name="cianInfo">#17A2B8</color>
+    <!-- COLORES DE ESTADO -->
+    <color name="verde_exito">#28A745</color>
+    <color name="amarillo_advertencia">#FFC107</color>
+    <color name="rojo_error">#DC3545</color>
+    <color name="cian_info">#17A2B8</color>
 
-    <color name="violetaAcademico">#6F42C1</color>
-    <color name="naranjaDiagnostico">#FD7E14</color>
+    <!-- COLORES ESPECIALES -->
+    <color name="violeta_academico">#6F42C1</color>
+    <color name="naranja_diagnostico">#FD7E14</color>
 
     <!-- ============================================ -->
-    <!-- ALIASES NUEVOS (con guion bajo para nuevos layouts) -->
+    <!-- COLORES POR TIPO DE ACTIVIDAD -->
     <!-- ============================================ -->
-    <color name="verde_santo_tomas">@color/verdeSantoTomas</color>
-    <color name="verde_secundario">@color/verdeSecundario</color>
-    <color name="verde_claro">@color/verdeClaro</color>
-
-    <color name="gris_oscuro">@color/grisOscuro</color>
-    <color name="gris_medio">@color/grisMedio</color>
-    <color name="gris_claro">@color/grisClaro</color>
-    <color name="gris_borde">@color/grisBorde</color>
-
-    <color name="exito">@color/verdeExito</color>
-    <color name="advertencia">@color/amarrilloAdvertencia</color>
-    <color name="error">@color/rojoError</color>
-    <color name="informacion">@color/cianInfo</color>
-
-    <!-- Colores por tipo de actividad -->
-    <color name="tipo_capacitacion">@color/verdeSantoTomas</color>
-    <color name="tipo_taller">@color/verdeSecundario</color>
+    <color name="tipo_capacitacion">@color/verde_santo_tomas</color>
+    <color name="tipo_taller">@color/verde_secundario</color>
     <color name="tipo_charlas">#66BB6A</color>
-    <color name="tipo_atenciones">@color/verdeExito</color>
-    <color name="tipo_operativo">@color/amarrilloAdvertencia</color>
-    <color name="tipo_practica">@color/violetaAcademico</color>
-    <color name="tipo_diagnostico">@color/naranjaDiagnostico</color>
+    <color name="tipo_atenciones">@color/verde_exito</color>
+    <color name="tipo_operativo">@color/amarillo_advertencia</color>
+    <color name="tipo_practica_profesional">@color/violeta_academico</color>
+    <color name="tipo_diagnostico">@color/naranja_diagnostico</color>
 
-    <!-- Material Design 3 Theme Colors -->
-    <color name="md_theme_primary">@color/verdeSantoTomas</color>
-    <color name="md_theme_onPrimary">@color/blanco</color>
-    <color name="md_theme_primaryContainer">@color/verdeClaro</color>
-    <color name="md_theme_secondary">@color/verdeSecundario</color>
-    <color name="md_theme_background">@color/grisClaro</color>
+    <!-- ============================================ -->
+    <!-- MATERIAL DESIGN 3 THEME -->
+    <!-- ============================================ -->
+    <color name="md_theme_primary">@color/verde_santo_tomas</color>
+    <color name="md_theme_on_primary">@color/blanco</color>
+    <color name="md_theme_primary_container">@color/verde_claro</color>
+    <color name="md_theme_secondary">@color/verde_secundario</color>
+    <color name="md_theme_background">@color/gris_claro</color>
     <color name="md_theme_surface">@color/blanco</color>
-    <color name="md_theme_onSurface">@color/grisOscuro</color>
+    <color name="md_theme_on_surface">@color/gris_oscuro</color>
+    <color name="md_theme_error">@color/rojo_error</color>
+
+    <!-- ============================================ -->
+    <!-- ALIASES RETROCOMPATIBILIDAD (deprecados) -->
+    <!-- Mantener solo hasta migración completa -->
+    <!-- ============================================ -->
+    <color name="verdeSantoTomas">@color/verde_santo_tomas</color>
+    <color name="verdeSecundario">@color/verde_secundario</color>
+    <color name="verdeClaro">@color/verde_claro</color>
+    <color name="grisOscuro">@color/gris_oscuro</color>
+    <color name="grisMedio">@color/gris_medio</color>
+    <color name="grisClaro">@color/gris_claro</color>
+    <color name="grisBorde">@color/gris_borde</color>
+    <color name="verdeExito">@color/verde_exito</color>
+    <color name="amarrilloAdvertencia">@color/amarillo_advertencia</color>
+    <color name="rojoError">@color/rojo_error</color>
+    <color name="cianInfo">@color/cian_info</color>
+    <color name="violetaAcademico">@color/violeta_academico</color>
+    <color name="naranjaDiagnostico">@color/naranja_diagnostico</color>
+
 </resources>

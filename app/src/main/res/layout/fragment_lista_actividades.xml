@@ -1,153 +1,207 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gris_claro">
+    android:background="@color/grisClaro">
 
-    <!-- Barra de búsqueda y filtros -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_search_bar"
+    <!-- NestedScrollView para mejor scroll -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardElevation="2dp"
-        app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="@color/blanco"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
+            android:orientation="vertical">
 
-            <!-- Barra de búsqueda -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_search"
+            <!-- Card de búsqueda y filtros -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_search_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:boxBackgroundMode="none"
-                app:hintEnabled="false"
-                app:startIconDrawable="@drawable/ic_search"
-                app:startIconTint="@color/gris_medio"
-                app:endIconMode="clear_text"
-                app:endIconTint="@color/gris_medio">
+                android:layout_margin="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_search"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Buscar actividades..."
-                    android:textSize="14sp"
-                    android:inputType="text"
-                    android:imeOptions="actionSearch" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <!-- Título de sección -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Buscar Actividades"
+                        android:textSize="14sp"
+                        android:textColor="@color/grisMedio"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.05"
+                        android:layout_marginBottom="12dp" />
 
-            <!-- Chips de filtro rápido -->
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chip_group_filters"
+                    <!-- Barra de búsqueda -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/til_search"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:startIconDrawable="@drawable/ic_search"
+                        app:startIconTint="@color/verdeSantoTomas"
+                        app:endIconMode="clear_text"
+                        app:endIconTint="@color/grisMedio"
+                        app:boxStrokeColor="@color/verdeSantoTomas"
+                        app:hintTextColor="@color/verdeSantoTomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_search"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Buscar por nombre, tipo o lugar..."
+                            android:textSize="14sp"
+                            android:inputType="text"
+                            android:imeOptions="actionSearch"
+                            android:maxLines="1" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Chips de filtro rápido -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chip_group_filters"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:singleSelection="false"
+                            app:chipSpacingHorizontal="8dp">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_filter_all"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Todas"
+                                android:checked="true"
+                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipStrokeWidth="0dp"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_filter_today"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hoy"
+                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipStrokeWidth="0dp"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_filter_week"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Esta semana"
+                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipStrokeWidth="0dp"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_filter_month"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Este mes"
+                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipStrokeWidth="0dp"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                        </com.google.android.material.chip.ChipGroup>
+
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- RecyclerView de actividades -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_activities_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:singleSelection="false"
-                app:chipSpacingHorizontal="8dp">
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="80dp"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_activity_card"
+                tools:itemCount="3" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_filter_all"
+            <!-- Estado vacío -->
+            <LinearLayout
+                android:id="@+id/layout_empty_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="48dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/ic_list_empty"
+                    android:alpha="0.3"
+                    app:tint="@color/grisMedio" />
+
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Todas"
-                    android:checked="true"
-                    style="@style/Widget.Material3.Chip.Filter" />
+                    android:layout_marginTop="24dp"
+                    android:text="No se encontraron actividades"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/grisMedio"
+                    android:gravity="center" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_filter_today"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hoy"
-                    style="@style/Widget.Material3.Chip.Filter" />
+                    android:layout_marginTop="8dp"
+                    android:text="Intenta cambiar los filtros de búsqueda"
+                    android:textSize="14sp"
+                    android:textColor="@color/grisMedio"
+                    android:gravity="center" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_filter_week"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Esta semana"
-                    style="@style/Widget.Material3.Chip.Filter" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_filter_month"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Este mes"
-                    style="@style/Widget.Material3.Chip.Filter" />
-
-            </com.google.android.material.chip.ChipGroup>
+            </LinearLayout>
 
         </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- RecyclerView de todas las actividades -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_activities_list"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:clipToPadding="false"
-        tools:listitem="@layout/item_activity_list"
-        app:layout_constraintTop_toBottomOf="@id/card_search_bar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.core.widget.NestedScrollView>
 
     <!-- FloatingActionButton -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_new_activity_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="Nueva Actividad"
-        app:srcCompat="@drawable/ic_add"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_add"
         app:tint="@color/blanco"
-        app:backgroundTint="@color/verde_santo_tomas"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:backgroundTint="@color/verdeSantoTomas"
+        app:elevation="6dp"
+        app:borderWidth="0dp"
+        android:contentDescription="Nueva Actividad" />
 
-    <!-- Estado vacío -->
-    <LinearLayout
-        android:id="@+id/layout_empty_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_list_empty"
-            android:alpha="0.3"
-            app:tint="@color/gris_medio" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="No se encontraron actividades"
-            android:textSize="16sp"
-            android:textColor="@color/gris_medio" />
-
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

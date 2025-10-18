@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/blanco"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- Indicador de color por tipo -->
+        <View
+            android:id="@+id/view_type_indicator"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="12dp"
+            android:background="@color/verdeSantoTomas"
+            tools:background="@color/verdeSecundario" />
+
+        <!-- Contenido de la actividad -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Tipo de actividad (chip pequeño) -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_activity_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Capacitación"
+                android:textSize="11sp"
+                android:layout_marginBottom="4dp"
+                app:chipBackgroundColor="@color/verdeClaro"
+                app:chipStrokeWidth="0dp"
+                app:chipMinHeight="24dp"
+                style="@style/Widget.Material3.Chip.Assist"
+                tools:text="Taller" />
+
+            <!-- Nombre de la actividad -->
+            <TextView
+                android:id="@+id/tv_activity_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Capacitación en Android"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/grisOscuro"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:layout_marginBottom="8dp"
+                tools:text="Taller de Robótica Educativa" />
+
+            <!-- Información de lugar y fecha -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- Icono de ubicación -->
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/grisMedio"
+                    android:layout_marginEnd="4dp" />
+
+                <!-- Lugar -->
+                <TextView
+                    android:id="@+id/tv_activity_place"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Laboratorio 3"
+                    android:textSize="13sp"
+                    android:textColor="@color/grisMedio"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="Sala 201" />
+
+            </LinearLayout>
+
+            <!-- Fecha y hora -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <!-- Icono de calendario -->
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/ic_menu_today"
+                    app:tint="@color/grisMedio"
+                    android:layout_marginEnd="4dp" />
+
+                <!-- Fecha -->
+                <TextView
+                    android:id="@+id/tv_activity_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lun 14 Oct"
+                    android:textSize="13sp"
+                    android:textColor="@color/grisMedio"
+                    android:layout_marginEnd="12dp"
+                    tools:text="Lun 14 Oct" />
+
+                <!-- Icono de hora -->
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="@color/grisMedio"
+                    android:layout_marginEnd="4dp" />
+
+                <!-- Hora -->
+                <TextView
+                    android:id="@+id/tv_activity_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="09:00"
+                    android:textSize="13sp"
+                    android:textColor="@color/grisMedio"
+                    tools:text="14:30" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Botón de opciones (menú) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_activity_menu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/ic_menu"
+            app:iconTint="@color/grisMedio"
+            app:iconPadding="0dp"
+            app:iconGravity="textStart"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:contentDescription="Opciones" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

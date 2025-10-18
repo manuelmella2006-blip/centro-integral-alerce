@@ -4,9 +4,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Cita;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.text.SimpleDateFormat;
@@ -27,7 +28,7 @@ public class CalendarioFragment extends Fragment {
 
     private ViewPager2 viewPagerCalendar;
     private TextView tvCurrentWeek;
-    private ImageButton btnPrevWeek, btnNextWeek;
+    private MaterialButton btnPrevWeek, btnNextWeek; // ✅ CORREGIDO: MaterialButton
     private FloatingActionButton fabNewActivity;
     private LinearLayout layoutEmptyCalendar;
 
@@ -42,6 +43,7 @@ public class CalendarioFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_calendario, container, false);
 
+        // ✅ Vincular vistas con MaterialButton
         viewPagerCalendar = view.findViewById(R.id.viewpager_calendar);
         tvCurrentWeek = view.findViewById(R.id.tv_current_week);
         btnPrevWeek = view.findViewById(R.id.btn_prev_week);
@@ -126,6 +128,11 @@ public class CalendarioFragment extends Fragment {
 
         fabNewActivity.setOnClickListener(v -> {
             // TODO: Navegar a crear actividad
+            if (getContext() != null) {
+                Toast.makeText(getContext(),
+                        "Crear nueva actividad - Por implementar",
+                        Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -192,6 +199,9 @@ public class CalendarioFragment extends Fragment {
             }
         }
 
-        layoutEmptyCalendar.setVisibility(hasCitas ? View.GONE : View.VISIBLE);
+        // ✅ Null-check para evitar crashes
+        if (layoutEmptyCalendar != null) {
+            layoutEmptyCalendar.setVisibility(hasCitas ? View.GONE : View.VISIBLE);
+        }
     }
 }
