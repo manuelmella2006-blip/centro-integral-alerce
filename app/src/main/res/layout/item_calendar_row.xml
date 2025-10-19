@@ -24,9 +24,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
     <!-- Martes -->
     <LinearLayout

@@ -1,5 +1,6 @@
 package com.example.centrointegralalerce.ui;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,30 +20,56 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Adaptador para el ViewPager2 que muestra diferentes semanas
+ * Adaptador para el ViewPager2 que muestra diferentes semanas del calendario
  */
 public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdapter.WeekViewHolder> {
+    private static final String TAG = "CalendarPagerAdapter";
 
-    private static final int TOTAL_WEEKS = 1000; // Número grande para simular scroll infinito
-    private static final int MIDDLE_POSITION = TOTAL_WEEKS / 2; // Posición central
+    private static final int TOTAL_WEEKS = 1000; // Simular scroll infinito
+    private static final int MIDDLE_POSITION = TOTAL_WEEKS / 2;
 
     private final List<Cita> allCitas;
     private final FragmentManager fragmentManager;
-    private final Calendar baseWeekStart; // Semana actual como referencia
-    private OnWeekChangeListener weekChangeListener;
-
-    public interface OnWeekChangeListener {
-        void onWeekChanged(Calendar weekStart);
-    }
+    private final Calendar baseWeekStart; // Semana de referencia (siempre lunes)
 
     public CalendarPagerAdapter(List<Cita> allCitas, FragmentManager fragmentManager, Calendar currentWeek) {
-        this.allCitas = allCitas;
+        this.allCitas = allCitas != null ? allCitas : new ArrayList<>();
         this.fragmentManager = fragmentManager;
-        this.baseWeekStart = (Calendar) currentWeek.clone();
+
+        // Clonar y asegurar que empiece en lunes a las 00:00:00
+        this.baseWeekStart = currentWeek != null ? (Calendar) currentWeek.clone() : Calendar.getInstance();
+        normalizeToMonday(this.baseWeekStart);
+
+        Log.d(TAG, "Adapter creado con " + this.allCitas.size() + " citas totales");
+        Log.d(TAG, "Semana base: " + this.baseWeekStart.getTime());
     }
 
-    public void setOnWeekChangeListener(OnWeekChangeListener listener) {
-        this.weekChangeListener = listener;
+    /**
+     * Normaliza un Calendar para que apunte al lunes de su semana a las 00:00:00
+     */
+    private void normalizeToMonday(Calendar cal) {
+        try {
+            cal.setFirstDayOfWeek(Calendar.MONDAY);
+            cal.setMinimalDaysInFirstWeek(4);
+
+            int currentDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+            int daysFromMonday;
+
+            if (currentDayOfWeek == Calendar.SUNDAY) {
+                daysFromMonday = 6;
+            } else {
+                daysFromMonday = currentDayOfWeek - Calendar.MONDAY;
+            }
+
+            cal.add(Calendar.DAY_OF_MONTH, -daysFromMonday);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error al normalizar calendario: " + e.getMessage(), e);
+        }
     }
 
     @NonNull
@@ -55,19 +82,22 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
 
     @Override
     public void onBindViewHolder(@NonNull WeekViewHolder holder, int position) {
-        // Calcular el offset desde la posición central
-        int weekOffset = position - MIDDLE_POSITION;
+        try {
+            // Calcular el offset desde la posición central
+            int weekOffset = position - MIDDLE_POSITION;
 
-        // Calcular la semana correspondiente
-        Calendar weekStart = (Calendar) baseWeekStart.clone();
-        weekStart.add(Calendar.WEEK_OF_YEAR, weekOffset);
+            // Clonar la semana base y sumar semanas completas
+            Calendar weekStart = (Calendar) baseWeekStart.clone();
+            weekStart.add(Calendar.WEEK_OF_YEAR, weekOffset);
 
-        // Notificar cambio de semana
-        if (weekChangeListener != null) {
-            weekChangeListener.onWeekChanged((Calendar) weekStart.clone());
+            Log.d(TAG, "Mostrando semana offset " + weekOffset + ": " + weekStart.getTime());
+
+            // Enlazar datos de esa semana
+            holder.bind(weekStart, allCitas, fragmentManager);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error en onBindViewHolder posición " + position + ": " + e.getMessage(), e);
         }
-
-        holder.bind(weekStart, allCitas, fragmentManager);
     }
 
     @Override
@@ -79,16 +109,41 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
         return MIDDLE_POSITION;
     }
 
+    /**
+     * Calcula la semana correspondiente a una posición dada
+     */
+    public Calendar getWeekForPosition(int position) {
+        try {
+            int weekOffset = position - MIDDLE_POSITION;
+            Calendar weekStart = (Calendar) baseWeekStart.clone();
+            weekStart.add(Calendar.WEEK_OF_YEAR, weekOffset);
+            return weekStart;
+        } catch (Exception e) {
+            Log.e(TAG, "Error al obtener semana para posición " + position + ": " + e.getMessage(), e);
+            return (Calendar) baseWeekStart.clone();
+        }
+    }
+
+    // ------------------------------------------------------
+    // ViewHolder: representa una semana completa
+    // ------------------------------------------------------
     public static class WeekViewHolder extends RecyclerView.ViewHolder {
+        private static final String TAG = "WeekViewHolder";
+
         private final RecyclerView rvCalendarWeek;
         private final TextView[] dayHeaders;
 
         public WeekViewHolder(@NonNull View itemView) {
             super(itemView);
             rvCalendarWeek = itemView.findViewById(R.id.rv_calendar_week);
-            rvCalendarWeek.setLayoutManager(new LinearLayoutManager(itemView.getContext()));
 
-            // Referencias a los TextViews de los días
+            if (rvCalendarWeek != null) {
+                rvCalendarWeek.setLayoutManager(new LinearLayoutManager(itemView.getContext()));
+            } else {
+                Log.e(TAG, "❌ rv_calendar_week es null - verifica el XML");
+            }
+
+            // Encabezados (lunes-domingo)
             dayHeaders = new TextView[7];
             dayHeaders[0] = itemView.findViewById(R.id.tv_day_0);
             dayHeaders[1] = itemView.findViewById(R.id.tv_day_1);
@@ -97,64 +152,171 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             dayHeaders[4] = itemView.findViewById(R.id.tv_day_4);
             dayHeaders[5] = itemView.findViewById(R.id.tv_day_5);
             dayHeaders[6] = itemView.findViewById(R.id.tv_day_6);
+
+            // Validar que todos los headers existen
+            for (int i = 0; i < dayHeaders.length; i++) {
+                if (dayHeaders[i] == null) {
+                    Log.e(TAG, "❌ tv_day_" + i + " es null - verifica el XML");
+                }
+            }
         }
 
         public void bind(Calendar weekStart, List<Cita> allCitas, FragmentManager fragmentManager) {
-            // Actualizar encabezados de días
-            updateDayHeaders(weekStart);
+            try {
+                if (weekStart == null) {
+                    Log.e(TAG, "❌ weekStart es null en bind()");
+                    return;
+                }
 
-            // Generar horas del día
-            List<String> horas = new ArrayList<>();
-            for (int i = 8; i <= 18; i++) {
-                horas.add(String.format(Locale.getDefault(), "%02d:00", i));
+                Log.d(TAG, "=== BINDING SEMANA: " + weekStart.getTime() + " ===");
+
+                updateDayHeaders(weekStart);
+
+                // Horas del día
+                List<String> horas = new ArrayList<>();
+                for (int i = 8; i <= 18; i++) {
+                    horas.add(String.format(Locale.getDefault(), "%02d:00", i));
+                }
+
+                // Filtrar citas de esta semana
+                List<Cita> citasSemana = filterCitasForWeek(weekStart, allCitas);
+
+                Log.d(TAG, "Citas filtradas para esta semana: " + citasSemana.size());
+
+                if (rvCalendarWeek == null) {
+                    Log.e(TAG, "❌ No se puede configurar adapter - RecyclerView es null");
+                    return;
+                }
+
+                // Configurar adaptador interno
+                CalendarioAdapter adapter = new CalendarioAdapter(
+                        itemView.getContext(),
+                        horas,
+                        citasSemana,
+                        fragmentManager
+                );
+                rvCalendarWeek.setAdapter(adapter);
+
+                Log.d(TAG, "✅ Adapter configurado con " + citasSemana.size() + " citas");
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error en bind(): " + e.getMessage(), e);
             }
-
-            // Filtrar citas de esta semana
-            List<Cita> citasSemana = filterCitasForWeek(weekStart, allCitas);
-
-            // Configurar el adaptador del RecyclerView
-            CalendarioAdapter adapter = new CalendarioAdapter(
-                    itemView.getContext(),
-                    horas,
-                    citasSemana,
-                    fragmentManager
-            );
-            rvCalendarWeek.setAdapter(adapter);
         }
 
+        /**
+         * Actualiza los encabezados con el formato "lun 14"
+         */
         private void updateDayHeaders(Calendar weekStart) {
-            String[] diasSemana = {"lun", "mar", "mié", "jue", "vie", "sáb", "dom"};
-            Calendar cal = (Calendar) weekStart.clone();
+            if (weekStart == null) {
+                Log.e(TAG, "No se pueden actualizar headers - weekStart es null");
+                return;
+            }
 
-            for (int i = 0; i < 7; i++) {
-                int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-                dayHeaders[i].setText(diasSemana[i] + " " + dayOfMonth);
-                cal.add(Calendar.DAY_OF_MONTH, 1);
+            try {
+                String[] diasSemana = {"lun", "mar", "mié", "jue", "vie", "sáb", "dom"};
+                Calendar cal = (Calendar) weekStart.clone();
+
+                for (int i = 0; i < 7; i++) {
+                    if (dayHeaders[i] == null) {
+                        Log.w(TAG, "Header " + i + " es null, saltando");
+                        continue;
+                    }
+
+                    int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+                    String headerText = diasSemana[i] + " " + dayOfMonth;
+                    dayHeaders[i].setText(headerText);
+
+                    Log.d(TAG, "Header " + i + ": " + headerText);
+
+                    cal.add(Calendar.DAY_OF_MONTH, 1);
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error al actualizar headers: " + e.getMessage(), e);
             }
         }
 
+        /**
+         * Filtra las citas que pertenecen a esta semana con validación robusta
+         */
         private List<Cita> filterCitasForWeek(Calendar weekStart, List<Cita> allCitas) {
             List<Cita> citasSemana = new ArrayList<>();
 
-            Calendar endCal = (Calendar) weekStart.clone();
-            endCal.add(Calendar.DAY_OF_MONTH, 6);
-            endCal.set(Calendar.HOUR_OF_DAY, 23);
-            endCal.set(Calendar.MINUTE, 59);
-            endCal.set(Calendar.SECOND, 59);
+            if (weekStart == null) {
+                Log.e(TAG, "❌ weekStart es null en filterCitasForWeek");
+                return citasSemana;
+            }
 
-            for (Cita cita : allCitas) {
-                Calendar citaCal = cita.getFechaHoraCalendar();
-                if (citaCal != null) {
-                    if (!citaCal.before(weekStart) && !citaCal.after(endCal)) {
-                        // Calcular el índice del día (0 = Lunes, 6 = Domingo)
+            if (allCitas == null || allCitas.isEmpty()) {
+                Log.d(TAG, "No hay citas para filtrar");
+                return citasSemana;
+            }
+
+            try {
+                Calendar semanaFin = (Calendar) weekStart.clone();
+                semanaFin.add(Calendar.DAY_OF_MONTH, 6);
+                semanaFin.set(Calendar.HOUR_OF_DAY, 23);
+                semanaFin.set(Calendar.MINUTE, 59);
+                semanaFin.set(Calendar.SECOND, 59);
+
+                Log.d(TAG, "Filtrando citas entre:");
+                Log.d(TAG, "  Inicio: " + weekStart.getTime());
+                Log.d(TAG, "  Fin: " + semanaFin.getTime());
+
+                int citasProcesadas = 0;
+                int citasIncluidas = 0;
+                int citasExcluidas = 0;
+
+                for (Cita cita : allCitas) {
+                    citasProcesadas++;
+
+                    if (cita == null) {
+                        Log.w(TAG, "Cita null encontrada");
+                        continue;
+                    }
+
+                    Calendar citaCal = cita.getFechaHoraCalendar();
+
+                    if (citaCal == null) {
+                        Log.w(TAG, "Timestamp null en cita: " + cita.getActividad());
+                        citasExcluidas++;
+                        continue;
+                    }
+
+                    // Verificar si la cita está en el rango
+                    boolean enRango = !citaCal.before(weekStart) && !citaCal.after(semanaFin);
+
+                    if (enRango) {
+                        // Calcular índice del día (0=Lun, 6=Dom)
                         long diffInMillis = citaCal.getTimeInMillis() - weekStart.getTimeInMillis();
                         int diaIndex = (int) (diffInMillis / (1000 * 60 * 60 * 24));
                         diaIndex = Math.max(0, Math.min(6, diaIndex));
 
+                        // IMPORTANTE: Actualizar el día de la semana
                         cita.setDiaSemana(diaIndex);
+
                         citasSemana.add(cita);
+                        citasIncluidas++;
+
+                        Log.d(TAG, "✅ Incluida: " + cita.getActividad() +
+                                " | Fecha: " + citaCal.getTime() +
+                                " | Día: " + diaIndex +
+                                " | Hora: " + cita.getHora());
+                    } else {
+                        citasExcluidas++;
+                        Log.d(TAG, "⏭️ Excluida (fuera de rango): " + cita.getActividad() +
+                                " | Fecha: " + citaCal.getTime());
                     }
                 }
+
+                Log.d(TAG, "=== RESULTADO FILTRADO ===");
+                Log.d(TAG, "Procesadas: " + citasProcesadas);
+                Log.d(TAG, "Incluidas: " + citasIncluidas);
+                Log.d(TAG, "Excluidas: " + citasExcluidas);
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error al filtrar citas: " + e.getMessage(), e);
             }
 
             return citasSemana;

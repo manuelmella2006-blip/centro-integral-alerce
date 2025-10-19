@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores originales del sistema -->
+    <color name="verdeSantoTomas">#43A047</color>
+    <color name="verdeSecundario">#66BB6A</color>
+    <color name="verdeClaro">#81C784</color>
+    <color name="verdeExito">#4CAF50</color>
+    <color name="amarrilloAdvertencia">#FFA726</color>
+    <color name="violetaAcademico">#7E57C2</color>
+    <color name="naranjaDiagnostico">#FF7043</color>
+
+    <!-- Nueva paleta para citas (con mejor contraste) -->
+    <color name="cita_capacitacion">#1B5E20</color>        <!-- Verde muy oscuro -->
+    <color name="cita_taller">#2E7D32</color>              <!-- Verde oscuro -->
+    <color name="cita_charlas">#388E3C</color>             <!-- Verde medio -->
+    <color name="cita_atenciones">#00796B</color>          <!-- Verde azulado -->
+    <color name="cita_operativo">#F57C00</color>           <!-- Naranja -->
+    <color name="cita_practica">#5E35B1</color>            <!-- Violeta -->
+    <color name="cita_diagnostico">#E64A19</color>         <!-- Rojo naranja -->
+
+    <!-- Colores de UI -->
+    <color name="blanco">#FFFFFF</color>
+    <color name="gris_claro">#F5F5F5</color>
+    <color name="gris_medio">#9E9E9E</color>
+    <color name="gris_oscuro">#424242</color>
+</resources>

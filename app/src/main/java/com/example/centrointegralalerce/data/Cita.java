@@ -1,150 +1,198 @@
 package com.example.centrointegralalerce.data;
 
+import android.util.Log;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentId;
+
 import java.util.Calendar;
+import java.util.Date;
 
 public class Cita {
-    private String id; // ID único
+    private static final String TAG = "Cita";
+
+    @DocumentId
+    private String id;
     private String actividad;
     private String lugar;
-    private String fechaHora; // Formato: "Lun 09:00"
     private String tipoActividad;
-    private int diaSemana; // 0=Lun, 1=Mar, ..., 6=Dom
-    private String hora; // "09:00"
+    private Timestamp fechaHora; // FUENTE ÚNICA DE VERDAD
+    private String userId;
 
-    private Calendar fechaHoraCalendar; // Nueva implementación con Calendar
+    // Campos temporales para UI (no se guardan en Firebase)
+    private transient int diaSemana;
+    private transient String hora;
 
-    // Constructor por defecto (Firebase, etc.)
-    public Cita() {}
-
-    // Constructor original
-    public Cita(String actividad, String lugar, String fechaHora, String tipoActividad) {
-        this.actividad = actividad;
-        this.lugar = lugar;
-        this.fechaHora = fechaHora;
-        this.tipoActividad = tipoActividad;
-        parseFechaHora();
+    // Constructor vacío requerido por Firebase
+    public Cita() {
     }
 
-    // Nuevo constructor con ID
-    public Cita(String id, String actividad, String lugar, String fechaHora, String tipoActividad) {
+    // Constructor principal con validación
+    public Cita(String id, String actividad, String lugar, String tipoActividad, Timestamp fechaHora, String userId) {
         this.id = id;
         this.actividad = actividad;
         this.lugar = lugar;
-        this.fechaHora = fechaHora;
         this.tipoActividad = tipoActividad;
-        parseFechaHora();
+        this.userId = userId;
+        setFechaHora(fechaHora); // Usa el setter con validación
     }
 
-    // Analiza fechaHora en diaSemana y hora
-    private void parseFechaHora() {
-        if (fechaHora != null && fechaHora.length() >= 8) {
-            String dia = fechaHora.substring(0, 3);
-            this.hora = fechaHora.substring(4);
+    /**
+     * Calcula hora y día de la semana desde Timestamp con manejo de errores
+     */
+    private void calcularHoraYDia() {
+        if (fechaHora == null) {
+            Log.w(TAG, "Timestamp es null, no se puede calcular hora/día");
+            this.hora = "00:00";
+            this.diaSemana = -1;
+            return;
+        }
 
-            switch (dia) {
-                case "Lun": this.diaSemana = 0; break;
-                case "Mar": this.diaSemana = 1; break;
-                case "Mié": case "Mie": this.diaSemana = 2; break;
-                case "Jue": this.diaSemana = 3; break;
-                case "Vie": this.diaSemana = 4; break;
-                case "Sáb": case "Sab": this.diaSemana = 5; break;
-                case "Dom": this.diaSemana = 6; break;
-                default: this.diaSemana = 0;
-            }
-
-            // Crear Calendar basado en día y hora
+        try {
             Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.DAY_OF_WEEK, diaSemana + 2); // lunes=2, domingo=1
-            if (hora != null && hora.contains(":")) {
-                String[] partes = hora.split(":");
-                cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(partes[0]));
-                cal.set(Calendar.MINUTE, Integer.parseInt(partes[1]));
-                cal.set(Calendar.SECOND, 0);
-            }
-            fechaHoraCalendar = cal;
+            cal.setTime(fechaHora.toDate());
+
+            // Extraer hora
+            int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+            int minute = cal.get(Calendar.MINUTE);
+            this.hora = String.format("%02d:%02d", hourOfDay, minute);
+
+            // Calcular día de la semana (Lunes=0, Domingo=6)
+            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+            this.diaSemana = convertirDiaSemana(dayOfWeek);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error al calcular hora/día desde Timestamp: " + e.getMessage(), e);
+            this.hora = "00:00";
+            this.diaSemana = -1;
         }
     }
 
-    // Setter público para Calendar
-    public void setFechaHoraCalendar(Calendar fechaHoraCalendar) {
-        this.fechaHoraCalendar = fechaHoraCalendar;
+    /**
+     * Convierte Calendar.DAY_OF_WEEK a formato 0=Lun, 6=Dom
+     */
+    private int convertirDiaSemana(int calendarDay) {
+        // Calendar: 1=Dom, 2=Lun, ..., 7=Sáb
+        // Nuestro formato: 0=Lun, 6=Dom
+        return (calendarDay == Calendar.SUNDAY) ? 6 : calendarDay - 2;
     }
 
-    // Getters y setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    /**
+     * Convierte Timestamp a Calendar con validación
+     */
+    public Calendar getFechaHoraCalendar() {
+        if (fechaHora == null) {
+            Log.w(TAG, "Timestamp es null en getFechaHoraCalendar()");
+            return null;
+        }
 
-    public String getActividad() { return actividad; }
-    public void setActividad(String actividad) { this.actividad = actividad; }
+        try {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(fechaHora.toDate());
+            return cal;
+        } catch (Exception e) {
+            Log.e(TAG, "Error al convertir Timestamp a Calendar: " + e.getMessage(), e);
+            return null;
+        }
+    }
 
-    public String getLugar() { return lugar; }
-    public void setLugar(String lugar) { this.lugar = lugar; }
+    /**
+     * Valida que todos los campos obligatorios estén presentes
+     */
+    public boolean esValida() {
+        boolean valida = actividad != null && !actividad.trim().isEmpty()
+                && lugar != null && !lugar.trim().isEmpty()
+                && tipoActividad != null && !tipoActividad.trim().isEmpty()
+                && fechaHora != null
+                && userId != null && !userId.trim().isEmpty();
 
-    public String getFechaHora() { return fechaHora; }
-    public void setFechaHora(String fechaHora) {
+        if (!valida) {
+            Log.w(TAG, String.format("Cita inválida - ID: %s, Actividad: %s, Lugar: %s, Tipo: %s, FechaHora: %s, UserId: %s",
+                    id, actividad, lugar, tipoActividad, fechaHora, userId));
+        }
+
+        return valida;
+    }
+
+    // ===== GETTERS Y SETTERS CON VALIDACIÓN =====
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getActividad() {
+        return actividad != null ? actividad : "";
+    }
+
+    public void setActividad(String actividad) {
+        this.actividad = actividad;
+    }
+
+    public String getLugar() {
+        return lugar != null ? lugar : "";
+    }
+
+    public void setLugar(String lugar) {
+        this.lugar = lugar;
+    }
+
+    public String getTipoActividad() {
+        return tipoActividad != null ? tipoActividad : "";
+    }
+
+    public void setTipoActividad(String tipoActividad) {
+        this.tipoActividad = tipoActividad;
+    }
+
+    public Timestamp getFechaHora() {
+        return fechaHora;
+    }
+
+    public void setFechaHora(Timestamp fechaHora) {
         this.fechaHora = fechaHora;
-        parseFechaHora();
+        calcularHoraYDia(); // Recalcula automáticamente
     }
 
-    public String getTipoActividad() { return tipoActividad; }
-    public void setTipoActividad(String tipoActividad) { this.tipoActividad = tipoActividad; }
+    public String getUserId() {
+        return userId != null ? userId : "";
+    }
 
-    public int getDiaSemana() { return diaSemana; }
-    public void setDiaSemana(int diaSemana) { this.diaSemana = diaSemana; }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-    public String getHora() { return hora; }
-    public void setHora(String hora) { this.hora = hora; parseFechaHora(); }
+    public int getDiaSemana() {
+        if (diaSemana == 0 && fechaHora != null) {
+            calcularHoraYDia(); // Calcula si no está inicializado
+        }
+        return diaSemana;
+    }
 
-    public Calendar getFechaHoraCalendar() { return fechaHoraCalendar; }
+    public void setDiaSemana(int diaSemana) {
+        this.diaSemana = diaSemana;
+    }
 
-    // Método útil para debugging
+    public String getHora() {
+        if (hora == null && fechaHora != null) {
+            calcularHoraYDia(); // Calcula bajo demanda
+        }
+        return hora != null ? hora : "00:00";
+    }
+
     @Override
     public String toString() {
         return "Cita{" +
                 "id='" + id + '\'' +
                 ", actividad='" + actividad + '\'' +
                 ", lugar='" + lugar + '\'' +
-                ", fechaHora='" + fechaHora + '\'' +
                 ", tipoActividad='" + tipoActividad + '\'' +
-                ", diaSemana=" + diaSemana +
-                ", hora='" + hora + '\'' +
-                ", fechaHoraCalendar=" + (fechaHoraCalendar != null ? fechaHoraCalendar.getTime() : "null") +
+                ", fechaHora=" + fechaHora +
+                ", userId='" + userId + '\'' +
+                ", hora='" + getHora() + '\'' +
+                ", diaSemana=" + getDiaSemana() +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Cita cita = (Cita) o;
-        return id != null && id.equals(cita.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
-    }
-
-    // Devuelve el nombre completo del día
-    public String getDiaNombre() {
-        switch (diaSemana) {
-            case 0: return "Lunes";
-            case 1: return "Martes";
-            case 2: return "Miércoles";
-            case 3: return "Jueves";
-            case 4: return "Viernes";
-            case 5: return "Sábado";
-            case 6: return "Domingo";
-            default: return "Lunes";
-        }
-    }
-
-    // Devuelve hora en minutos para ordenar
-    public int getHoraNumerica() {
-        if (hora != null && hora.contains(":")) {
-            String[] partes = hora.split(":");
-            return Integer.parseInt(partes[0]) * 60 + Integer.parseInt(partes[1]);
-        }
-        return 0;
     }
 }
