@@ -14,6 +14,9 @@
         <activity android:name=".ui.RecoverPasswordActivity" />
         <activity android:name=".ui.RegisterActivity" />
         <activity
+            android:name=".ui.AgregarActividadActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.LoginActivity"
             android:exported="true">
             <intent-filter>

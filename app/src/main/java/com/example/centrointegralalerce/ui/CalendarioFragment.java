@@ -1,5 +1,7 @@
 package com.example.centrointegralalerce.ui;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,9 +28,11 @@ import java.util.Locale;
 
 public class CalendarioFragment extends Fragment {
 
+    private static final int REQUEST_ADD_ACTIVITY = 1;
+
     private ViewPager2 viewPagerCalendar;
     private TextView tvCurrentWeek;
-    private MaterialButton btnPrevWeek, btnNextWeek; // ✅ CORREGIDO: MaterialButton
+    private MaterialButton btnPrevWeek, btnNextWeek;
     private FloatingActionButton fabNewActivity;
     private LinearLayout layoutEmptyCalendar;
 
@@ -43,7 +47,7 @@ public class CalendarioFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_calendario, container, false);
 
-        // ✅ Vincular vistas con MaterialButton
+        // Vincular vistas
         viewPagerCalendar = view.findViewById(R.id.viewpager_calendar);
         tvCurrentWeek = view.findViewById(R.id.tv_current_week);
         btnPrevWeek = view.findViewById(R.id.btn_prev_week);
@@ -91,7 +95,6 @@ public class CalendarioFragment extends Fragment {
             @Override
             public void onPageScrollStateChanged(int state) {
                 super.onPageScrollStateChanged(state);
-                // Detectar cuando el usuario está haciendo scroll
                 isUserScrolling = (state == ViewPager2.SCROLL_STATE_DRAGGING ||
                         state == ViewPager2.SCROLL_STATE_SETTLING);
             }
@@ -99,7 +102,6 @@ public class CalendarioFragment extends Fragment {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                // Calcular la semana correspondiente a esta posición
                 int weekOffset = position - pagerAdapter.getMiddlePosition();
                 currentWeekStart = Calendar.getInstance();
                 setWeekToMonday(currentWeekStart);
@@ -126,19 +128,57 @@ public class CalendarioFragment extends Fragment {
             }
         });
 
+        // ✅ NUEVO: Configurar FAB para abrir AgregarActividadActivity
         fabNewActivity.setOnClickListener(v -> {
-            // TODO: Navegar a crear actividad
-            if (getContext() != null) {
-                Toast.makeText(getContext(),
-                        "Crear nueva actividad - Por implementar",
-                        Toast.LENGTH_SHORT).show();
-            }
+            abrirAgregarActividad();
         });
     }
 
     /**
-     * Ajusta el calendario al lunes de la semana actual
+     * ✅ NUEVO: Abre la Activity para agregar actividad
      */
+    private void abrirAgregarActividad() {
+        Intent intent = new Intent(getActivity(), AgregarActividadActivity.class);
+        startActivityForResult(intent, REQUEST_ADD_ACTIVITY);
+    }
+
+    /**
+     * ✅ NUEVO: Recibe el resultado cuando se agrega una actividad
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ADD_ACTIVITY && resultCode == Activity.RESULT_OK) {
+            // La actividad se agregó exitosamente
+            if (getContext() != null) {
+                Toast.makeText(getContext(),
+                        "Actividad agregada exitosamente",
+                        Toast.LENGTH_SHORT).show();
+            }
+            // Aquí puedes recargar las actividades desde Firestore
+            cargarActividadesDesdeFirestore();
+        }
+    }
+
+    /**
+     * ✅ NUEVO: Método para recargar actividades desde Firestore
+     */
+    private void cargarActividadesDesdeFirestore() {
+        // TODO: Implementar lectura de Firestore
+        // Por ahora solo mostramos un mensaje
+        if (getContext() != null) {
+            Toast.makeText(getContext(),
+                    "Recargando actividades...",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        // Actualizar vista
+        checkIfWeekHasCitas();
+        if (pagerAdapter != null) {
+            pagerAdapter.notifyDataSetChanged();
+        }
+    }
+
     private void setWeekToMonday(Calendar cal) {
         cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
@@ -159,9 +199,6 @@ public class CalendarioFragment extends Fragment {
         cal.set(Calendar.MILLISECOND, 0);
     }
 
-    /**
-     * Actualiza el texto que muestra la semana actual
-     */
     private void updateWeekLabel() {
         try {
             SimpleDateFormat dayFormat = new SimpleDateFormat("dd", new Locale("es", "ES"));
@@ -180,9 +217,6 @@ public class CalendarioFragment extends Fragment {
         }
     }
 
-    /**
-     * Verifica si la semana actual tiene citas y muestra/oculta el mensaje vacío
-     */
     private void checkIfWeekHasCitas() {
         Calendar endCal = (Calendar) currentWeekStart.clone();
         endCal.add(Calendar.DAY_OF_MONTH, 6);
@@ -199,7 +233,6 @@ public class CalendarioFragment extends Fragment {
             }
         }
 
-        // ✅ Null-check para evitar crashes
         if (layoutEmptyCalendar != null) {
             layoutEmptyCalendar.setVisibility(hasCitas ? View.GONE : View.VISIBLE);
         }

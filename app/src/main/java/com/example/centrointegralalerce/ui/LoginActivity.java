@@ -11,8 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.centrointegralalerce.R;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -22,14 +23,16 @@ public class LoginActivity extends AppCompatActivity {
     private Button guestLoginButton;
     private TextView tvRecoverPassword;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db; // Firestore
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Inicializar Firebase Auth
+        // Inicializar Firebase Auth y Firestore
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Vincular vistas
         emailEditText = findViewById(R.id.emailEditText);
@@ -66,10 +69,35 @@ public class LoginActivity extends AppCompatActivity {
                     loginButton.setText("Iniciar Sesión");
 
                     if (task.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, "¡Login exitoso!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
+                        String uid = mAuth.getCurrentUser().getUid();
+                        // Obtener documento del usuario en Firestore
+                        db.collection("usuarios").document(uid)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    if (documentSnapshot.exists()) {
+                                        String rolId = documentSnapshot.getString("rolId");
+                                        Toast.makeText(LoginActivity.this, "¡Login exitoso!", Toast.LENGTH_SHORT).show();
+
+                                        Intent intent;
+                                        if ("admin".equals(rolId)) {
+                                            // Abrir pantalla de administrador
+                                            intent = new Intent(LoginActivity.this, AdminMainActivity.class);
+                                        } else {
+                                            // Abrir pantalla de usuario normal
+                                            intent = new Intent(LoginActivity.this, UserMainActivity.class);
+                                        }
+
+                                        startActivity(intent);
+                                        finish();
+
+                                    } else {
+                                        Toast.makeText(LoginActivity.this, "No se encontró información del usuario en Firestore.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(LoginActivity.this, "Error al leer usuario: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                });
+
                     } else {
                         String errorMsg = "Error al iniciar sesión";
                         if (task.getException() != null) {
@@ -83,7 +111,7 @@ public class LoginActivity extends AppCompatActivity {
     public void onGuestLoginClick(View view) {
         Toast.makeText(this, "Accediendo como invitado...", Toast.LENGTH_SHORT).show();
 
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        Intent intent = new Intent(LoginActivity.this, UserMainActivity.class); // invitado como usuario normal
         intent.putExtra("INVITADO", true);
         startActivity(intent);
         finish();
