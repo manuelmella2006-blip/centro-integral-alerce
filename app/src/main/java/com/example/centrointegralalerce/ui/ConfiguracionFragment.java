@@ -69,12 +69,13 @@ public class ConfiguracionFragment extends Fragment {
                 tvUserEmail.setText(email);
                 chipUserRole.setText(rol);
 
-                // 🔹 Mostrar solo si es administrador
-                if ("Administrador".equals(rol)) {
-                    itemGestionarUsuarios.setVisibility(View.VISIBLE);
-                } else {
-                    itemGestionarUsuarios.setVisibility(View.GONE);
-                }
+                MainActivity mainActivity = (MainActivity) getActivity();
+                boolean esInvitado = mainActivity != null && mainActivity.isGuest();
+                boolean esAdmin = "Administrador".equals(rol);
+
+                // Mostrar solo opciones administrativas si es admin y no invitado
+                itemGestionarUsuarios.setVisibility((esAdmin && !esInvitado) ? View.VISIBLE : View.GONE);
+                itemMantenedores.setVisibility((esAdmin && !esInvitado) ? View.VISIBLE : View.GONE);
             }
         });
     }
@@ -114,10 +115,10 @@ public class ConfiguracionFragment extends Fragment {
                 .setTitle("Cerrar sesión")
                 .setMessage("¿Estás seguro que deseas cerrar sesión?")
                 .setPositiveButton("Cerrar sesión", (dialog, which) -> {
+                    auth.signOut(); // cerrar sesión en Firebase
                     requireActivity().finish();
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
 }
-

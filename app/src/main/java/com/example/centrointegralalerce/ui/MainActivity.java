@@ -13,17 +13,27 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
     private Toolbar toolbar;
     private boolean esInvitado = false;
+    private String rolUsuario = "usuario"; // por defecto
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Detectar modo invitado
+        // Obtener datos del Login
         esInvitado = getIntent().getBooleanExtra("INVITADO", false);
+        String rol = getIntent().getStringExtra("ROL");
+        if (rol != null) {
+            rolUsuario = rol;
+        }
 
+        // Mensaje según rol
         if (esInvitado) {
             Toast.makeText(this, "Modo invitado - Funcionalidad limitada", Toast.LENGTH_LONG).show();
+        } else if ("admin".equals(rolUsuario)) {
+            Toast.makeText(this, "Bienvenido Administrador", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Bienvenido Usuario", Toast.LENGTH_SHORT).show();
         }
 
         // Inicializar vistas
@@ -58,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_settings) {
                 selectedFragment = new ConfiguracionFragment();
                 title = "Configuración";
+
+                // Ejemplo: Solo admins pueden ver ciertas opciones en Configuración
+                if (!"admin".equals(rolUsuario)) {
+                    Toast.makeText(this, "Acceso limitado: solo administradores pueden modificar la configuración avanzada.", Toast.LENGTH_SHORT).show();
+                }
             }
 
             if (selectedFragment != null) {
@@ -68,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFragment(Fragment fragment, String title) {
-        // Transición suave entre fragments
         getSupportFragmentManager()
                 .beginTransaction()
                 .setCustomAnimations(
@@ -85,8 +99,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Método para obtener si es invitado (otros fragments pueden usarlo)
+    // Métodos públicos para que los fragments sepan si es invitado o admin
     public boolean isGuest() {
         return esInvitado;
+    }
+
+    public boolean isAdmin() {
+        return "admin".equals(rolUsuario);
     }
 }

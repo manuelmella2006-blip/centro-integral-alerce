@@ -12,10 +12,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.widget.LinearLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Cita;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,9 @@ public class ListaActividadesFragment extends Fragment {
     private FloatingActionButton fabNewActivityList;
     private LinearLayout layoutEmptyList;
     private List<Cita> activitiesList;
+
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
 
     @Nullable
     @Override
@@ -41,9 +46,13 @@ public class ListaActividadesFragment extends Fragment {
         fabNewActivityList = view.findViewById(R.id.fab_new_activity_list);
         layoutEmptyList = view.findViewById(R.id.layout_empty_list);
 
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
         setupRecyclerView();
         setupListeners();
         loadActivities();
+        checkUserRole();
 
         return view;
     }
@@ -68,6 +77,7 @@ public class ListaActividadesFragment extends Fragment {
 
         // FAB nueva actividad
         fabNewActivityList.setOnClickListener(v -> {
+            // Solo admins pueden crear actividad
             // TODO: Navegar a crear actividad
         });
     }
@@ -79,5 +89,23 @@ public class ListaActividadesFragment extends Fragment {
         activitiesList.add(new Cita("Capacitación en Seguridad", "Sala 101", "Lun 9:00", "Capacitación"));
         activitiesList.add(new Cita("Taller de Manualidades", "Sala 202", "Mar 14:00", "Taller"));
         activitiesList.add(new Cita("Charla Salud Mental", "Auditorio", "Mié 11:00", "Charlas"));
+    }
+
+    /**
+     * ✅ Oculta el FAB si el usuario no es admin o es invitado
+     */
+    private void checkUserRole() {
+        String uid = auth.getCurrentUser().getUid();
+        db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String rol = documentSnapshot.getString("rol");
+
+                MainActivity mainActivity = (MainActivity) getActivity();
+                boolean esInvitado = mainActivity != null && mainActivity.isGuest();
+                boolean esAdmin = "Administrador".equals(rol);
+
+                fabNewActivityList.setVisibility((esAdmin && !esInvitado) ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 }

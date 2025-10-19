@@ -69,14 +69,20 @@ public class CalendarioFragment extends Fragment {
         setupListeners();
         updateWeekLabel();
 
+        // ✅ Controlar visibilidad del FAB según rol
+        MainActivity mainActivity = (MainActivity) getActivity();
+        if (mainActivity != null) {
+            if (!mainActivity.isAdmin() || mainActivity.isGuest()) {
+                fabNewActivity.setVisibility(View.GONE); // usuarios normales o invitados no pueden crear
+            }
+        }
+
         return view;
     }
 
     private void setupViewPager() {
-        // Crear el adaptador
         pagerAdapter = new CalendarPagerAdapter(allCitas, getParentFragmentManager(), currentWeekStart);
 
-        // Configurar listener para actualizar el label cuando cambia la semana
         pagerAdapter.setOnWeekChangeListener(weekStart -> {
             if (isUserScrolling) {
                 currentWeekStart = (Calendar) weekStart.clone();
@@ -86,11 +92,8 @@ public class CalendarioFragment extends Fragment {
         });
 
         viewPagerCalendar.setAdapter(pagerAdapter);
-
-        // Empezar en la posición central (semana actual)
         viewPagerCalendar.setCurrentItem(pagerAdapter.getMiddlePosition(), false);
 
-        // Listener para detectar cambios de página
         viewPagerCalendar.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrollStateChanged(int state) {
@@ -128,51 +131,36 @@ public class CalendarioFragment extends Fragment {
             }
         });
 
-        // ✅ NUEVO: Configurar FAB para abrir AgregarActividadActivity
         fabNewActivity.setOnClickListener(v -> {
             abrirAgregarActividad();
         });
     }
 
-    /**
-     * ✅ NUEVO: Abre la Activity para agregar actividad
-     */
     private void abrirAgregarActividad() {
         Intent intent = new Intent(getActivity(), AgregarActividadActivity.class);
         startActivityForResult(intent, REQUEST_ADD_ACTIVITY);
     }
 
-    /**
-     * ✅ NUEVO: Recibe el resultado cuando se agrega una actividad
-     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_ADD_ACTIVITY && resultCode == Activity.RESULT_OK) {
-            // La actividad se agregó exitosamente
             if (getContext() != null) {
                 Toast.makeText(getContext(),
                         "Actividad agregada exitosamente",
                         Toast.LENGTH_SHORT).show();
             }
-            // Aquí puedes recargar las actividades desde Firestore
             cargarActividadesDesdeFirestore();
         }
     }
 
-    /**
-     * ✅ NUEVO: Método para recargar actividades desde Firestore
-     */
     private void cargarActividadesDesdeFirestore() {
         // TODO: Implementar lectura de Firestore
-        // Por ahora solo mostramos un mensaje
         if (getContext() != null) {
             Toast.makeText(getContext(),
-                    "Recargando actividades...",
-                    Toast.LENGTH_SHORT).show();
+                    "Recargando actividades...", Toast.LENGTH_SHORT).show();
         }
 
-        // Actualizar vista
         checkIfWeekHasCitas();
         if (pagerAdapter != null) {
             pagerAdapter.notifyDataSetChanged();
@@ -184,13 +172,7 @@ public class CalendarioFragment extends Fragment {
         cal.setMinimalDaysInFirstWeek(4);
 
         int currentDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-        int daysFromMonday;
-
-        if (currentDayOfWeek == Calendar.SUNDAY) {
-            daysFromMonday = 6;
-        } else {
-            daysFromMonday = currentDayOfWeek - Calendar.MONDAY;
-        }
+        int daysFromMonday = currentDayOfWeek == Calendar.SUNDAY ? 6 : currentDayOfWeek - Calendar.MONDAY;
 
         cal.add(Calendar.DAY_OF_MONTH, -daysFromMonday);
         cal.set(Calendar.HOUR_OF_DAY, 0);
