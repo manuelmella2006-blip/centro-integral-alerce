@@ -58,26 +58,72 @@ public class ConfiguracionFragment extends Fragment {
     }
 
     private void cargarInfoUsuario() {
+        // Verificar si hay usuario autenticado
+        if (auth.getCurrentUser() == null) {
+            tvUserName.setText("Usuario no autenticado");
+            tvUserEmail.setText("Sin correo");
+            chipUserRole.setText("Invitado");
+            itemGestionarUsuarios.setVisibility(View.GONE);
+            itemMantenedores.setVisibility(View.GONE);
+            return;
+        }
+
         String uid = auth.getCurrentUser().getUid();
-        db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                String nombre = documentSnapshot.getString("nombre");
-                String email = documentSnapshot.getString("email");
-                String rol = documentSnapshot.getString("rol");
+        String email = auth.getCurrentUser().getEmail();
 
-                tvUserName.setText(nombre);
-                tvUserEmail.setText(email);
-                chipUserRole.setText(rol);
+        // Mostrar email inmediatamente
+        tvUserEmail.setText(email != null ? email : "Sin correo");
 
-                MainActivity mainActivity = (MainActivity) getActivity();
-                boolean esInvitado = mainActivity != null && mainActivity.isGuest();
-                boolean esAdmin = "Administrador".equals(rol);
+        // ✅ CORREGIDO: Cambiar "users" por "usuarios"
+        db.collection("usuarios").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String nombre = documentSnapshot.getString("nombre");
+                        String rolId = documentSnapshot.getString("rolId");
 
-                // Mostrar solo opciones administrativas si es admin y no invitado
-                itemGestionarUsuarios.setVisibility((esAdmin && !esInvitado) ? View.VISIBLE : View.GONE);
-                itemMantenedores.setVisibility((esAdmin && !esInvitado) ? View.VISIBLE : View.GONE);
-            }
-        });
+                        tvUserName.setText(nombre != null ? nombre : "Usuario");
+
+                        // Cargar información del rol
+                        if (rolId != null) {
+                            db.collection("roles").document(rolId).get()
+                                    .addOnSuccessListener(rolDoc -> {
+                                        if (rolDoc.exists()) {
+                                            String rolNombre = rolDoc.getString("nombre");
+                                            chipUserRole.setText(rolNombre != null ? rolNombre : rolId);
+
+                                            // Mostrar opciones según rol
+                                            boolean esAdmin = "admin".equals(rolId);
+                                            itemGestionarUsuarios.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
+                                            itemMantenedores.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        chipUserRole.setText("Error al cargar rol");
+                                        Toast.makeText(requireContext(),
+                                                "Error: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    });
+                        } else {
+                            chipUserRole.setText("Sin rol");
+                            itemGestionarUsuarios.setVisibility(View.GONE);
+                            itemMantenedores.setVisibility(View.GONE);
+                        }
+                    } else {
+                        tvUserName.setText("Usuario no encontrado");
+                        chipUserRole.setText("Sin rol");
+                        itemGestionarUsuarios.setVisibility(View.GONE);
+                        itemMantenedores.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    tvUserName.setText("Error al cargar");
+                    chipUserRole.setText("Error");
+                    itemGestionarUsuarios.setVisibility(View.GONE);
+                    itemMantenedores.setVisibility(View.GONE);
+                    Toast.makeText(requireContext(),
+                            "Error al conectar con Firestore: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
     }
 
     private void setupListeners() {
@@ -115,7 +161,10 @@ public class ConfiguracionFragment extends Fragment {
                 .setTitle("Cerrar sesión")
                 .setMessage("¿Estás seguro que deseas cerrar sesión?")
                 .setPositiveButton("Cerrar sesión", (dialog, which) -> {
-                    auth.signOut(); // cerrar sesión en Firebase
+                    auth.signOut();
+                    Intent intent = new Intent(requireContext(), LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                     requireActivity().finish();
                 })
                 .setNegativeButton("Cancelar", null)
