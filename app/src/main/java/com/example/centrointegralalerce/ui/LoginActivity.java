@@ -18,7 +18,6 @@ public class LoginActivity extends AppCompatActivity {
     private EditText emailEditText;
     private EditText passwordEditText;
     private Button loginButton;
-    private Button guestLoginButton;
     private TextView tvRecoverPassword;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -31,14 +30,14 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Referencias del layout
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
-        guestLoginButton = findViewById(R.id.guestLoginButton);
         tvRecoverPassword = findViewById(R.id.tvRecoverPassword);
 
-        loginButton.setOnClickListener(v -> onLoginClick(v));
-        guestLoginButton.setOnClickListener(v -> onGuestLoginClick(v));
+        // Eventos
+        loginButton.setOnClickListener(this::onLoginClick);
         tvRecoverPassword.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RecoverPasswordActivity.class);
             startActivity(intent);
@@ -82,26 +81,17 @@ public class LoginActivity extends AppCompatActivity {
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(LoginActivity.this, "Error al leer usuario: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                    e.printStackTrace(); // 🔹 Log extra
+                                    e.printStackTrace();
                                 });
 
                     } else {
                         String errorMsg = "Error al iniciar sesión";
                         if (task.getException() != null) {
                             errorMsg = task.getException().getMessage();
-                            task.getException().printStackTrace(); // 🔹 Log extra de la excepción
+                            task.getException().printStackTrace();
                         }
                         Toast.makeText(LoginActivity.this, "Error: " + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
-    }
-
-    public void onGuestLoginClick(View view) {
-        Toast.makeText(this, "Accediendo como invitado...", Toast.LENGTH_SHORT).show();
-
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.putExtra("ROL", "usuario"); // invitado tratado como usuario normal
-        startActivity(intent);
-        finish();
     }
 }
