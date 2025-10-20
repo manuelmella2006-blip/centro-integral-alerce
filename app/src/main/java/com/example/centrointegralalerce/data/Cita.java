@@ -102,12 +102,12 @@ public class Cita {
         boolean valida = actividad != null && !actividad.trim().isEmpty()
                 && lugar != null && !lugar.trim().isEmpty()
                 && tipoActividad != null && !tipoActividad.trim().isEmpty()
-                && fechaHora != null
-                && userId != null && !userId.trim().isEmpty();
+                && fechaHora != null;
+        // userId ya NO es obligatorio
 
         if (!valida) {
-            Log.w(TAG, String.format("Cita inválida - ID: %s, Actividad: %s, Lugar: %s, Tipo: %s, FechaHora: %s, UserId: %s",
-                    id, actividad, lugar, tipoActividad, fechaHora, userId));
+            Log.w(TAG, String.format("Cita inválida - ID: %s, Actividad: %s, Lugar: %s, Tipo: %s, FechaHora: %s",
+                    id, actividad, lugar, tipoActividad, fechaHora));
         }
 
         return valida;

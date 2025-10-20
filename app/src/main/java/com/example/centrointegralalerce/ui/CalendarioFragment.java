@@ -17,6 +17,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Cita;
+import com.example.centrointegralalerce.data.CitaFirebase;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -70,9 +71,11 @@ public class CalendarioFragment extends Fragment {
 
             setupListeners();
 
+            // Verificar autenticación antes de cargar
+            verificarAutenticacion();
+
             // Cargar citas desde Firebase
-            // loadCitasFromFirebase(); // ⚠️ Comentado temporalmente
-            cargarDatosDePrueba(); // ✅ Datos de prueba
+            loadCitasFromFirebase();
 
         } catch (Exception e) {
             Log.e(TAG, "Error crítico en onCreateView: " + e.getMessage(), e);
@@ -104,116 +107,134 @@ public class CalendarioFragment extends Fragment {
     }
 
     /**
-     * Carga las citas desde Firebase Firestore con manejo robusto de errores
+     * Verifica si el usuario está autenticado
+     */
+    private void verificarAutenticacion() {
+        if (mAuth == null) {
+            Log.e(TAG, "❌ FirebaseAuth es null");
+            showError("Error de configuración de Firebase Auth");
+            return;
+        }
+
+        if (mAuth.getCurrentUser() == null) {
+            Log.e(TAG, "❌ Usuario NO autenticado - no debería llegar aquí después del login");
+            showError("Debes iniciar sesión para ver las actividades");
+            setupViewPager(); // Configurar calendario vacío
+            return;
+        }
+
+        // Usuario autenticado correctamente
+        String uid = mAuth.getCurrentUser().getUid();
+        String email = mAuth.getCurrentUser().getEmail();
+        boolean isAnonymous = mAuth.getCurrentUser().isAnonymous();
+
+        Log.d(TAG, "========================================");
+        Log.d(TAG, "✅ USUARIO AUTENTICADO");
+        Log.d(TAG, "UID: " + uid);
+        Log.d(TAG, "Email: " + (email != null ? email : "sin email (anónimo)"));
+        Log.d(TAG, "Es anónimo: " + isAnonymous);
+        Log.d(TAG, "========================================");
+    }
+
+    /**
+     * Carga las citas desde Firestore (ruta: /actividades/{actividadId}/citas/{citaId})
      */
     private void loadCitasFromFirebase() {
-        Log.d(TAG, "=== INICIANDO CARGA DE CITAS ===");
+        Log.d(TAG, "=== INICIANDO CARGA DE CITAS DESDE SUBCOLECCIONES ===");
 
         if (db == null) {
             Log.e(TAG, "❌ FirebaseFirestore es null");
             showError("Error de configuración de Firebase");
-            setupViewPager(); // Configurar vacío
+            setupViewPager();
             return;
         }
 
         showLoading(true);
+        allCitas.clear();
 
-        db.collection("citas")
+        db.collection("actividades")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    try {
-                        allCitas.clear();
-                        int citasValidas = 0;
-                        int citasInvalidas = 0;
-
-                        Log.d(TAG, "Documentos recibidos: " + queryDocumentSnapshots.size());
-
-                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            try {
-                                // Intentar parsear la cita
-                                Cita cita = document.toObject(Cita.class);
-
-                                // Log detallado del documento
-                                Log.d(TAG, "--- Documento: " + document.getId() + " ---");
-                                Log.d(TAG, "Datos raw: " + document.getData());
-
-                                if (cita == null) {
-                                    Log.e(TAG, "❌ Cita parseada es null - documento: " + document.getId());
-                                    citasInvalidas++;
-                                    continue;
-                                }
-
-                                // Validar cita
-                                if (!cita.esValida()) {
-                                    Log.w(TAG, "⚠️ Cita inválida: " + cita.toString());
-                                    citasInvalidas++;
-                                    continue;
-                                }
-
-                                // Verificar que el Timestamp se convirtió correctamente
-                                if (cita.getFechaHora() == null) {
-                                    Log.e(TAG, "❌ Timestamp es null en cita: " + cita.getId());
-                                    citasInvalidas++;
-                                    continue;
-                                }
-
-                                // Verificar que hora y día se calcularon
-                                String hora = cita.getHora();
-                                int dia = cita.getDiaSemana();
-                                Log.d(TAG, "✅ Cita válida: " + cita.getActividad() +
-                                        " | Hora: " + hora +
-                                        " | Día: " + dia +
-                                        " | Timestamp: " + cita.getFechaHora().toDate());
-
-                                if (dia < 0 || dia > 6) {
-                                    Log.e(TAG, "❌ Día de semana inválido: " + dia);
-                                    citasInvalidas++;
-                                    continue;
-                                }
-
-                                allCitas.add(cita);
-                                citasValidas++;
-
-                            } catch (Exception e) {
-                                Log.e(TAG, "❌ Error al parsear documento " + document.getId() + ": " + e.getMessage(), e);
-                                citasInvalidas++;
-                            }
-                        }
-
-                        Log.d(TAG, "=== RESULTADO DE CARGA ===");
-                        Log.d(TAG, "Citas válidas: " + citasValidas);
-                        Log.d(TAG, "Citas inválidas: " + citasInvalidas);
-                        Log.d(TAG, "Total en memoria: " + allCitas.size());
-
-                        // Configurar ViewPager después de cargar las citas
+                .addOnSuccessListener(actividadesSnapshot -> {
+                    if (actividadesSnapshot.isEmpty()) {
+                        Log.w(TAG, "⚠️ No hay actividades registradas");
+                        showInfo("No hay actividades registradas");
+                        showLoading(false);
                         setupViewPager();
-                        updateWeekLabel(currentWeekStart);
-                        checkIfWeekHasCitas(currentWeekStart);
+                        return;
+                    }
 
-                        showLoading(false);
+                    // Contadores
+                    final int[] totalCitas = {0};
+                    final int[] actividadesProcesadas = {0};
 
-                        if (allCitas.isEmpty()) {
-                            if (citasInvalidas > 0) {
-                                showError("Se encontraron " + citasInvalidas + " citas con errores de formato");
-                            } else {
-                                showInfo("No hay actividades programadas");
-                            }
-                        } else {
-                            showSuccess("Se cargaron " + citasValidas + " actividades");
-                        }
+                    for (QueryDocumentSnapshot actividadDoc : actividadesSnapshot) {
+                        String actividadId = actividadDoc.getId();
+                        String actividadNombre = actividadDoc.getString("actividad");
+                        String tipoActividad = actividadDoc.getString("tipoActividad");
 
-                    } catch (Exception e) {
-                        Log.e(TAG, "❌ Error crítico al procesar citas: " + e.getMessage(), e);
-                        showError("Error al procesar las actividades");
-                        showLoading(false);
-                        setupViewPager(); // Configurar vacío
+                        db.collection("actividades")
+                                .document(actividadId)
+                                .collection("citas")
+                                .get()
+                                .addOnSuccessListener(citasSnapshot -> {
+                                    for (QueryDocumentSnapshot citaDoc : citasSnapshot) {
+                                        try {
+                                            CitaFirebase citaFirebase = citaDoc.toObject(CitaFirebase.class);
+                                            if (citaFirebase == null) continue;
+
+                                            citaFirebase.setId(citaDoc.getId());
+                                            citaFirebase.setActividadId(actividadId);
+                                            citaFirebase.setActividadNombre(
+                                                    actividadNombre != null ? actividadNombre : "Sin nombre"
+                                            );
+                                            citaFirebase.setTipoActividad(
+                                                    tipoActividad != null ? tipoActividad : "General"
+                                            );
+
+                                            Cita cita = citaFirebase.toCita();
+                                            if (cita != null && cita.esValida()) {
+                                                allCitas.add(cita);
+                                                totalCitas[0]++;
+                                                Log.d(TAG, "✅ Cita añadida: " + cita.getActividad() + " - " + cita.getHora());
+                                            } else {
+                                                Log.w(TAG, "⚠️ Cita inválida o nula: " + citaDoc.getId());
+                                            }
+
+                                        } catch (Exception e) {
+                                            Log.e(TAG, "❌ Error al convertir cita: " + e.getMessage(), e);
+                                        }
+                                    }
+
+                                    // Verificar si ya se procesaron todas las actividades
+                                    actividadesProcesadas[0]++;
+                                    if (actividadesProcesadas[0] == actividadesSnapshot.size()) {
+                                        Log.d(TAG, "=== CARGA COMPLETA ===");
+                                        Log.d(TAG, "Total de citas cargadas: " + totalCitas[0]);
+
+                                        setupViewPager();
+                                        updateWeekLabel(currentWeekStart);
+                                        checkIfWeekHasCitas(currentWeekStart);
+
+                                        showLoading(false);
+
+                                        if (allCitas.isEmpty()) {
+                                            showInfo("No hay citas registradas");
+                                        } else {
+                                            showSuccess("Se cargaron " + totalCitas[0] + " citas");
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error al cargar citas de actividad " + actividadId + ": " + e.getMessage(), e);
+                                    actividadesProcesadas[0]++;
+                                });
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error en consulta Firebase: " + e.getMessage(), e);
-                    showError("Error al cargar actividades: " + e.getMessage());
+                    Log.e(TAG, "❌ Error al cargar actividades: " + e.getMessage(), e);
+                    showError("Error al cargar actividades");
                     showLoading(false);
-                    setupViewPager(); // Aún así configurar el ViewPager vacío
+                    setupViewPager();
                 });
     }
 
@@ -499,141 +520,4 @@ public class CalendarioFragment extends Fragment {
         }
     }
 
-    /**
-     * DATOS DE PRUEBA - Temporal para testing
-     * Genera citas de ejemplo para esta semana
-     */
-    private void cargarDatosDePrueba() {
-        Log.d(TAG, "=== CARGANDO DATOS DE PRUEBA ===");
-
-        showLoading(true);
-
-        allCitas.clear();
-
-        try {
-            Calendar cal = Calendar.getInstance();
-            com.google.firebase.Timestamp timestamp;
-
-            // LUNES 13 de octubre - 09:00
-            cal.set(2025, Calendar.OCTOBER, 13, 9, 0, 0);
-            cal.set(Calendar.MILLISECOND, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita1 = new Cita(
-                    "test1",
-                    "Reunión de Equipo",
-                    "Sala A",
-                    "Charlas",
-                    timestamp,
-                    "test-user"
-            );
-            allCitas.add(cita1);
-
-            // MARTES 14 de octubre - 10:00
-            cal.set(2025, Calendar.OCTOBER, 14, 10, 0, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita2 = new Cita(
-                    "test2",
-                    "Capacitación Excel",
-                    "Laboratorio 1",
-                    "Capacitación",
-                    timestamp,
-                    "test-user"
-            );
-            allCitas.add(cita2);
-
-            // MIÉRCOLES 15 de octubre - 14:00
-            cal.set(2025, Calendar.OCTOBER, 15, 14, 0, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita3 = new Cita(
-                    "test3",
-                    "Atención Psicológica",
-                    "Consultorio 2",
-                    "Atenciones",
-                    timestamp,
-                    "test-user"
-            );
-            allCitas.add(cita3);
-
-            // JUEVES 16 de octubre - 11:00
-            cal.set(2025, Calendar.OCTOBER, 16, 11, 0, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita4 = new Cita(
-                    "test4",
-                    "Taller de Programación",
-                    "Lab Computación",
-                    "Taller",
-                    timestamp,
-                    "test-user"
-            );
-            allCitas.add(cita4);
-
-            // VIERNES 17 de octubre - 15:00
-            cal.set(2025, Calendar.OCTOBER, 17, 15, 0, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita5 = new Cita(
-                    "test5",
-                    "Operativo de Salud",
-                    "Plaza Central",
-                    "Operativo",
-                    timestamp,
-                    "test-user"
-            );
-            allCitas.add(cita5);
-
-            // SÁBADO 19 de octubre - 16:00 (hora exacta para que se muestre)
-            cal.set(2025, Calendar.OCTOBER, 19, 16, 0, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita6 = new Cita(
-                    "test6",
-                    "Taller de Robótica",
-                    "Laboratorio 3",
-                    "Taller",
-                    timestamp,
-                    "abc123uid"
-            );
-            allCitas.add(cita6);
-
-            // lunes 20 de octubre - 10:00
-            cal.set(2025, Calendar.OCTOBER, 20, 10, 0, 0);
-            timestamp = new com.google.firebase.Timestamp(cal.getTime());
-            Cita cita7 = new Cita(
-                    "test7",
-                    "Charla Motivacional",
-                    "Auditorio",
-                    "Charlas",
-                    timestamp,
-                    "test-user"
-            );
-            allCitas.add(cita7);
-
-            Log.d(TAG, "=== DATOS DE PRUEBA CREADOS ===");
-            Log.d(TAG, "Total citas: " + allCitas.size());
-
-            // Validar cada cita
-            for (int i = 0; i < allCitas.size(); i++) {
-                Cita cita = allCitas.get(i);
-                Log.d(TAG, String.format("Cita %d: %s | Hora: %s | Día: %d | Válida: %s",
-                        i + 1,
-                        cita.getActividad(),
-                        cita.getHora(),
-                        cita.getDiaSemana(),
-                        cita.esValida()
-                ));
-            }
-
-            // Configurar ViewPager
-            setupViewPager();
-            updateWeekLabel(currentWeekStart);
-            checkIfWeekHasCitas(currentWeekStart);
-
-            showLoading(false);
-            showSuccess("Se cargaron " + allCitas.size() + " actividades de prueba");
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error al crear datos de prueba: " + e.getMessage(), e);
-            showError("Error al cargar datos de prueba");
-            showLoading(false);
-            setupViewPager();
-        }
-    }
 }
