@@ -1,16 +1,12 @@
-// ============================================
-// 1. NUEVA CLASE CitaFirebase.java
-// ============================================
 package com.example.centrointegralalerce.data;
 
 import android.util.Log;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
-
 import java.util.Calendar;
 
 /**
- * Modelo que representa una cita tal como está en Firebase
+ * Modelo que representa una cita tal como está en Firebase.
  * Ruta: actividades/{actividadId}/citas/{citaId}
  */
 public class CitaFirebase {
@@ -24,12 +20,14 @@ public class CitaFirebase {
     private String hora;          // "14:00" (formato String)
     private String lugarId;       // ID del lugar
 
-    // Campos adicionales que necesitamos para el calendario
-    private transient String actividadId;      // ID de la actividad padre
-    private transient String actividadNombre;  // Nombre de la actividad
-    private transient String tipoActividad;    // Tipo de actividad
+    // === Campos de la actividad padre (no están dentro del doc de la cita) ===
+    private transient String actividadId;        // ID de la actividad padre
+    private transient String actividadNombre;    // Nombre de la actividad
+    private transient String tipoActividadId;    // ID del tipo de actividad
+    private transient String estadoActividad;    // "activa", "inactiva"
+    private transient int cupo;                  // Cupo disponible (si aplica)
 
-    // Campos calculados para UI
+    // === Campos calculados para la interfaz ===
     private transient int diaSemana;
     private transient String horaCalculada;
 
@@ -38,26 +36,31 @@ public class CitaFirebase {
     }
 
     /**
-     * Convierte CitaFirebase al modelo Cita que usa el calendario
+     * Convierte CitaFirebase al modelo Cita que usa el calendario.
      */
     public Cita toCita() {
         try {
-            // Crear Timestamp combinando fecha + hora
             Timestamp timestampFinal = combinarFechaHora();
-
             if (timestampFinal == null) {
                 Log.e(TAG, "No se pudo crear Timestamp para cita: " + id);
                 return null;
             }
 
+            // Construir el objeto Cita completo
             Cita cita = new Cita(
                     id,
-                    actividadNombre != null ? actividadNombre : "Actividad",
+                    actividadNombre != null ? actividadNombre : "Actividad sin nombre",
                     lugarId != null ? lugarId : "Sin lugar",
-                    tipoActividad != null ? tipoActividad : "General",
+                    tipoActividadId != null ? tipoActividadId : "Desconocido",
                     timestampFinal,
                     "" // userId vacío por ahora
             );
+
+            // Propagar estado y cupo
+            cita.setEstado(
+                    estadoActividad != null ? estadoActividad : (estado != null ? estado : "indefinido")
+            );
+            cita.setCupo(cupo);
 
             return cita;
 
@@ -69,7 +72,7 @@ public class CitaFirebase {
 
     /**
      * Combina el campo fecha (Timestamp) con el campo hora (String)
-     * para crear un Timestamp completo
+     * para crear un Timestamp completo.
      */
     private Timestamp combinarFechaHora() {
         try {
@@ -103,7 +106,7 @@ public class CitaFirebase {
         }
     }
 
-    // Getters y Setters
+    // === Getters y Setters ===
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -125,11 +128,17 @@ public class CitaFirebase {
     public String getActividadNombre() { return actividadNombre; }
     public void setActividadNombre(String actividadNombre) { this.actividadNombre = actividadNombre; }
 
-    public String getTipoActividad() { return tipoActividad; }
-    public void setTipoActividad(String tipoActividad) { this.tipoActividad = tipoActividad; }
+    public String getTipoActividadId() { return tipoActividadId; }
+    public void setTipoActividadId(String tipoActividadId) { this.tipoActividadId = tipoActividadId; }
+
+    public String getEstadoActividad() { return estadoActividad; }
+    public void setEstadoActividad(String estadoActividad) { this.estadoActividad = estadoActividad; }
+
+    public int getCupo() { return cupo; }
+    public void setCupo(int cupo) { this.cupo = cupo; }
 
     public boolean esActiva() {
-        return "activa".equalsIgnoreCase(estado) || "activo".equalsIgnoreCase(estado);
+        return "activa".equalsIgnoreCase(estadoActividad) || "activo".equalsIgnoreCase(estado);
     }
 
     @Override
@@ -141,6 +150,9 @@ public class CitaFirebase {
                 ", hora='" + hora + '\'' +
                 ", lugarId='" + lugarId + '\'' +
                 ", actividadNombre='" + actividadNombre + '\'' +
+                ", tipoActividadId='" + tipoActividadId + '\'' +
+                ", estadoActividad='" + estadoActividad + '\'' +
+                ", cupo=" + cupo +
                 '}';
     }
 }

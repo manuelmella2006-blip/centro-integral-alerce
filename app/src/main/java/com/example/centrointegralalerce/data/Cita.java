@@ -3,42 +3,53 @@ package com.example.centrointegralalerce.data;
 import android.util.Log;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
-
 import java.util.Calendar;
-import java.util.Date;
 
 public class Cita {
     private static final String TAG = "Cita";
 
     @DocumentId
     private String id;
-    private String actividad;
-    private String lugar;
-    private String tipoActividad;
-    private Timestamp fechaHora; // FUENTE ÚNICA DE VERDAD
+    private String actividad;       // Nombre de la actividad
+    private String lugar;           // Nombre o ID del lugar
+    private String tipoActividad;   // Tipo o categoría
+    private Timestamp fechaHora;    // Fecha y hora unificadas
     private String userId;
+
+    // === Nuevos campos derivados de ActividadFirebase ===
+    private String estado;          // "activa", "inactiva", "cancelada", etc.
+    private int cupo;               // Cupo disponible (si aplica)
+    private String tipoActividadId; // ID de la categoría o tipo (puede mapearse luego)
 
     // Campos temporales para UI (no se guardan en Firebase)
     private transient int diaSemana;
     private transient String hora;
 
     // Constructor vacío requerido por Firebase
-    public Cita() {
-    }
+    public Cita() {}
 
-    // Constructor principal con validación
-    public Cita(String id, String actividad, String lugar, String tipoActividad, Timestamp fechaHora, String userId) {
+    // Constructor principal
+    public Cita(String id, String actividad, String lugar, String tipoActividad,
+                Timestamp fechaHora, String userId) {
         this.id = id;
         this.actividad = actividad;
         this.lugar = lugar;
         this.tipoActividad = tipoActividad;
         this.userId = userId;
-        setFechaHora(fechaHora); // Usa el setter con validación
+        setFechaHora(fechaHora);
     }
 
-    /**
-     * Calcula hora y día de la semana desde Timestamp con manejo de errores
-     */
+    // === NUEVO CONSTRUCTOR EXTENDIDO (por si quieres pasar más datos) ===
+    public Cita(String id, String actividad, String lugar, String tipoActividad,
+                Timestamp fechaHora, String userId, String estado, int cupo, String tipoActividadId) {
+        this(id, actividad, lugar, tipoActividad, fechaHora, userId);
+        this.estado = estado;
+        this.cupo = cupo;
+        this.tipoActividadId = tipoActividadId;
+    }
+
+    // ======= MÉTODOS DE CÁLCULO =======
+
     private void calcularHoraYDia() {
         if (fechaHora == null) {
             Log.w(TAG, "Timestamp es null, no se puede calcular hora/día");
@@ -51,12 +62,10 @@ public class Cita {
             Calendar cal = Calendar.getInstance();
             cal.setTime(fechaHora.toDate());
 
-            // Extraer hora
             int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
             int minute = cal.get(Calendar.MINUTE);
             this.hora = String.format("%02d:%02d", hourOfDay, minute);
 
-            // Calcular día de la semana (Lunes=0, Domingo=6)
             int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
             this.diaSemana = convertirDiaSemana(dayOfWeek);
 
@@ -67,24 +76,15 @@ public class Cita {
         }
     }
 
-    /**
-     * Convierte Calendar.DAY_OF_WEEK a formato 0=Lun, 6=Dom
-     */
     private int convertirDiaSemana(int calendarDay) {
-        // Calendar: 1=Dom, 2=Lun, ..., 7=Sáb
-        // Nuestro formato: 0=Lun, 6=Dom
         return (calendarDay == Calendar.SUNDAY) ? 6 : calendarDay - 2;
     }
 
-    /**
-     * Convierte Timestamp a Calendar con validación
-     */
     public Calendar getFechaHoraCalendar() {
         if (fechaHora == null) {
             Log.w(TAG, "Timestamp es null en getFechaHoraCalendar()");
             return null;
         }
-
         try {
             Calendar cal = Calendar.getInstance();
             cal.setTime(fechaHora.toDate());
@@ -95,92 +95,69 @@ public class Cita {
         }
     }
 
-    /**
-     * Valida que todos los campos obligatorios estén presentes
-     */
+    // ======= VALIDACIONES =======
     public boolean esValida() {
         boolean valida = actividad != null && !actividad.trim().isEmpty()
                 && lugar != null && !lugar.trim().isEmpty()
                 && tipoActividad != null && !tipoActividad.trim().isEmpty()
                 && fechaHora != null;
-        // userId ya NO es obligatorio
 
         if (!valida) {
-            Log.w(TAG, String.format("Cita inválida - ID: %s, Actividad: %s, Lugar: %s, Tipo: %s, FechaHora: %s",
+            Log.w(TAG, String.format(
+                    "Cita inválida - ID: %s, Actividad: %s, Lugar: %s, Tipo: %s, FechaHora: %s",
                     id, actividad, lugar, tipoActividad, fechaHora));
         }
 
         return valida;
     }
 
-    // ===== GETTERS Y SETTERS CON VALIDACIÓN =====
+    // ======= GETTERS Y SETTERS =======
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getId() {
-        return id;
-    }
+    public String getActividad() { return actividad != null ? actividad : ""; }
+    public void setActividad(String actividad) { this.actividad = actividad; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getLugar() { return lugar != null ? lugar : ""; }
+    public void setLugar(String lugar) { this.lugar = lugar; }
 
-    public String getActividad() {
-        return actividad != null ? actividad : "";
-    }
+    public String getTipoActividad() { return tipoActividad != null ? tipoActividad : ""; }
+    public void setTipoActividad(String tipoActividad) { this.tipoActividad = tipoActividad; }
 
-    public void setActividad(String actividad) {
-        this.actividad = actividad;
-    }
-
-    public String getLugar() {
-        return lugar != null ? lugar : "";
-    }
-
-    public void setLugar(String lugar) {
-        this.lugar = lugar;
-    }
-
-    public String getTipoActividad() {
-        return tipoActividad != null ? tipoActividad : "";
-    }
-
-    public void setTipoActividad(String tipoActividad) {
-        this.tipoActividad = tipoActividad;
-    }
-
-    public Timestamp getFechaHora() {
-        return fechaHora;
-    }
-
+    public Timestamp getFechaHora() { return fechaHora; }
     public void setFechaHora(Timestamp fechaHora) {
         this.fechaHora = fechaHora;
-        calcularHoraYDia(); // Recalcula automáticamente
+        calcularHoraYDia();
     }
 
-    public String getUserId() {
-        return userId != null ? userId : "";
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getUserId() { return userId != null ? userId : ""; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public int getDiaSemana() {
         if (diaSemana == 0 && fechaHora != null) {
-            calcularHoraYDia(); // Calcula si no está inicializado
+            calcularHoraYDia();
         }
         return diaSemana;
     }
 
-    public void setDiaSemana(int diaSemana) {
-        this.diaSemana = diaSemana;
-    }
+    public void setDiaSemana(int diaSemana) { this.diaSemana = diaSemana; }
 
     public String getHora() {
         if (hora == null && fechaHora != null) {
-            calcularHoraYDia(); // Calcula bajo demanda
+            calcularHoraYDia();
         }
         return hora != null ? hora : "00:00";
     }
+
+    // ===== NUEVOS CAMPOS =====
+    public String getEstado() { return estado != null ? estado : "sin estado"; }
+    public void setEstado(String estado) { this.estado = estado; }
+
+    public int getCupo() { return cupo; }
+    public void setCupo(int cupo) { this.cupo = cupo; }
+
+    public String getTipoActividadId() { return tipoActividadId; }
+    public void setTipoActividadId(String tipoActividadId) { this.tipoActividadId = tipoActividadId; }
 
     @Override
     public String toString() {
@@ -189,7 +166,10 @@ public class Cita {
                 ", actividad='" + actividad + '\'' +
                 ", lugar='" + lugar + '\'' +
                 ", tipoActividad='" + tipoActividad + '\'' +
+                ", tipoActividadId='" + tipoActividadId + '\'' +
                 ", fechaHora=" + fechaHora +
+                ", estado='" + estado + '\'' +
+                ", cupo=" + cupo +
                 ", userId='" + userId + '\'' +
                 ", hora='" + getHora() + '\'' +
                 ", diaSemana=" + getDiaSemana() +

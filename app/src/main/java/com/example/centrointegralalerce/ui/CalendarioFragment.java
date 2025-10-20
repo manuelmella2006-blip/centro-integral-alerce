@@ -139,8 +139,12 @@ public class CalendarioFragment extends Fragment {
     /**
      * Carga las citas desde Firestore (ruta: /actividades/{actividadId}/citas/{citaId})
      */
+    /**
+     * Carga las citas desde Firestore, combinando información de actividades.
+     * Estructura: /actividades/{actividadId}/citas/{citaId}
+     */
     private void loadCitasFromFirebase() {
-        Log.d(TAG, "=== INICIANDO CARGA DE CITAS DESDE SUBCOLECCIONES ===");
+        Log.d(TAG, "=== CARGANDO ACTIVIDADES Y SUS CITAS ===");
 
         if (db == null) {
             Log.e(TAG, "❌ FirebaseFirestore es null");
@@ -156,82 +160,101 @@ public class CalendarioFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(actividadesSnapshot -> {
                     if (actividadesSnapshot.isEmpty()) {
-                        Log.w(TAG, "⚠️ No hay actividades registradas");
+                        Log.w(TAG, "⚠️ No hay actividades registradas en Firestore");
                         showInfo("No hay actividades registradas");
                         showLoading(false);
                         setupViewPager();
                         return;
                     }
 
-                    // Contadores
-                    final int[] totalCitas = {0};
                     final int[] actividadesProcesadas = {0};
+                    final int totalActividades = actividadesSnapshot.size();
+                    final int[] totalCitas = {0};
 
                     for (QueryDocumentSnapshot actividadDoc : actividadesSnapshot) {
-                        String actividadId = actividadDoc.getId();
-                        String actividadNombre = actividadDoc.getString("actividad");
-                        String tipoActividad = actividadDoc.getString("tipoActividad");
+                        try {
+                            String actividadId = actividadDoc.getId();
+                            String actividadNombre = actividadDoc.getString("nombre");
+                            String tipoActividadId = actividadDoc.getString("tipoActividadId");
+                            String estadoActividad = actividadDoc.getString("estado");
 
-                        db.collection("actividades")
-                                .document(actividadId)
-                                .collection("citas")
-                                .get()
-                                .addOnSuccessListener(citasSnapshot -> {
-                                    for (QueryDocumentSnapshot citaDoc : citasSnapshot) {
-                                        try {
-                                            CitaFirebase citaFirebase = citaDoc.toObject(CitaFirebase.class);
-                                            if (citaFirebase == null) continue;
+                            Log.d(TAG, "📘 Actividad: " + actividadNombre + " (" + actividadId + ")");
 
-                                            citaFirebase.setId(citaDoc.getId());
-                                            citaFirebase.setActividadId(actividadId);
-                                            citaFirebase.setActividadNombre(
-                                                    actividadNombre != null ? actividadNombre : "Sin nombre"
-                                            );
-                                            citaFirebase.setTipoActividad(
-                                                    tipoActividad != null ? tipoActividad : "General"
-                                            );
+                            db.collection("actividades")
+                                    .document(actividadId)
+                                    .collection("citas")
+                                    .get()
+                                    .addOnSuccessListener(citasSnapshot -> {
+                                        if (citasSnapshot.isEmpty()) {
+                                            Log.d(TAG, "⚠️ Sin citas para: " + actividadNombre);
+                                        }
 
-                                            Cita cita = citaFirebase.toCita();
-                                            if (cita != null && cita.esValida()) {
-                                                allCitas.add(cita);
-                                                totalCitas[0]++;
-                                                Log.d(TAG, "✅ Cita añadida: " + cita.getActividad() + " - " + cita.getHora());
-                                            } else {
-                                                Log.w(TAG, "⚠️ Cita inválida o nula: " + citaDoc.getId());
+                                        for (QueryDocumentSnapshot citaDoc : citasSnapshot) {
+                                            try {
+                                                CitaFirebase citaFirebase = citaDoc.toObject(CitaFirebase.class);
+                                                if (citaFirebase == null) continue;
+
+                                                citaFirebase.setId(citaDoc.getId());
+                                                citaFirebase.setActividadId(actividadId);
+                                                citaFirebase.setActividadNombre(
+                                                        actividadNombre != null ? actividadNombre : "Sin nombre"
+                                                );
+                                                citaFirebase.setTipoActividadId(
+                                                        tipoActividadId != null ? tipoActividadId : "Desconocido"
+                                                );
+
+                                                // Si la actividad está inactiva, marcar la cita también
+                                                if (estadoActividad != null && !estadoActividad.equalsIgnoreCase("activa")) {
+                                                    citaFirebase.setEstado("inactiva");
+                                                }
+
+                                                Cita cita = citaFirebase.toCita();
+                                                if (cita != null && cita.esValida()) {
+                                                    allCitas.add(cita);
+                                                    totalCitas[0]++;
+                                                    Log.d(TAG, "✅ Cita añadida: " + cita.getActividad() +
+                                                            " | Hora: " + cita.getHora() +
+                                                            " | Día: " + cita.getDiaSemana());
+                                                } else {
+                                                    Log.w(TAG, "⚠️ Cita inválida: " + citaDoc.getId());
+                                                }
+
+                                            } catch (Exception e) {
+                                                Log.e(TAG, "❌ Error al convertir cita: " + e.getMessage(), e);
                                             }
-
-                                        } catch (Exception e) {
-                                            Log.e(TAG, "❌ Error al convertir cita: " + e.getMessage(), e);
                                         }
-                                    }
 
-                                    // Verificar si ya se procesaron todas las actividades
-                                    actividadesProcesadas[0]++;
-                                    if (actividadesProcesadas[0] == actividadesSnapshot.size()) {
-                                        Log.d(TAG, "=== CARGA COMPLETA ===");
-                                        Log.d(TAG, "Total de citas cargadas: " + totalCitas[0]);
+                                        actividadesProcesadas[0]++;
+                                        if (actividadesProcesadas[0] == totalActividades) {
+                                            Log.d(TAG, "=== CARGA COMPLETA ===");
+                                            Log.d(TAG, "Total citas cargadas: " + totalCitas[0]);
 
-                                        setupViewPager();
-                                        updateWeekLabel(currentWeekStart);
-                                        checkIfWeekHasCitas(currentWeekStart);
+                                            setupViewPager();
+                                            updateWeekLabel(currentWeekStart);
+                                            checkIfWeekHasCitas(currentWeekStart);
 
-                                        showLoading(false);
-
-                                        if (allCitas.isEmpty()) {
-                                            showInfo("No hay citas registradas");
-                                        } else {
-                                            showSuccess("Se cargaron " + totalCitas[0] + " citas");
+                                            showLoading(false);
+                                            if (allCitas.isEmpty()) {
+                                                showInfo("No hay citas registradas");
+                                            } else {
+                                                showSuccess("Se cargaron " + totalCitas[0] + " citas de actividades");
+                                            }
                                         }
-                                    }
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error al cargar citas de actividad " + actividadId + ": " + e.getMessage(), e);
-                                    actividadesProcesadas[0]++;
-                                });
+
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "❌ Error al cargar citas de " + actividadNombre + ": " + e.getMessage());
+                                        actividadesProcesadas[0]++;
+                                    });
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "❌ Error al procesar actividad: " + e.getMessage(), e);
+                            actividadesProcesadas[0]++;
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error al cargar actividades: " + e.getMessage(), e);
+                    Log.e(TAG, "❌ Error al obtener actividades: " + e.getMessage(), e);
                     showError("Error al cargar actividades");
                     showLoading(false);
                     setupViewPager();
