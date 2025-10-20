@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="80dp"
+    android:layout_height="wrap_content"
+    android:minHeight="80dp"
     android:orientation="horizontal"
     android:background="@color/blanco">
 
@@ -32,9 +33,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
     <!-- Miércoles -->
     <LinearLayout
@@ -42,9 +41,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
     <!-- Jueves -->
     <LinearLayout
@@ -52,9 +49,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
     <!-- Viernes -->
     <LinearLayout
@@ -62,9 +57,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
     <!-- Sábado -->
     <LinearLayout
@@ -72,9 +65,7 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
     <!-- Domingo -->
     <LinearLayout
@@ -82,8 +73,6 @@
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/border_cell"
-        android:padding="2dp" />
+        android:background="@drawable/border_cell" />
 
 </LinearLayout>

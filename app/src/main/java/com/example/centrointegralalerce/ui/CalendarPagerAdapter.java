@@ -16,11 +16,15 @@ import com.example.centrointegralalerce.data.Cita;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Adaptador para el ViewPager2 que muestra diferentes semanas del calendario
+ * CON SISTEMA DINÁMICO: Solo muestra las horas donde hay citas
  */
 public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdapter.WeekViewHolder> {
     private static final String TAG = "CalendarPagerAdapter";
@@ -172,32 +176,34 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
 
                 updateDayHeaders(weekStart);
 
-                // Horas del día
-                List<String> horas = new ArrayList<>();
-                for (int i = 8; i <= 18; i++) {
-                    horas.add(String.format(Locale.getDefault(), "%02d:00", i));
-                }
-
                 // Filtrar citas de esta semana
                 List<Cita> citasSemana = filterCitasForWeek(weekStart, allCitas);
 
                 Log.d(TAG, "Citas filtradas para esta semana: " + citasSemana.size());
+
+                // 🔹 SISTEMA DINÁMICO: Extraer solo las horas que tienen citas (ordenadas)
+                List<String> horasConCitas = getHorasUnicasOrdenadas(citasSemana);
+
+                Log.d(TAG, "Horas únicas con citas: " + horasConCitas.size());
+                for (String hora : horasConCitas) {
+                    Log.d(TAG, "  - " + hora);
+                }
 
                 if (rvCalendarWeek == null) {
                     Log.e(TAG, "❌ No se puede configurar adapter - RecyclerView es null");
                     return;
                 }
 
-                // Configurar adaptador interno
+                // Configurar adaptador interno CON HORAS DINÁMICAS
                 CalendarioAdapter adapter = new CalendarioAdapter(
                         itemView.getContext(),
-                        horas,
+                        horasConCitas, // 🔹 Solo las horas con citas
                         citasSemana,
                         fragmentManager
                 );
                 rvCalendarWeek.setAdapter(adapter);
 
-                Log.d(TAG, "✅ Adapter configurado con " + citasSemana.size() + " citas");
+                Log.d(TAG, "✅ Adapter configurado con " + citasSemana.size() + " citas en " + horasConCitas.size() + " filas");
 
             } catch (Exception e) {
                 Log.e(TAG, "❌ Error en bind(): " + e.getMessage(), e);
@@ -320,6 +326,59 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             }
 
             return citasSemana;
+        }
+
+        /**
+         * 🔹 NUEVO: Extrae las horas únicas donde hay citas y las ordena cronológicamente
+         */
+        private List<String> getHorasUnicasOrdenadas(List<Cita> citas) {
+            Set<String> horasSet = new HashSet<>();
+
+            Log.d(TAG, "🔍 Extrayendo horas únicas de " + citas.size() + " citas");
+
+            for (Cita cita : citas) {
+                if (cita == null) continue;
+
+                String hora = cita.getHora();
+                if (hora != null && !hora.isEmpty()) {
+                    horasSet.add(hora);
+                    Log.d(TAG, "  + Hora encontrada: " + hora + " de " + cita.getActividad());
+                } else {
+                    Log.w(TAG, "  ⚠️ Cita sin hora: " + cita.getActividad());
+                }
+            }
+
+            List<String> horasList = new ArrayList<>(horasSet);
+
+            // Ordenar las horas cronológicamente
+            Collections.sort(horasList, (h1, h2) -> {
+                try {
+                    // Parsear "HH:mm"
+                    String[] parts1 = h1.split(":");
+                    String[] parts2 = h2.split(":");
+
+                    int hour1 = Integer.parseInt(parts1[0]);
+                    int hour2 = Integer.parseInt(parts2[0]);
+
+                    // Comparar horas
+                    if (hour1 != hour2) {
+                        return hour1 - hour2;
+                    }
+
+                    // Si las horas son iguales, comparar minutos
+                    int min1 = parts1.length > 1 ? Integer.parseInt(parts1[1]) : 0;
+                    int min2 = parts2.length > 1 ? Integer.parseInt(parts2[1]) : 0;
+                    return min1 - min2;
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error al ordenar horas: " + h1 + " vs " + h2, e);
+                    return h1.compareTo(h2); // Fallback a ordenamiento alfabético
+                }
+            });
+
+            Log.d(TAG, "✅ Horas ordenadas: " + horasList);
+
+            return horasList;
         }
     }
 }
