@@ -16,4 +16,9 @@
     <string name="cambiar_contrasena">Cambiar contraseña</string>
     <string name="cerrar_sesion">Cerrar sesión</string>
     <string name="acerca_de">Acerca de</string>
+
+    <!-- Login Logos -->
+    <string name="logo_centro_alerce">Centro Integral Alerce</string>
+    <string name="logo_los_muchachos">Los Muchachos</string>
+    <string name="logo_santo_tomas">Santo Tomás</string>
 </resources>
