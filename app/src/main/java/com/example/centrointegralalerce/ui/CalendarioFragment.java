@@ -71,7 +71,8 @@ public class CalendarioFragment extends Fragment {
             setupListeners();
 
             // Cargar citas desde Firebase
-            loadCitasFromFirebase();
+            // loadCitasFromFirebase(); // ⚠️ Comentado temporalmente
+            cargarDatosDePrueba(); // ✅ Datos de prueba
 
         } catch (Exception e) {
             Log.e(TAG, "Error crítico en onCreateView: " + e.getMessage(), e);
@@ -495,6 +496,144 @@ public class CalendarioFragment extends Fragment {
         Log.i(TAG, "SUCCESS: " + message);
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * DATOS DE PRUEBA - Temporal para testing
+     * Genera citas de ejemplo para esta semana
+     */
+    private void cargarDatosDePrueba() {
+        Log.d(TAG, "=== CARGANDO DATOS DE PRUEBA ===");
+
+        showLoading(true);
+
+        allCitas.clear();
+
+        try {
+            Calendar cal = Calendar.getInstance();
+            com.google.firebase.Timestamp timestamp;
+
+            // LUNES 13 de octubre - 09:00
+            cal.set(2025, Calendar.OCTOBER, 13, 9, 0, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita1 = new Cita(
+                    "test1",
+                    "Reunión de Equipo",
+                    "Sala A",
+                    "Charlas",
+                    timestamp,
+                    "test-user"
+            );
+            allCitas.add(cita1);
+
+            // MARTES 14 de octubre - 10:00
+            cal.set(2025, Calendar.OCTOBER, 14, 10, 0, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita2 = new Cita(
+                    "test2",
+                    "Capacitación Excel",
+                    "Laboratorio 1",
+                    "Capacitación",
+                    timestamp,
+                    "test-user"
+            );
+            allCitas.add(cita2);
+
+            // MIÉRCOLES 15 de octubre - 14:00
+            cal.set(2025, Calendar.OCTOBER, 15, 14, 0, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita3 = new Cita(
+                    "test3",
+                    "Atención Psicológica",
+                    "Consultorio 2",
+                    "Atenciones",
+                    timestamp,
+                    "test-user"
+            );
+            allCitas.add(cita3);
+
+            // JUEVES 16 de octubre - 11:00
+            cal.set(2025, Calendar.OCTOBER, 16, 11, 0, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita4 = new Cita(
+                    "test4",
+                    "Taller de Programación",
+                    "Lab Computación",
+                    "Taller",
+                    timestamp,
+                    "test-user"
+            );
+            allCitas.add(cita4);
+
+            // VIERNES 17 de octubre - 15:00
+            cal.set(2025, Calendar.OCTOBER, 17, 15, 0, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita5 = new Cita(
+                    "test5",
+                    "Operativo de Salud",
+                    "Plaza Central",
+                    "Operativo",
+                    timestamp,
+                    "test-user"
+            );
+            allCitas.add(cita5);
+
+            // SÁBADO 19 de octubre - 16:00 (hora exacta para que se muestre)
+            cal.set(2025, Calendar.OCTOBER, 19, 16, 0, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita6 = new Cita(
+                    "test6",
+                    "Taller de Robótica",
+                    "Laboratorio 3",
+                    "Taller",
+                    timestamp,
+                    "abc123uid"
+            );
+            allCitas.add(cita6);
+
+            // lunes 20 de octubre - 10:00
+            cal.set(2025, Calendar.OCTOBER, 20, 10, 0, 0);
+            timestamp = new com.google.firebase.Timestamp(cal.getTime());
+            Cita cita7 = new Cita(
+                    "test7",
+                    "Charla Motivacional",
+                    "Auditorio",
+                    "Charlas",
+                    timestamp,
+                    "test-user"
+            );
+            allCitas.add(cita7);
+
+            Log.d(TAG, "=== DATOS DE PRUEBA CREADOS ===");
+            Log.d(TAG, "Total citas: " + allCitas.size());
+
+            // Validar cada cita
+            for (int i = 0; i < allCitas.size(); i++) {
+                Cita cita = allCitas.get(i);
+                Log.d(TAG, String.format("Cita %d: %s | Hora: %s | Día: %d | Válida: %s",
+                        i + 1,
+                        cita.getActividad(),
+                        cita.getHora(),
+                        cita.getDiaSemana(),
+                        cita.esValida()
+                ));
+            }
+
+            // Configurar ViewPager
+            setupViewPager();
+            updateWeekLabel(currentWeekStart);
+            checkIfWeekHasCitas(currentWeekStart);
+
+            showLoading(false);
+            showSuccess("Se cargaron " + allCitas.size() + " actividades de prueba");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error al crear datos de prueba: " + e.getMessage(), e);
+            showError("Error al cargar datos de prueba");
+            showLoading(false);
+            setupViewPager();
         }
     }
 }
