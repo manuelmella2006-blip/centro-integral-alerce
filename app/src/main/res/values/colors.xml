@@ -39,6 +39,17 @@
     <color name="tipo_diagnostico">@color/naranja_diagnostico</color>
 
     <!-- ============================================ -->
+    <!-- COLORES PARA CITAS (DE RES/COLOR) -->
+    <!-- ============================================ -->
+    <color name="cita_capacitacion">#1B5E20</color>
+    <color name="cita_taller">#2E7D32</color>
+    <color name="cita_charlas">#388E3C</color>
+    <color name="cita_atenciones">#00796B</color>
+    <color name="cita_operativo">#F57C00</color>
+    <color name="cita_practica">#5E35B1</color>
+    <color name="cita_diagnostico">#E64A19</color>
+
+    <!-- ============================================ -->
     <!-- MATERIAL DESIGN 3 THEME -->
     <!-- ============================================ -->
     <color name="md_theme_primary">@color/verde_santo_tomas</color>
@@ -67,5 +78,4 @@
     <color name="cianInfo">@color/cian_info</color>
     <color name="violetaAcademico">@color/violeta_academico</color>
     <color name="naranjaDiagnostico">@color/naranja_diagnostico</color>
-
 </resources>
