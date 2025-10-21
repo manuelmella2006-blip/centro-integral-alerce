@@ -16,6 +16,7 @@
         android:theme="@style/Theme.CentroIntegralAlerce">
         <activity android:name=".ui.RecoverPasswordActivity" />
         <activity android:name=".ui.RegisterActivity" />
+
         <activity
             android:name=".ui.AgregarActividadActivity"
             android:exported="false" />

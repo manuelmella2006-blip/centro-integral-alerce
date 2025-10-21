@@ -8,13 +8,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.fragment.app.FragmentManager;
+
 import com.example.centrointegralalerce.R;
+
+// IMPORTA Cita desde el paquete correcto:
 import com.example.centrointegralalerce.data.Cita;
+// Si la clase está en data, cambia el import anterior.
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Adaptador del calendario con sistema dinámico de filas
@@ -47,31 +56,22 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             return;
         }
 
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         Log.d(TAG, "=== CITAS RECIBIDAS ===");
         for (int i = 0; i < citas.size(); i++) {
-            Cita cita = citas.get(i);
-            if (cita == null) {
+            Cita c = citas.get(i);
+            if (c == null) {
                 Log.e(TAG, "Cita " + i + " es NULL");
                 continue;
             }
-
-            Log.d(TAG, String.format("Cita %d: %s | Hora: %s | Día: %d | Tipo: %s",
-                    i,
-                    cita.getActividad(),
-                    cita.getHora(),
-                    cita.getDiaSemana(),
-                    cita.getTipoActividad()
-            ));
-
-            // Alertas específicas
-            if (cita.getDiaSemana() < 0 || cita.getDiaSemana() > 6) {
-                Log.e(TAG, "❌ Día de semana fuera de rango: " + cita.getDiaSemana());
-            }
-            if (cita.getHora() == null || cita.getHora().isEmpty()) {
-                Log.e(TAG, "❌ Hora null o vacía para: " + cita.getActividad());
-            }
+            String fechaTxt = c.getFecha() != null ? df.format(c.getFecha()) : "sin fecha";
+            Log.d(TAG, String.format(Locale.getDefault(),
+                    "Cita %d: fecha=%s | hora=%s | lugarId=%s | estado=%s",
+                    i, fechaTxt, safe(c.getHora()), safe(c.getLugarId()), safe(c.getEstado())));
         }
     }
+
+    private String safe(String s) { return s == null ? "" : s; }
 
     /**
      * Actualiza la lista de citas y refresca la vista
@@ -100,17 +100,11 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
             int citasEncontradas = 0;
             for (Cita cita : citas) {
-                if (cita == null) {
-                    Log.w(TAG, "Cita null encontrada en la lista");
-                    continue;
-                }
+                if (cita == null) continue;
 
-                // Validación robusta de hora
+                // Validación de hora
                 String horaCita = cita.getHora();
-                if (horaCita == null) {
-                    Log.w(TAG, "Hora null en cita: " + cita.getActividad());
-                    continue;
-                }
+                if (horaCita == null) continue;
 
                 // Comparación exacta de hora
                 if (horaCita.equals(horaActual)) {
@@ -149,45 +143,49 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
     private void agregarCitaACelda(HourViewHolder holder, Cita cita) {
         try {
-            if (cita == null) return;
+            if (cita == null || cita.getFecha() == null) return;
 
-            int diaSemana = cita.getDiaSemana();
+            // Calcular día de la semana desde la fecha (0=lun ... 6=dom)
+            int diaSemana = calcularDiaSemanaIndex(cita.getFecha());
             if (diaSemana < 0 || diaSemana > 6) return;
 
             // === Contenedor de la cita ===
             LinearLayout layoutCita = new LinearLayout(context);
             layoutCita.setOrientation(LinearLayout.VERTICAL);
             layoutCita.setGravity(android.view.Gravity.CENTER);
-            layoutCita.setPadding(16, 16, 16, 16); // relleno interno moderado
+            layoutCita.setPadding(16, 16, 16, 16);
             layoutCita.setBackgroundResource(R.drawable.bg_cita_gradient);
-            layoutCita.setElevation(5f); // sombra sutil
+            layoutCita.setElevation(5f);
             layoutCita.setClipToOutline(false);
 
-            // === Texto principal ===
-            TextView tvActividad = new TextView(context);
-            tvActividad.setText(cita.getActividad());
-            tvActividad.setTextSize(13f);
-            tvActividad.setTextColor(Color.WHITE);
-            tvActividad.setTypeface(null, android.graphics.Typeface.BOLD);
-            tvActividad.setGravity(android.view.Gravity.CENTER);
-            tvActividad.setShadowLayer(4f, 0f, 2f, Color.parseColor("#66000000")); // mejora contraste
+            // === Texto principal (usa lugarId o fecha como fallback) ===
+            TextView tvTitulo = new TextView(context);
+            String titulo = (cita.getLugarId() != null && !cita.getLugarId().isEmpty())
+                    ? cita.getLugarId()
+                    : new SimpleDateFormat("dd MMM", new Locale("es", "ES"))
+                    .format(cita.getFecha());
+            tvTitulo.setText(titulo);
+            tvTitulo.setTextSize(13f);
+            tvTitulo.setTextColor(Color.WHITE);
+            tvTitulo.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvTitulo.setGravity(android.view.Gravity.CENTER);
+            tvTitulo.setShadowLayer(4f, 0f, 2f, Color.parseColor("#66000000"));
 
-            layoutCita.addView(tvActividad);
+            layoutCita.addView(tvTitulo);
 
             // === LayoutParams ===
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
             );
-            // Márgenes pequeños para no pegar visualmente las filas
             params.setMargins(4, 3, 4, 3);
             layoutCita.setLayoutParams(params);
 
-            // === Color del degradado (tint dinámico) ===
-            int colorBase = getColorForTipo(cita.getTipoActividad());
+            // === Color del degradado por estado ===
+            int colorBase = getColorForEstado(cita.getEstado());
             layoutCita.getBackground().setTint(colorBase);
 
-            // === Click listener ===
+            // === Click: abrir detalle ===
             layoutCita.setOnClickListener(v -> {
                 try {
                     CitaDetalleDialog dialog = new CitaDetalleDialog(cita);
@@ -200,7 +198,7 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             // === Añadir a la celda del día ===
             LinearLayout celdaDestino = obtenerCeldaPorDia(holder, diaSemana);
             if (celdaDestino != null) {
-                celdaDestino.removeAllViews(); // solo 1 cita por celda
+                celdaDestino.removeAllViews(); // si deseas múltiples, quita esta línea
                 celdaDestino.addView(layoutCita);
             }
 
@@ -209,10 +207,50 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         }
     }
 
+    // Calcula índice 0..6 a partir de java.util.Date, con lunes como primer día
+    private int calcularDiaSemanaIndex(java.util.Date fecha) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(fecha);
+        int dow = cal.get(Calendar.DAY_OF_WEEK); // 1=dom..7=sáb
+        // Convertir a 0=lun..6=dom
+        switch (dow) {
+            case Calendar.MONDAY: return 0;
+            case Calendar.TUESDAY: return 1;
+            case Calendar.WEDNESDAY: return 2;
+            case Calendar.THURSDAY: return 3;
+            case Calendar.FRIDAY: return 4;
+            case Calendar.SATURDAY: return 5;
+            case Calendar.SUNDAY: return 6;
+            default: return -1;
+        }
+    }
 
     /**
-     * Obtiene la celda correspondiente según el día de la semana
+     * Paleta de colores basada en estado
      */
+    private int getColorForEstado(String estado) {
+        int def = Color.parseColor("#2E7D32"); // Verde por defecto
+        if (estado == null || estado.trim().isEmpty()) return def;
+        String e = estado.trim().toLowerCase(Locale.getDefault());
+
+        switch (e) {
+            case "activa":
+            case "activo":
+            case "confirmada":
+                return Color.parseColor("#2E7D32"); // verde
+            case "pendiente":
+                return Color.parseColor("#00796B"); // teal
+            case "inactiva":
+            case "cancelada":
+            case "cancelado":
+                return Color.parseColor("#E64A19"); // rojo/naranja
+            case "reprogramada":
+                return Color.parseColor("#5E35B1"); // violeta
+            default:
+                return def;
+        }
+    }
+
     private LinearLayout obtenerCeldaPorDia(HourViewHolder holder, int diaSemana) {
         switch (diaSemana) {
             case 0: return holder.cellLun;
@@ -225,51 +263,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             default:
                 Log.e(TAG, "Día de semana fuera de rango: " + diaSemana);
                 return null;
-        }
-    }
-
-    /**
-     * Paleta de colores mejorada con mejor contraste para texto blanco
-     * Todos los colores cumplen con WCAG AA/AAA
-     */
-    private int getColorForTipo(String tipo) {
-        int colorPorDefecto = Color.parseColor("#2E7D32"); // Verde oscuro
-
-        if (tipo == null || tipo.trim().isEmpty()) {
-            Log.w(TAG, "Tipo de actividad null o vacío, usando color por defecto");
-            return colorPorDefecto;
-        }
-
-        try {
-            switch (tipo.trim()) {
-                case "Capacitación":
-                    return Color.parseColor("#1B5E20"); // Verde muy oscuro - WCAG AAA
-
-                case "Taller":
-                    return Color.parseColor("#2E7D32"); // Verde oscuro - WCAG AAA
-
-                case "Charlas":
-                    return Color.parseColor("#388E3C"); // Verde medio - WCAG AA
-
-                case "Atenciones":
-                    return Color.parseColor("#00796B"); // Verde azulado - WCAG AAA
-
-                case "Operativo":
-                    return Color.parseColor("#F57C00"); // Naranja - WCAG AA
-
-                case "Práctica profesional":
-                    return Color.parseColor("#5E35B1"); // Violeta - WCAG AA
-
-                case "Diagnóstico":
-                    return Color.parseColor("#E64A19"); // Rojo naranja - WCAG AA
-
-                default:
-                    Log.d(TAG, "Tipo desconocido: '" + tipo + "', usando color por defecto");
-                    return colorPorDefecto;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error al parsear color: " + e.getMessage(), e);
-            return colorPorDefecto;
         }
     }
 
@@ -288,7 +281,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             cellSab = itemView.findViewById(R.id.cellSab);
             cellDom = itemView.findViewById(R.id.cellDom);
 
-            // Validar que todos los elementos existen
             if (tvHour == null) Log.e("HourViewHolder", "❌ tvHour es null");
             if (cellLun == null) Log.e("HourViewHolder", "❌ cellLun es null");
             if (cellMar == null) Log.e("HourViewHolder", "❌ cellMar es null");

@@ -1,72 +1,159 @@
 package com.example.centrointegralalerce.data;
-import com.google.firebase.Timestamp;
+
 import java.util.List;
+
 public class Actividad {
     private String nombre;
-    private String proyectos;
+    private String tipoActividadId;
     private String periodicidad;
-    private String tiposActividad;
     private int cupo;
-    private String oferentesActividad;
-    private String socioComunitario;
-    private String beneficiariosServicio;
+    private String proyectoId;
+    private String oferenteId;
+    private String socioComunitarioId;
     private List<String> archivosAdjuntos;
     private int diasAvisoPrevio;
-    private Timestamp fechaCreacion;
+    private String estado;
 
-    // Constructor vacío requerido por Firebase
-    public Actividad() {
-    }
+    // Nuevos atributos
+    private String fecha; // "dd/MM/yyyy"
+    private String hora;  // "HH:mm"
+    private String lugar; // Nombre del lugar
 
-    // Constructor con parámetros
-    public Actividad(String nombre, String proyectos, String periodicidad,
-                     String tiposActividad, int cupo, String oferentesActividad,
-                     String socioComunitario, String beneficiariosServicio,
-                     List<String> archivosAdjuntos, int diasAvisoPrevio) {
+    // Constructor vacío requerido por Firestore
+    public Actividad() {}
+
+    // Constructor completo incluyendo los nuevos atributos
+    public Actividad(String nombre,
+                     String tipoActividadId,
+                     String periodicidad,
+                     int cupo,
+                     String proyectoId,
+                     String oferenteId,
+                     String socioComunitarioId,
+                     List<String> archivosAdjuntos,
+                     int diasAvisoPrevio,
+                     String estado,
+                     String fecha,
+                     String hora,
+                     String lugar) {
         this.nombre = nombre;
-        this.proyectos = proyectos;
+        this.tipoActividadId = tipoActividadId;
         this.periodicidad = periodicidad;
-        this.tiposActividad = tiposActividad;
         this.cupo = cupo;
-        this.oferentesActividad = oferentesActividad;
-        this.socioComunitario = socioComunitario;
-        this.beneficiariosServicio = beneficiariosServicio;
+        this.proyectoId = proyectoId;
+        this.oferenteId = oferenteId;
+        this.socioComunitarioId = socioComunitarioId;
         this.archivosAdjuntos = archivosAdjuntos;
         this.diasAvisoPrevio = diasAvisoPrevio;
-        this.fechaCreacion = Timestamp.now();
+        this.estado = estado;
+        this.fecha = fecha;
+        this.hora = hora;
+        this.lugar = lugar;
     }
 
-    // Getters y Setters
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    // Getters y setters
+    public String getNombre() {
+        return nombre;
+    }
 
-    public String getProyectos() { return proyectos; }
-    public void setProyectos(String proyectos) { this.proyectos = proyectos; }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 
-    public String getPeriodicidad() { return periodicidad; }
-    public void setPeriodicidad(String periodicidad) { this.periodicidad = periodicidad; }
+    public String getTipoActividadId() {
+        return tipoActividadId;
+    }
 
-    public String getTiposActividad() { return tiposActividad; }
-    public void setTiposActividad(String tiposActividad) { this.tiposActividad = tiposActividad; }
+    public void setTipoActividadId(String tipoActividadId) {
+        this.tipoActividadId = tipoActividadId;
+    }
 
-    public int getCupo() { return cupo; }
-    public void setCupo(int cupo) { this.cupo = cupo; }
+    public String getPeriodicidad() {
+        return periodicidad;
+    }
 
-    public String getOferentesActividad() { return oferentesActividad; }
-    public void setOferentesActividad(String oferentesActividad) { this.oferentesActividad = oferentesActividad; }
+    public void setPeriodicidad(String periodicidad) {
+        this.periodicidad = periodicidad;
+    }
 
-    public String getSocioComunitario() { return socioComunitario; }
-    public void setSocioComunitario(String socioComunitario) { this.socioComunitario = socioComunitario; }
+    public int getCupo() {
+        return cupo;
+    }
 
-    public String getBeneficiariosServicio() { return beneficiariosServicio; }
-    public void setBeneficiariosServicio(String beneficiariosServicio) { this.beneficiariosServicio = beneficiariosServicio; }
+    public void setCupo(int cupo) {
+        this.cupo = cupo;
+    }
 
-    public List<String> getArchivosAdjuntos() { return archivosAdjuntos; }
-    public void setArchivosAdjuntos(List<String> archivosAdjuntos) { this.archivosAdjuntos = archivosAdjuntos; }
+    public String getProyectoId() {
+        return proyectoId;
+    }
 
-    public int getDiasAvisoPrevio() { return diasAvisoPrevio; }
-    public void setDiasAvisoPrevio(int diasAvisoPrevio) { this.diasAvisoPrevio = diasAvisoPrevio; }
+    public void setProyectoId(String proyectoId) {
+        this.proyectoId = proyectoId;
+    }
 
-    public Timestamp getFechaCreacion() { return fechaCreacion; }
-    public void setFechaCreacion(Timestamp fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+    public String getOferenteId() {
+        return oferenteId;
+    }
+
+    public void setOferenteId(String oferenteId) {
+        this.oferenteId = oferenteId;
+    }
+
+    public String getSocioComunitarioId() {
+        return socioComunitarioId;
+    }
+
+    public void setSocioComunitarioId(String socioComunitarioId) {
+        this.socioComunitarioId = socioComunitarioId;
+    }
+
+    public List<String> getArchivosAdjuntos() {
+        return archivosAdjuntos;
+    }
+
+    public void setArchivosAdjuntos(List<String> archivosAdjuntos) {
+        this.archivosAdjuntos = archivosAdjuntos;
+    }
+
+    public int getDiasAvisoPrevio() {
+        return diasAvisoPrevio;
+    }
+
+    public void setDiasAvisoPrevio(int diasAvisoPrevio) {
+        this.diasAvisoPrevio = diasAvisoPrevio;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    // Nuevos getters y setters
+    public String getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(String fecha) {
+        this.fecha = fecha;
+    }
+
+    public String getHora() {
+        return hora;
+    }
+
+    public void setHora(String hora) {
+        this.hora = hora;
+    }
+
+    public String getLugar() {
+        return lugar;
+    }
+
+    public void setLugar(String lugar) {
+        this.lugar = lugar;
+    }
 }

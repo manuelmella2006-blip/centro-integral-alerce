@@ -19,13 +19,28 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.centrointegralalerce.R;
+
+// IMPORTA Cita desde el paquete REAL donde la declaraste.
+// Si tu clase está en "model", usa el import de model:
 import com.example.centrointegralalerce.data.Cita;
+// Si la dejaste en "data", cambia la línea anterior por:
+// import com.example.centrointegralalerce.data.Cita;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+
+// NUEVOS IMPORTS
+import android.app.Activity;
+import android.content.Intent;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 public class ListaActividadesFragment extends Fragment {
 
@@ -44,6 +59,17 @@ public class ListaActividadesFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    // Launcher para abrir AgregarActividadActivity y refrescar al volver
+    private final ActivityResultLauncher<Intent> crearActividadLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            reloadActividades(); // vuelve a consultar y repinta
+                        }
+                    }
+            );
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -56,7 +82,7 @@ public class ListaActividadesFragment extends Fragment {
         chipGroupFilters = view.findViewById(R.id.chip_group_filters);
         fabNewActivityList = view.findViewById(R.id.fab_new_activity_list);
         layoutEmptyList = view.findViewById(R.id.layout_empty_list);
-        progressBar = view.findViewById(R.id.progress_bar);
+        progressBar = view.findViewById(R.id.progress_bar); // si es null, se ignora más abajo
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -80,33 +106,32 @@ public class ListaActividadesFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Búsqueda
+        // Búsqueda (IME action buscar)
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
-            String query = etSearch.getText().toString().trim();
+            String query = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
             filterActivities(query);
             return true;
         });
 
-        // Filtros por chips
+        // Filtros por chips (implementación futura)
         chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            // TODO: Implementar filtros por tipo de actividad
             filterActivitiesByType();
         });
 
-        // FAB nueva actividad
+        // FAB nueva actividad -> abre AgregarActividadActivity
         fabNewActivityList.setOnClickListener(v -> {
-            // TODO: Navegar a crear actividad
-            Toast.makeText(requireContext(), "Crear nueva actividad", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(requireContext(), AgregarActividadActivity.class);
+            // Extra opcional: timestamp sugerido para precargar el formulario
+            intent.putExtra("suggestedTimeMillis", System.currentTimeMillis());
+            crearActividadLauncher.launch(intent); // espera RESULT_OK para refrescar
         });
     }
 
     /**
-     * Cargar actividades desde Firebase Firestore
+     * Cargar actividades (citas) desde Firebase Firestore
      */
     private void loadActivitiesFromFirebase() {
-        if (progressBar != null) {
-            progressBar.setVisibility(View.VISIBLE);
-        }
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
         db.collection("citas")
                 .get()
@@ -117,21 +142,22 @@ public class ListaActividadesFragment extends Fragment {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         try {
                             Cita cita = document.toObject(Cita.class);
-                            activitiesList.add(cita);
-                            filteredActivitiesList.add(cita);
-                            Log.d(TAG, "Actividad cargada: " + cita.getActividad());
+                            if (cita != null) {
+                                activitiesList.add(cita);
+                                filteredActivitiesList.add(cita);
+                                Log.d(TAG, "Cita cargada: fecha=" + safeFecha(cita.getFecha())
+                                        + ", hora=" + safe(cita.getHora())
+                                        + ", lugarId=" + safe(cita.getLugarId())
+                                        + ", estado=" + safe(cita.getEstado()));
+                            }
                         } catch (Exception e) {
-                            Log.e(TAG, "Error al parsear actividad: " + e.getMessage());
+                            Log.e(TAG, "Error al parsear cita: " + e.getMessage(), e);
                         }
                     }
 
-                    Log.d(TAG, "Total actividades cargadas: " + activitiesList.size());
-
+                    Log.d(TAG, "Total citas cargadas: " + activitiesList.size());
                     updateUI();
-
-                    if (progressBar != null) {
-                        progressBar.setVisibility(View.GONE);
-                    }
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
 
                     if (activitiesList.isEmpty()) {
                         Toast.makeText(requireContext(),
@@ -140,47 +166,48 @@ public class ListaActividadesFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar actividades: " + e.getMessage());
+                    Log.e(TAG, "Error al cargar actividades: " + e.getMessage(), e);
                     Toast.makeText(requireContext(),
                             "Error al cargar actividades: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
 
-                    if (progressBar != null) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
                     updateUI();
                 });
     }
 
     /**
-     * Filtrar actividades por búsqueda de texto
+     * Filtrar actividades por búsqueda de texto usando los campos reales de Cita:
+     * fecha (como dd/MM/yyyy), hora, estado y lugarId.
      */
     private void filterActivities(String query) {
+        String q = query == null ? "" : query.trim().toLowerCase(Locale.getDefault());
         filteredActivitiesList.clear();
 
-        if (query.isEmpty()) {
+        if (q.isEmpty()) {
             filteredActivitiesList.addAll(activitiesList);
         } else {
-            String lowerQuery = query.toLowerCase();
+            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             for (Cita cita : activitiesList) {
-                if (cita.getActividad().toLowerCase().contains(lowerQuery) ||
-                        cita.getLugar().toLowerCase().contains(lowerQuery) ||
-                        cita.getTipoActividad().toLowerCase().contains(lowerQuery)) {
+                String fechaTxt = cita.getFecha() != null ? df.format(cita.getFecha()).toLowerCase(Locale.getDefault()) : "";
+                String horaTxt = safe(cita.getHora()).toLowerCase(Locale.getDefault());
+                String estadoTxt = safe(cita.getEstado()).toLowerCase(Locale.getDefault());
+                String lugarTxt = safe(cita.getLugarId()).toLowerCase(Locale.getDefault());
+
+                if (fechaTxt.contains(q) || horaTxt.contains(q) || estadoTxt.contains(q) || lugarTxt.contains(q)) {
                     filteredActivitiesList.add(cita);
                 }
             }
         }
 
         updateUI();
+        // Si ya tienes adapter: adapter.submitList(new ArrayList<>(filteredActivitiesList));
     }
 
     /**
-     * Filtrar actividades por tipo (chips)
+     * Filtro por chips (placeholder): ahora mismo no limita nada.
      */
     private void filterActivitiesByType() {
-        // TODO: Implementar filtro basado en chips seleccionados
-        // Por ahora solo muestra todas
         filteredActivitiesList.clear();
         filteredActivitiesList.addAll(activitiesList);
         updateUI();
@@ -220,11 +247,9 @@ public class ListaActividadesFragment extends Fragment {
                     if (documentSnapshot.exists()) {
                         String rolId = documentSnapshot.getString("rolId");
 
-                        // Verificar si es invitado desde MainActivity
                         MainActivity mainActivity = (MainActivity) getActivity();
                         boolean esInvitado = mainActivity != null && mainActivity.isGuest();
 
-                        // Solo admins pueden crear actividades
                         boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
                                 "administrador".equalsIgnoreCase(rolId);
 
@@ -236,7 +261,7 @@ public class ListaActividadesFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al verificar rol: " + e.getMessage());
+                    Log.e(TAG, "Error al verificar rol: " + e.getMessage(), e);
                     fabNewActivityList.setVisibility(View.GONE);
                 });
     }
@@ -246,5 +271,15 @@ public class ListaActividadesFragment extends Fragment {
      */
     public void reloadActividades() {
         loadActivitiesFromFirebase();
+    }
+
+    // Helpers de seguridad para logs/texto
+    private String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private String safeFecha(Date d) {
+        if (d == null) return "";
+        return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(d);
     }
 }
