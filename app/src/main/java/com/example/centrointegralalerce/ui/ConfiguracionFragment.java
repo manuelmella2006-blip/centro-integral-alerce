@@ -74,7 +74,7 @@ public class ConfiguracionFragment extends Fragment {
         // Mostrar email inmediatamente
         tvUserEmail.setText(email != null ? email : "Sin correo");
 
-        // ✅ CORREGIDO: Cambiar "users" por "usuarios"
+        // Cargar datos desde Firestore
         db.collection("usuarios").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -92,7 +92,8 @@ public class ConfiguracionFragment extends Fragment {
                                             chipUserRole.setText(rolNombre != null ? rolNombre : rolId);
 
                                             // Mostrar opciones según rol
-                                            boolean esAdmin = "admin".equals(rolId);
+                                            boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
+                                                    "administrador".equalsIgnoreCase(rolId);
                                             itemGestionarUsuarios.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
                                             itemMantenedores.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
                                         }
@@ -127,8 +128,17 @@ public class ConfiguracionFragment extends Fragment {
     }
 
     private void setupListeners() {
-        itemMantenedores.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Mantenedores - Por implementar", Toast.LENGTH_SHORT).show());
+        // ✅ ACTUALIZADO: Navegar al fragment de Mantenedores
+        itemMantenedores.setOnClickListener(v -> {
+            MainActivity mainActivity = (MainActivity) getActivity();
+            if (mainActivity != null) {
+                mainActivity.navigateToMantenedores();
+            } else {
+                Toast.makeText(requireContext(),
+                        "Error al navegar a Mantenedores",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
 
         itemGestionarUsuarios.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), RegisterActivity.class);

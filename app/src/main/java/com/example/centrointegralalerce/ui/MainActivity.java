@@ -59,19 +59,36 @@ public class MainActivity extends AppCompatActivity {
             String title = "";
 
             int itemId = item.getItemId();
+
             if (itemId == R.id.nav_calendar) {
                 selectedFragment = new CalendarioFragment();
                 title = "Calendario";
+
             } else if (itemId == R.id.nav_activities_list) {
                 selectedFragment = new ListaActividadesFragment();
                 title = "Actividades";
+
+            } else if (itemId == R.id.nav_mantenedores) {
+                // ✅ NUEVO: Mantenedores
+                selectedFragment = new MantenedoresFragment();
+                title = "Mantenedores";
+
+                // Verificar si es administrador
+                if (!"admin".equals(rolUsuario)) {
+                    Toast.makeText(this,
+                            "⚠️ Acceso limitado: Solo administradores pueden gestionar mantenedores",
+                            Toast.LENGTH_LONG).show();
+                }
+
             } else if (itemId == R.id.nav_settings) {
                 selectedFragment = new ConfiguracionFragment();
                 title = "Configuración";
 
-                // Ejemplo: Solo admins pueden ver ciertas opciones en Configuración
+                // Solo admins pueden ver ciertas opciones en Configuración
                 if (!"admin".equals(rolUsuario)) {
-                    Toast.makeText(this, "Acceso limitado: solo administradores pueden modificar la configuración avanzada.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,
+                            "Acceso limitado: solo administradores pueden modificar la configuración avanzada.",
+                            Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -97,6 +114,12 @@ public class MainActivity extends AppCompatActivity {
         if (toolbar != null) {
             toolbar.setTitle(title);
         }
+    }
+
+    // ✅ NUEVO: Método público para navegar desde ConfiguracionFragment
+    public void navigateToMantenedores() {
+        loadFragment(new MantenedoresFragment(), "Mantenedores");
+        bottomNavigation.setSelectedItemId(R.id.nav_mantenedores);
     }
 
     // Métodos públicos para que los fragments sepan si es invitado o admin
