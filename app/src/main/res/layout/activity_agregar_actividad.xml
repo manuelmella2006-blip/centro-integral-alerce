@@ -294,31 +294,23 @@
                     android:layout_marginBottom="16dp" />
 
                 <!-- Lugar -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
+                <!-- Lugar (Spinner) -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:startIconDrawable="@android:drawable/ic_dialog_map"
-                    app:startIconTint="@color/verde_santo_tomas"
-                    app:helperText="Dirección o sala"
-                    app:helperTextTextColor="@color/gris_medio"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                    android:text="Lugar"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gris_oscuro"
+                    android:layout_marginBottom="8dp" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etLugar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Lugar de la actividad"
-                        android:inputType="textCapSentences"
-                        android:maxLines="2"
-                        android:textSize="16sp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
+                <Spinner
+                    android:id="@+id/spLugar"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/border_cell"
+                    android:padding="12dp"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- Fecha y Hora Inicio -->
                 <LinearLayout

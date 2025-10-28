@@ -19,7 +19,8 @@ import java.util.*;
 
 public class AgregarActividadActivity extends AppCompatActivity {
 
-    private EditText etNombreActividad, etCupo, etDiasAvisoPrevio, etLugar;
+    private EditText etNombreActividad, etCupo, etDiasAvisoPrevio;
+    private Spinner spLugar;
     private EditText etFechaInicio, etHoraInicio, etFechaTermino, etHoraTermino;
     private Spinner spTipoActividad, spOferente, spSocioComunitario, spProyecto, spPeriodicidad;
     private Button btnGuardarActividad;
@@ -38,6 +39,8 @@ public class AgregarActividadActivity extends AppCompatActivity {
     private ArrayList<String> oferenteIds = new ArrayList<>();
     private ArrayList<String> socioIds = new ArrayList<>();
     private ArrayList<String> proyectoIds = new ArrayList<>();
+    private ArrayList<String> lugaresList = new ArrayList<>();
+    private ArrayList<String> lugarIds = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +53,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         etNombreActividad = findViewById(R.id.etNombreActividad);
         etCupo = findViewById(R.id.etCupo);
         etDiasAvisoPrevio = findViewById(R.id.etDiasAvisoPrevio);
-        etLugar = findViewById(R.id.etLugar);
+        spLugar = findViewById(R.id.spLugar);
         etFechaInicio = findViewById(R.id.etFechaInicio);
         etHoraInicio = findViewById(R.id.etHoraInicio);
         etFechaTermino = findViewById(R.id.etFechaTermino);
@@ -108,22 +111,28 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cargarSpinner("oferentes", oferentesList, oferenteIds, spOferente);
         cargarSpinner("sociosComunitarios", sociosList, socioIds, spSocioComunitario);
         cargarSpinner("proyectos", proyectosList, proyectoIds, spProyecto);
+        cargarSpinner("lugares", lugaresList, lugarIds, spLugar);
     }
 
-    private void cargarSpinner(String coleccion, ArrayList<String> listaNombres, ArrayList<String> listaIds, Spinner spinner) {
+    private void cargarSpinner(String coleccion, List<String> listaNombres, List<String> listaIds, Spinner spinner) {
         db.collection(coleccion).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 listaNombres.clear();
                 listaIds.clear();
+
                 for (QueryDocumentSnapshot doc : task.getResult()) {
                     String nombre = doc.getString("nombre");
-                    listaNombres.add(nombre != null ? nombre : "(sin nombre)");
-                    listaIds.add(doc.getId());
+                    if (nombre != null) {
+                        listaNombres.add(nombre);
+                        listaIds.add(doc.getId());
+                    }
                 }
+
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                         android.R.layout.simple_spinner_item, listaNombres);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(adapter);
+                adapter.notifyDataSetChanged(); // 👈 MUY IMPORTANTE
             } else {
                 Toast.makeText(this, "Error cargando " + coleccion, Toast.LENGTH_SHORT).show();
             }
@@ -162,7 +171,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         String oferenteId = oferenteIds.get(spOferente.getSelectedItemPosition());
         String socioId = socioIds.get(spSocioComunitario.getSelectedItemPosition());
         String proyectoId = proyectoIds.size() > 0 ? proyectoIds.get(spProyecto.getSelectedItemPosition()) : null;
-        String lugar = etLugar.getText().toString().trim();
+        String lugarId = lugarIds.get(spLugar.getSelectedItemPosition());
         String fechaInicio = etFechaInicio.getText().toString().trim();
         String horaInicio = etHoraInicio.getText().toString().trim();
         String fechaTermino = etFechaTermino.getText().toString().trim();
@@ -184,7 +193,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         actividad.put("proyectoId", proyectoId);
         actividad.put("oferenteId", oferenteId);
         actividad.put("socioComunitarioId", socioId);
-        actividad.put("lugar", lugar);
+        actividad.put("lugarId", lugarId);
         actividad.put("diasAvisoPrevio", diasAviso);
         actividad.put("estado", "activa");
         actividad.put("fechaInicio", fechaInicio);
@@ -250,7 +259,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         etNombreActividad.setText("");
         etCupo.setText("");
         etDiasAvisoPrevio.setText("");
-        etLugar.setText("");
+        spLugar.setSelection(0);
         etFechaInicio.setText("");
         etHoraInicio.setText("");
         etFechaTermino.setText("");

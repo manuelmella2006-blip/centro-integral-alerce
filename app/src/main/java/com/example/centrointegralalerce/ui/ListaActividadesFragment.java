@@ -9,6 +9,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.example.centrointegralalerce.data.Actividad;
+import com.example.centrointegralalerce.R;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -18,21 +21,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.example.centrointegralalerce.R;
-
-// IMPORTA Cita desde el paquete REAL donde la declaraste.
-// Si tu clase está en "model", usa el import de model:
-import com.example.centrointegralalerce.data.Cita;
-// Si la dejaste en "data", cambia la línea anterior por:
-// import com.example.centrointegralalerce.data.Cita;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,8 +47,10 @@ public class ListaActividadesFragment extends Fragment {
     private LinearLayout layoutEmptyList;
     private ProgressBar progressBar;
 
-    private List<Cita> activitiesList;
-    private List<Cita> filteredActivitiesList;
+    // CAMBIO: Usar Actividad en lugar de Cita
+    private List<Actividad> actividadesList;
+    private List<Actividad> filteredActividadesList;
+    private ActividadesListAdapter adapter;
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -65,7 +61,7 @@ public class ListaActividadesFragment extends Fragment {
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == Activity.RESULT_OK) {
-                            reloadActividades(); // vuelve a consultar y repinta
+                            loadActivitiesFromFirebase(); // vuelve a consultar y repinta
                         }
                     }
             );
@@ -82,13 +78,14 @@ public class ListaActividadesFragment extends Fragment {
         chipGroupFilters = view.findViewById(R.id.chip_group_filters);
         fabNewActivityList = view.findViewById(R.id.fab_new_activity_list);
         layoutEmptyList = view.findViewById(R.id.layout_empty_list);
-        progressBar = view.findViewById(R.id.progress_bar); // si es null, se ignora más abajo
+        progressBar = view.findViewById(R.id.progress_bar);
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        activitiesList = new ArrayList<>();
-        filteredActivitiesList = new ArrayList<>();
+        actividadesList = new ArrayList<>();
+        filteredActividadesList = new ArrayList<>();
+        adapter = new ActividadesListAdapter(filteredActividadesList);
 
         setupRecyclerView();
         setupListeners();
@@ -100,9 +97,7 @@ public class ListaActividadesFragment extends Fragment {
 
     private void setupRecyclerView() {
         rvActivitiesList.setLayoutManager(new LinearLayoutManager(requireContext()));
-        // TODO: Conectar adapter cuando esté listo
-        // ActividadesListAdapter adapter = new ActividadesListAdapter(filteredActivitiesList);
-        // rvActivitiesList.setAdapter(adapter);
+        rvActivitiesList.setAdapter(adapter);
     }
 
     private void setupListeners() {
@@ -113,7 +108,7 @@ public class ListaActividadesFragment extends Fragment {
             return true;
         });
 
-        // Filtros por chips (implementación futura)
+        // Filtros por chips
         chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
             filterActivitiesByType();
         });
@@ -121,45 +116,45 @@ public class ListaActividadesFragment extends Fragment {
         // FAB nueva actividad -> abre AgregarActividadActivity
         fabNewActivityList.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), AgregarActividadActivity.class);
-            // Extra opcional: timestamp sugerido para precargar el formulario
-            intent.putExtra("suggestedTimeMillis", System.currentTimeMillis());
-            crearActividadLauncher.launch(intent); // espera RESULT_OK para refrescar
+            crearActividadLauncher.launch(intent);
         });
     }
 
     /**
-     * Cargar actividades (citas) desde Firebase Firestore
+     * Cargar actividades desde Firebase Firestore - COLECCIÓN CORRECTA
      */
     private void loadActivitiesFromFirebase() {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        db.collection("citas")
+        // CAMBIO: Cargar desde la colección "actividades" en lugar de "citas"
+        db.collection("actividades")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    activitiesList.clear();
-                    filteredActivitiesList.clear();
+                    actividadesList.clear();
+                    filteredActividadesList.clear();
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         try {
-                            Cita cita = document.toObject(Cita.class);
-                            if (cita != null) {
-                                activitiesList.add(cita);
-                                filteredActivitiesList.add(cita);
-                                Log.d(TAG, "Cita cargada: fecha=" + safeFecha(cita.getFecha())
-                                        + ", hora=" + safe(cita.getHora())
-                                        + ", lugarId=" + safe(cita.getLugarId())
-                                        + ", estado=" + safe(cita.getEstado()));
+                            Actividad actividad = document.toObject(Actividad.class);
+                            if (actividad != null) {
+                                // Establecer el ID del documento si es necesario
+                                actividadesList.add(actividad);
+                                Log.d(TAG, "Actividad cargada: " + actividad.getNombre());
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "Error al parsear cita: " + e.getMessage(), e);
+                            Log.e(TAG, "Error al parsear actividad: " + e.getMessage(), e);
                         }
                     }
 
-                    Log.d(TAG, "Total citas cargadas: " + activitiesList.size());
+                    // Actualizar lista filtrada y UI
+                    filteredActividadesList.addAll(actividadesList);
+                    adapter.setActividadesList(filteredActividadesList);
+
+                    Log.d(TAG, "Total actividades cargadas: " + actividadesList.size());
                     updateUI();
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
 
-                    if (activitiesList.isEmpty()) {
+                    if (actividadesList.isEmpty()) {
                         Toast.makeText(requireContext(),
                                 "No hay actividades disponibles",
                                 Toast.LENGTH_SHORT).show();
@@ -177,39 +172,41 @@ public class ListaActividadesFragment extends Fragment {
     }
 
     /**
-     * Filtrar actividades por búsqueda de texto usando los campos reales de Cita:
-     * fecha (como dd/MM/yyyy), hora, estado y lugarId.
+     * Filtrar actividades por búsqueda de texto
      */
     private void filterActivities(String query) {
         String q = query == null ? "" : query.trim().toLowerCase(Locale.getDefault());
-        filteredActivitiesList.clear();
+        filteredActividadesList.clear();
 
         if (q.isEmpty()) {
-            filteredActivitiesList.addAll(activitiesList);
+            filteredActividadesList.addAll(actividadesList);
         } else {
-            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            for (Cita cita : activitiesList) {
-                String fechaTxt = cita.getFecha() != null ? df.format(cita.getFecha()).toLowerCase(Locale.getDefault()) : "";
-                String horaTxt = safe(cita.getHora()).toLowerCase(Locale.getDefault());
-                String estadoTxt = safe(cita.getEstado()).toLowerCase(Locale.getDefault());
-                String lugarTxt = safe(cita.getLugarId()).toLowerCase(Locale.getDefault());
+            for (Actividad actividad : actividadesList) {
+                String nombre = safe(actividad.getNombre()).toLowerCase(Locale.getDefault());
+                String tipo = safe(actividad.getTipoActividadId()).toLowerCase(Locale.getDefault());
+                String lugar = safe(actividad.getLugar()).toLowerCase(Locale.getDefault());
+                String fecha = safe(actividad.getFecha()).toLowerCase(Locale.getDefault());
+                String estado = safe(actividad.getEstado()).toLowerCase(Locale.getDefault());
 
-                if (fechaTxt.contains(q) || horaTxt.contains(q) || estadoTxt.contains(q) || lugarTxt.contains(q)) {
-                    filteredActivitiesList.add(cita);
+                if (nombre.contains(q) || tipo.contains(q) || lugar.contains(q) ||
+                        fecha.contains(q) || estado.contains(q)) {
+                    filteredActividadesList.add(actividad);
                 }
             }
         }
 
+        adapter.setActividadesList(filteredActividadesList);
         updateUI();
-        // Si ya tienes adapter: adapter.submitList(new ArrayList<>(filteredActivitiesList));
     }
 
     /**
-     * Filtro por chips (placeholder): ahora mismo no limita nada.
+     * Filtro por chips - implementación básica
      */
     private void filterActivitiesByType() {
-        filteredActivitiesList.clear();
-        filteredActivitiesList.addAll(activitiesList);
+        // Por ahora, mostramos todas las actividades
+        filteredActividadesList.clear();
+        filteredActividadesList.addAll(actividadesList);
+        adapter.setActividadesList(filteredActividadesList);
         updateUI();
     }
 
@@ -217,7 +214,7 @@ public class ListaActividadesFragment extends Fragment {
      * Actualizar la UI basándose en la lista filtrada
      */
     private void updateUI() {
-        boolean isEmpty = filteredActivitiesList.isEmpty();
+        boolean isEmpty = filteredActividadesList.isEmpty();
 
         if (layoutEmptyList != null) {
             layoutEmptyList.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
@@ -226,9 +223,6 @@ public class ListaActividadesFragment extends Fragment {
         if (rvActivitiesList != null) {
             rvActivitiesList.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         }
-
-        // TODO: Notificar al adapter cuando esté implementado
-        // adapter.notifyDataSetChanged();
     }
 
     /**
@@ -247,8 +241,9 @@ public class ListaActividadesFragment extends Fragment {
                     if (documentSnapshot.exists()) {
                         String rolId = documentSnapshot.getString("rolId");
 
-                        MainActivity mainActivity = (MainActivity) getActivity();
-                        boolean esInvitado = mainActivity != null && mainActivity.isGuest();
+                        // Asumiendo que tienes MainActivity con método isGuest()
+                        boolean esInvitado = getActivity() instanceof MainActivity &&
+                                ((MainActivity) getActivity()).isGuest();
 
                         boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
                                 "administrador".equalsIgnoreCase(rolId);
@@ -266,20 +261,8 @@ public class ListaActividadesFragment extends Fragment {
                 });
     }
 
-    /**
-     * Recargar actividades (útil después de crear/editar/eliminar)
-     */
-    public void reloadActividades() {
-        loadActivitiesFromFirebase();
-    }
-
-    // Helpers de seguridad para logs/texto
+    // Helper de seguridad para strings
     private String safe(String s) {
         return s == null ? "" : s;
-    }
-
-    private String safeFecha(Date d) {
-        if (d == null) return "";
-        return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(d);
     }
 }

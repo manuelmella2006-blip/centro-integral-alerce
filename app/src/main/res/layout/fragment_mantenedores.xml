@@ -26,17 +26,17 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="24dp"
-                android:gravity="center">
+                android:padding="24dp">
 
                 <!-- Icono Mantenedores -->
                 <FrameLayout
                     android:layout_width="80dp"
                     android:layout_height="80dp"
+                    android:layout_marginBottom="12dp"
                     android:background="@drawable/bg_icon_circle"
-                    android:backgroundTint="@color/verde_claro"
-                    android:layout_marginBottom="12dp">
+                    android:backgroundTint="@color/verde_claro">
 
                     <ImageView
                         android:layout_width="48dp"
@@ -50,20 +50,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="Mantenedores"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
                     android:textColor="@color/blanco"
-                    android:gravity="center" />
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gestión de datos del sistema"
-                    android:textSize="14sp"
-                    android:textColor="@color/verde_claro"
+                    android:layout_marginTop="4dp"
                     android:gravity="center"
-                    android:layout_marginTop="4dp" />
+                    android:text="Gestión de datos del sistema"
+                    android:textColor="@color/verde_claro"
+                    android:textSize="14sp" />
 
             </LinearLayout>
 

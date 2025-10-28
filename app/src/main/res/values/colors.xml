@@ -61,6 +61,10 @@
     <color name="md_theme_on_surface">@color/gris_oscuro</color>
     <color name="md_theme_error">@color/rojo_error</color>
 
+    <color name="negro">#FF000000</color>
+
+
+
     <!-- ============================================ -->
     <!-- ALIASES RETROCOMPATIBILIDAD (deprecados) -->
     <!-- Mantener solo hasta migración completa -->
