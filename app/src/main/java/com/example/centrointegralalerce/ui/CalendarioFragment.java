@@ -48,7 +48,7 @@ public class CalendarioFragment extends Fragment {
     private TextView tvCurrentWeek, tvCurrentYear, tvSubtitleMes;
     private MaterialButton btnPrevWeek, btnNextWeek, btnCreateFirstActivity;
     private ExtendedFloatingActionButton fabNewActivity;
-    private LinearLayout layoutEmptyCalendar;
+    private View layoutEmptyCalendar; // ⚠️ CAMBIO: De LinearLayout a View
     private ProgressBar progressBar;
     private SwipeRefreshLayout swipeRefresh;
 
@@ -119,7 +119,10 @@ public class CalendarioFragment extends Fragment {
         btnNextWeek = view.findViewById(R.id.btn_next_week);
         btnCreateFirstActivity = view.findViewById(R.id.btn_create_first_activity);
         fabNewActivity = view.findViewById(R.id.fab_new_activity);
+
+        // ⚠️ CORRECCIÓN: layoutEmptyCalendar es MaterialCardView, NO LinearLayout
         layoutEmptyCalendar = view.findViewById(R.id.layout_empty_calendar);
+
         progressBar = view.findViewById(R.id.progress_bar);
         swipeRefresh = view.findViewById(R.id.swipe_refresh);
 
