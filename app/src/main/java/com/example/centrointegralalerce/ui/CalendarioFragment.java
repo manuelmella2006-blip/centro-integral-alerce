@@ -1,5 +1,7 @@
 package com.example.centrointegralalerce.ui;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,20 +12,19 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.centrointegralalerce.R;
-
-// IMPORTA Cita del paquete correcto:
-// Si ahora está en "model":
 import com.example.centrointegralalerce.data.Cita;
-// Si la dejaste en "data", cambia el import anterior por:
-// import com.example.centrointegralalerce.data.Cita;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.centrointegralalerce.data.CitaFirebase;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -35,27 +36,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import android.app.Activity;
-import android.content.Intent;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-
-import com.example.centrointegralalerce.data.Cita;
-import com.example.centrointegralalerce.data.CitaFirebase;
-
+/**
+ * Fragment del calendario con diseño profesional Santo Tomás
+ */
 public class CalendarioFragment extends Fragment {
 
     private static final String TAG = "CalendarioFragment";
-    private static final int FIREBASE_TIMEOUT_MS = 10000; // 10 segundos
 
+    // Vistas principales
     private ViewPager2 viewPagerCalendar;
-    private TextView tvCurrentWeek;
-    private View btnPrevWeek, btnNextWeek;
-    private FloatingActionButton fabNewActivity;
+    private TextView tvCurrentWeek, tvCurrentYear, tvSubtitleMes;
+    private MaterialButton btnPrevWeek, btnNextWeek, btnCreateFirstActivity;
+    private ExtendedFloatingActionButton fabNewActivity;
     private LinearLayout layoutEmptyCalendar;
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefresh;
 
+    // Datos
     private List<Cita> allCitas;
     private Calendar currentWeekStart;
     private CalendarPagerAdapter pagerAdapter;
@@ -64,14 +61,14 @@ public class CalendarioFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    // Activity Result API: lanzar AgregarActividadActivity y refrescar al volver
+    // Activity Result para crear actividades
     private final ActivityResultLauncher<Intent> crearActividadLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == Activity.RESULT_OK) {
-                            // La Activity de creación guardó correctamente
                             reloadCitas();
+                            showSuccess("✅ Actividad creada exitosamente");
                         }
                     }
             );
@@ -92,78 +89,73 @@ public class CalendarioFragment extends Fragment {
 
             allCitas = new ArrayList<>();
 
-            // Inicializar el calendario en la semana actual
+            // Configurar calendario
             currentWeekStart = Calendar.getInstance();
             setWeekToMonday(currentWeekStart);
 
+            // Configurar listeners
             setupListeners();
 
-            // Verificar autenticación antes de cargar
+            // Verificar autenticación
             verificarAutenticacion();
 
-            // Cargar citas desde Firebase
+            // Cargar citas
             loadCitasFromFirebase();
 
         } catch (Exception e) {
-            Log.e(TAG, "Error crítico en onCreateView: " + e.getMessage(), e);
+            Log.e(TAG, "❌ Error crítico en onCreateView", e);
             showError("Error al inicializar el calendario");
         }
 
         return view;
     }
 
-    /**
-     * Inicializa todas las vistas con validación
-     */
     private void initializeViews(View view) {
         viewPagerCalendar = view.findViewById(R.id.viewpager_calendar);
         tvCurrentWeek = view.findViewById(R.id.tv_current_week);
+        tvCurrentYear = view.findViewById(R.id.tv_current_year);
+        tvSubtitleMes = view.findViewById(R.id.tv_subtitle_mes);
         btnPrevWeek = view.findViewById(R.id.btn_prev_week);
         btnNextWeek = view.findViewById(R.id.btn_next_week);
+        btnCreateFirstActivity = view.findViewById(R.id.btn_create_first_activity);
         fabNewActivity = view.findViewById(R.id.fab_new_activity);
         layoutEmptyCalendar = view.findViewById(R.id.layout_empty_calendar);
         progressBar = view.findViewById(R.id.progress_bar);
+        swipeRefresh = view.findViewById(R.id.swipe_refresh);
 
-        if (viewPagerCalendar == null) Log.e(TAG, "❌ viewPagerCalendar es null - verifica el XML");
-        if (tvCurrentWeek == null) Log.e(TAG, "❌ tvCurrentWeek es null - verifica el XML");
-    }
-
-    /**
-     * Verifica si el usuario está autenticado
-     */
-    private void verificarAutenticacion() {
-        if (mAuth == null) {
-            Log.e(TAG, "❌ FirebaseAuth es null");
-            showError("Error de configuración de Firebase Auth");
-            return;
+        // Configurar SwipeRefreshLayout
+        if (swipeRefresh != null) {
+            swipeRefresh.setColorSchemeResources(
+                    R.color.verde_santo_tomas,
+                    R.color.verde_secundario,
+                    R.color.verde_exito
+            );
+            swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.blanco);
         }
 
-        if (mAuth.getCurrentUser() == null) {
+        Log.d(TAG, "✅ Vistas inicializadas correctamente");
+    }
+
+    private void verificarAutenticacion() {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
             Log.e(TAG, "❌ Usuario NO autenticado");
             showError("Debes iniciar sesión para ver las actividades");
-            setupViewPager(); // Configurar calendario vacío
+            setupViewPager();
             return;
         }
 
         String uid = mAuth.getCurrentUser().getUid();
         String email = mAuth.getCurrentUser().getEmail();
-        boolean isAnonymous = mAuth.getCurrentUser().isAnonymous();
 
         Log.d(TAG, "========================================");
         Log.d(TAG, "✅ USUARIO AUTENTICADO");
         Log.d(TAG, "UID: " + uid);
-        Log.d(TAG, "Email: " + (email != null ? email : "sin email (anónimo)"));
-        Log.d(TAG, "Es anónimo: " + isAnonymous);
+        Log.d(TAG, "Email: " + (email != null ? email : "sin email"));
         Log.d(TAG, "========================================");
     }
 
-    /**
-     * Carga las citas desde Firestore
-     * NOTA: Eliminado CitaFirebase; ahora leemos Cita directamente desde /citas
-     * o, si mantienes subcolecciones, mapea a Cita con los campos compatibles.
-     */
     private void loadCitasFromFirebase() {
-        Log.d(TAG, "=== CARGANDO ACTIVIDADES Y SUS CITAS (subcolecciones) ===");
+        Log.d(TAG, "🔄 Cargando actividades desde Firebase...");
 
         if (db == null) {
             showError("Error de configuración de Firebase");
@@ -179,6 +171,7 @@ public class CalendarioFragment extends Fragment {
                 .addOnSuccessListener(actividadesSnapshot -> {
                     if (actividadesSnapshot.isEmpty()) {
                         showLoading(false);
+                        if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                         setupViewPager();
                         showInfo("No hay actividades registradas");
                         return;
@@ -202,7 +195,6 @@ public class CalendarioFragment extends Fragment {
                                             CitaFirebase cf = citaDoc.toObject(CitaFirebase.class);
                                             if (cf == null) return;
 
-                                            // Enriquecer con datos de la actividad padre (opcionales)
                                             cf.setActividadId(actividadId);
                                             cf.setActividadNombre(actividadNombre);
                                             cf.setTipoActividadId(tipoActividadId);
@@ -213,7 +205,7 @@ public class CalendarioFragment extends Fragment {
                                                 allCitas.add(c);
                                             }
                                         } catch (Exception ex) {
-                                            Log.e(TAG, "Error mapeando cita: " + ex.getMessage(), ex);
+                                            Log.e(TAG, "Error mapeando cita", ex);
                                         }
                                     });
 
@@ -223,7 +215,7 @@ public class CalendarioFragment extends Fragment {
                                     }
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error leyendo citas de actividad " + actividadId + ": " + e.getMessage(), e);
+                                    Log.e(TAG, "Error leyendo citas de actividad " + actividadId, e);
                                     procesadas[0]++;
                                     if (procesadas[0] == totalActividades) {
                                         finalizarCargaYActualizarUI();
@@ -232,127 +224,74 @@ public class CalendarioFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error listando actividades: " + e.getMessage(), e);
+                    Log.e(TAG, "Error listando actividades", e);
                     showError("Error al cargar actividades");
                     showLoading(false);
+                    if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                     setupViewPager();
                 });
     }
 
     private void finalizarCargaYActualizarUI() {
-        Log.d(TAG, "Total citas cargadas: " + allCitas.size());
+        Log.d(TAG, "✅ Total citas cargadas: " + allCitas.size());
+
         setupViewPager();
         updateWeekLabel(currentWeekStart);
+        updateMonthSubtitle(currentWeekStart);
         checkIfWeekHasCitas(currentWeekStart);
         showLoading(false);
+
+        if (swipeRefresh != null) {
+            swipeRefresh.setRefreshing(false);
+        }
 
         if (allCitas.isEmpty()) {
             showInfo("No hay citas registradas");
         } else {
-            showSuccess("Se cargaron " + allCitas.size() + " citas");
+            showSuccess("✅ " + allCitas.size() + " citas cargadas");
         }
-    }
-
-    /**
-     * Opcional: Cargar solo las citas del usuario actual (si tu esquema lo soporta)
-     */
-    private void loadCitasFromFirebaseForCurrentUser() {
-        if (mAuth == null || mAuth.getCurrentUser() == null) {
-            Log.w(TAG, "⚠️ Usuario no autenticado");
-            showInfo("Debes iniciar sesión para ver tus actividades");
-            setupViewPager();
-            return;
-        }
-
-        String userId = mAuth.getCurrentUser().getUid();
-        Log.d(TAG, "Cargando citas para usuario: " + userId);
-
-        showLoading(true);
-
-        db.collection("citas")
-                .whereEqualTo("userId", userId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    try {
-                        allCitas.clear();
-
-                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            try {
-                                Cita cita = document.toObject(Cita.class);
-                                if (cita != null) {
-                                    allCitas.add(cita);
-                                }
-                            } catch (Exception e) {
-                                Log.e(TAG, "Error al parsear cita: " + e.getMessage(), e);
-                            }
-                        }
-
-                        Log.d(TAG, "Citas del usuario cargadas: " + allCitas.size());
-
-                        setupViewPager();
-                        updateWeekLabel(currentWeekStart);
-                        checkIfWeekHasCitas(currentWeekStart);
-                        showLoading(false);
-
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error al procesar citas del usuario: " + e.getMessage(), e);
-                        showError("Error al procesar las actividades");
-                        showLoading(false);
-                        setupViewPager();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar citas del usuario: " + e.getMessage(), e);
-                    showError("Error al cargar tus actividades");
-                    showLoading(false);
-                    setupViewPager();
-                });
     }
 
     private void setupViewPager() {
         try {
             if (viewPagerCalendar == null) {
-                Log.e(TAG, "❌ No se puede configurar ViewPager - vista es null");
+                Log.e(TAG, "❌ ViewPager es null");
                 return;
             }
 
-            // Crear el adaptador
             pagerAdapter = new CalendarPagerAdapter(allCitas, getParentFragmentManager(), currentWeekStart);
             viewPagerCalendar.setAdapter(pagerAdapter);
-
-            // Empezar en la posición central (semana actual)
             viewPagerCalendar.setCurrentItem(pagerAdapter.getMiddlePosition(), false);
 
-            // Listener para detectar cambios de página
             viewPagerCalendar.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
                 @Override
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
 
                     try {
-                        // Obtener la semana correspondiente a esta posición
                         Calendar weekStart = pagerAdapter.getWeekForPosition(position);
                         currentWeekStart = weekStart;
 
-                        // Actualizar UI
                         updateWeekLabel(weekStart);
+                        updateMonthSubtitle(weekStart);
                         checkIfWeekHasCitas(weekStart);
                     } catch (Exception e) {
-                        Log.e(TAG, "Error al cambiar de página: " + e.getMessage(), e);
+                        Log.e(TAG, "Error al cambiar de página", e);
                     }
                 }
             });
 
-            Log.d(TAG, "✅ ViewPager configurado correctamente");
+            Log.d(TAG, "✅ ViewPager configurado");
 
         } catch (Exception e) {
-            Log.e(TAG, "❌ Error al configurar ViewPager: " + e.getMessage(), e);
+            Log.e(TAG, "❌ Error configurando ViewPager", e);
             showError("Error al configurar el calendario");
         }
     }
 
     private void setupListeners() {
         try {
+            // Botón semana anterior
             if (btnPrevWeek != null) {
                 btnPrevWeek.setOnClickListener(v -> {
                     try {
@@ -361,11 +300,12 @@ public class CalendarioFragment extends Fragment {
                             viewPagerCalendar.setCurrentItem(currentItem - 1, true);
                         }
                     } catch (Exception e) {
-                        Log.e(TAG, "Error al navegar a semana anterior: " + e.getMessage(), e);
+                        Log.e(TAG, "Error navegando a semana anterior", e);
                     }
                 });
             }
 
+            // Botón semana siguiente
             if (btnNextWeek != null) {
                 btnNextWeek.setOnClickListener(v -> {
                     try {
@@ -374,35 +314,58 @@ public class CalendarioFragment extends Fragment {
                             viewPagerCalendar.setCurrentItem(currentItem + 1, true);
                         }
                     } catch (Exception e) {
-                        Log.e(TAG, "Error al navegar a semana siguiente: " + e.getMessage(), e);
+                        Log.e(TAG, "Error navegando a semana siguiente", e);
                     }
                 });
             }
 
+            // FAB Nueva actividad
             if (fabNewActivity != null) {
-                fabNewActivity.setOnClickListener(v -> {
-                    // Abrir Activity dedicada para crear actividad
-                    Intent intent = new Intent(requireContext(), AgregarActividadActivity.class);
+                fabNewActivity.setOnClickListener(v -> openCreateActivity());
+            }
 
-                    // Extras opcionales: pasar lunes visible y una hora sugerida
-                    long startOfWeekMillis = (currentWeekStart != null)
-                            ? currentWeekStart.getTimeInMillis()
-                            : System.currentTimeMillis();
-                    intent.putExtra("startOfWeekMillis", startOfWeekMillis);
-                    intent.putExtra("suggestedTimeMillis", System.currentTimeMillis());
+            // Botón crear primera actividad (empty state)
+            if (btnCreateFirstActivity != null) {
+                btnCreateFirstActivity.setOnClickListener(v -> openCreateActivity());
+            }
 
-                    // Lanzar esperando resultado para refrescar al volver
-                    crearActividadLauncher.launch(intent);
+            // Pull to refresh
+            if (swipeRefresh != null) {
+                swipeRefresh.setOnRefreshListener(() -> {
+                    Log.d(TAG, "🔄 Pull to refresh activado");
+                    reloadCitas();
                 });
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Error al configurar listeners: " + e.getMessage(), e);
+            Log.e(TAG, "Error configurando listeners", e);
         }
     }
 
     /**
-     * Ajusta el calendario al lunes de la semana actual
+     * Abre la actividad para crear nueva actividad
+     */
+    private void openCreateActivity() {
+        try {
+            Intent intent = new Intent(requireContext(), AgregarActividadActivity.class);
+
+            long startOfWeekMillis = (currentWeekStart != null)
+                    ? currentWeekStart.getTimeInMillis()
+                    : System.currentTimeMillis();
+
+            intent.putExtra("startOfWeekMillis", startOfWeekMillis);
+            intent.putExtra("suggestedTimeMillis", System.currentTimeMillis());
+
+            crearActividadLauncher.launch(intent);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error abriendo crear actividad", e);
+            showError("Error al abrir formulario de actividad");
+        }
+    }
+
+    /**
+     * Ajusta el calendario al lunes de la semana
      */
     private void setWeekToMonday(Calendar cal) {
         try {
@@ -410,13 +373,7 @@ public class CalendarioFragment extends Fragment {
             cal.setMinimalDaysInFirstWeek(4);
 
             int currentDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-            int daysFromMonday;
-
-            if (currentDayOfWeek == Calendar.SUNDAY) {
-                daysFromMonday = 6;
-            } else {
-                daysFromMonday = currentDayOfWeek - Calendar.MONDAY;
-            }
+            int daysFromMonday = (currentDayOfWeek == Calendar.SUNDAY) ? 6 : currentDayOfWeek - Calendar.MONDAY;
 
             cal.add(Calendar.DAY_OF_MONTH, -daysFromMonday);
             cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -425,18 +382,15 @@ public class CalendarioFragment extends Fragment {
             cal.set(Calendar.MILLISECOND, 0);
 
         } catch (Exception e) {
-            Log.e(TAG, "Error al ajustar calendario a lunes: " + e.getMessage(), e);
+            Log.e(TAG, "Error ajustando calendario a lunes", e);
         }
     }
 
     /**
-     * Actualiza el texto que muestra la semana actual
+     * Actualiza el label de la semana actual (formato mejorado)
      */
     private void updateWeekLabel(Calendar weekStart) {
-        if (tvCurrentWeek == null || weekStart == null) {
-            Log.w(TAG, "No se puede actualizar label de semana - vista o calendario null");
-            return;
-        }
+        if (tvCurrentWeek == null || weekStart == null) return;
 
         try {
             SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM", new Locale("es", "ES"));
@@ -453,33 +407,53 @@ public class CalendarioFragment extends Fragment {
 
             String labelText;
             if (startMonth != endMonth) {
-                String startMonthName = monthShortFormat.format(weekStart.getTime());
-                String endMonthName = monthFormat.format(weekEnd.getTime());
+                String startMonthName = monthShortFormat.format(weekStart.getTime()).toUpperCase();
+                String endMonthName = monthShortFormat.format(weekEnd.getTime()).toUpperCase();
                 labelText = String.format(Locale.getDefault(),
-                        "%d de %s - %d de %s %d",
-                        startDay, startMonthName, endDay, endMonthName, year);
+                        "%d %s - %d %s",
+                        startDay, startMonthName, endDay, endMonthName);
             } else {
-                String monthName = monthFormat.format(weekStart.getTime());
+                String monthName = monthFormat.format(weekStart.getTime()).toUpperCase();
                 labelText = String.format(Locale.getDefault(),
-                        "%d - %d de %s %d",
-                        startDay, endDay, monthName, year);
+                        "%d - %d %s",
+                        startDay, endDay, monthName);
             }
 
             tvCurrentWeek.setText(labelText);
 
+            // Actualizar año
+            if (tvCurrentYear != null) {
+                tvCurrentYear.setText(String.valueOf(year));
+            }
+
         } catch (Exception e) {
-            Log.e(TAG, "Error al actualizar label de semana: " + e.getMessage(), e);
+            Log.e(TAG, "Error actualizando label de semana", e);
             tvCurrentWeek.setText("Semana actual");
         }
     }
 
     /**
-     * Verifica si la semana tiene citas usando Cita.fecha
+     * Actualiza el subtítulo con el mes actual
+     */
+    private void updateMonthSubtitle(Calendar weekStart) {
+        if (tvSubtitleMes == null || weekStart == null) return;
+
+        try {
+            SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMMM yyyy", new Locale("es", "ES"));
+            String subtitle = monthYearFormat.format(weekStart.getTime());
+            // Capitalizar primera letra
+            subtitle = subtitle.substring(0, 1).toUpperCase() + subtitle.substring(1);
+            tvSubtitleMes.setText(subtitle);
+        } catch (Exception e) {
+            Log.e(TAG, "Error actualizando subtítulo de mes", e);
+        }
+    }
+
+    /**
+     * Verifica si la semana tiene citas
      */
     private void checkIfWeekHasCitas(Calendar weekStart) {
-        if (layoutEmptyCalendar == null || weekStart == null) {
-            return;
-        }
+        if (layoutEmptyCalendar == null || weekStart == null) return;
 
         try {
             Calendar weekEnd = (Calendar) weekStart.clone();
@@ -487,15 +461,12 @@ public class CalendarioFragment extends Fragment {
             weekEnd.set(Calendar.HOUR_OF_DAY, 23);
             weekEnd.set(Calendar.MINUTE, 59);
             weekEnd.set(Calendar.SECOND, 59);
-            weekEnd.set(Calendar.MILLISECOND, 999);
 
             boolean hasCitas = false;
             for (Cita cita : allCitas) {
-                if (cita == null) continue;
-                Date fecha = cita.getFecha();
-                if (fecha == null) continue;
+                if (cita == null || cita.getFecha() == null) continue;
 
-                long t = fecha.getTime();
+                long t = cita.getFecha().getTime();
                 if (t >= weekStart.getTimeInMillis() && t <= weekEnd.getTimeInMillis()) {
                     hasCitas = true;
                     break;
@@ -505,19 +476,21 @@ public class CalendarioFragment extends Fragment {
             layoutEmptyCalendar.setVisibility(hasCitas ? View.GONE : View.VISIBLE);
 
         } catch (Exception e) {
-            Log.e(TAG, "Error al verificar citas de la semana: " + e.getMessage(), e);
+            Log.e(TAG, "Error verificando citas de la semana", e);
         }
     }
 
     /**
-     * Recargar citas (útil después de crear/editar/eliminar)
+     * Recarga las citas desde Firebase
      */
     public void reloadCitas() {
-        Log.d(TAG, "Recargando citas...");
+        Log.d(TAG, "🔄 Recargando citas...");
         loadCitasFromFirebase();
     }
 
-    // ===== MÉTODOS AUXILIARES DE UI =====
+    // ============================================
+    // MÉTODOS AUXILIARES DE UI
+    // ============================================
 
     private void showLoading(boolean show) {
         if (progressBar != null) {
@@ -526,23 +499,32 @@ public class CalendarioFragment extends Fragment {
     }
 
     private void showError(String message) {
-        Log.e(TAG, "ERROR: " + message);
+        Log.e(TAG, "❌ ERROR: " + message);
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
         }
     }
 
     private void showInfo(String message) {
-        Log.i(TAG, "INFO: " + message);
+        Log.i(TAG, "ℹ️ INFO: " + message);
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
 
     private void showSuccess(String message) {
-        Log.i(TAG, "SUCCESS: " + message);
+        Log.i(TAG, "✅ SUCCESS: " + message);
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Recargar citas al volver al fragment
+        if (allCitas != null && pagerAdapter != null) {
+            Log.d(TAG, "📱 Fragment resumido - actualizando vista");
         }
     }
 }

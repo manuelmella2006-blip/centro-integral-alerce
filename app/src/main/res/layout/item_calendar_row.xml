@@ -1,78 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Fila del calendario con diseño profesional Santo Tomás -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:minHeight="80dp"
+    android:minHeight="90dp"
     android:orientation="horizontal"
     android:background="@color/blanco">
 
-    <!-- Columna con la hora -->
-    <TextView
-        android:id="@+id/tvHour"
-        android:layout_width="60dp"
+    <!-- ========================================= -->
+    <!-- COLUMNA DE HORA -->
+    <!-- ========================================= -->
+    <LinearLayout
+        android:layout_width="70dp"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:gravity="center"
-        android:padding="4dp"
-        android:text="08:00"
-        android:textColor="@color/verdeSantoTomas"
-        android:textStyle="bold"
-        android:textSize="12sp"
-        android:background="@drawable/border_hour" />
+        android:padding="8dp"
+        android:background="@drawable/border_hour_modern">
 
-    <!-- Lunes -->
+        <TextView
+            android:id="@+id/tvHour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="08:00"
+            android:textColor="@color/verde_santo_tomas"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.05" />
+
+        <!-- Indicador visual de hora -->
+        <View
+            android:layout_width="32dp"
+            android:layout_height="2dp"
+            android:background="@color/verde_santo_tomas"
+            android:layout_marginTop="4dp"
+            android:alpha="0.5" />
+
+    </LinearLayout>
+
+    <!-- ========================================= -->
+    <!-- CELDAS DE DÍAS (Lunes a Domingo) -->
+    <!-- ========================================= -->
+
+    <!-- LUNES -->
     <LinearLayout
         android:id="@+id/cellLun"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
-    <!-- Martes -->
+    <!-- MARTES -->
     <LinearLayout
         android:id="@+id/cellMar"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
-    <!-- Miércoles -->
+    <!-- MIÉRCOLES -->
     <LinearLayout
         android:id="@+id/cellMie"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
-    <!-- Jueves -->
+    <!-- JUEVES -->
     <LinearLayout
         android:id="@+id/cellJue"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
-    <!-- Viernes -->
+    <!-- VIERNES -->
     <LinearLayout
         android:id="@+id/cellVie"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
-    <!-- Sábado -->
+    <!-- SÁBADO -->
     <LinearLayout
         android:id="@+id/cellSab"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
-    <!-- Domingo -->
+    <!-- DOMINGO -->
     <LinearLayout
         android:id="@+id/cellDom"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/border_cell" />
+        android:gravity="center"
+        android:background="@drawable/border_cell_modern"
+        android:padding="4dp" />
 
 </LinearLayout>

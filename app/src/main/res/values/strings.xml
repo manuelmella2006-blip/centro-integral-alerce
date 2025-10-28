@@ -1,13 +1,53 @@
 <resources>
     <string name="app_name">CentroIntegralAlerce</string>
 
-    <!-- Fragment Calendario -->
+    <!-- ============================================ -->
+    <!-- Fragment Calendario (EXISTENTES + NUEVOS) -->
+    <!-- ============================================ -->
     <string name="semana_anterior">Semana anterior</string>
     <string name="semana_siguiente">Semana siguiente</string>
     <string name="nueva_actividad">Nueva actividad</string>
     <string name="no_hay_actividades">No hay actividades esta semana</string>
 
-    <!-- Fragment Configuración -->
+    <!-- NUEVOS para calendario mejorado -->
+    <string name="calendario_semanal">Calendario Semanal</string>
+    <string name="crear_primera_actividad">Crear Primera Actividad</string>
+    <string name="cargando_actividades">Cargando actividades...</string>
+    <string name="error_cargar_actividades">Error al cargar actividades</string>
+    <string name="actividades_cargadas">Actividades cargadas exitosamente</string>
+    <string name="sin_citas_semana">Sin actividades esta semana</string>
+    <string name="comienza_organizando">Comienza a organizar tu agenda\ncreando una nueva actividad</string>
+    <string name="error_autenticacion">Debes iniciar sesión para ver las actividades</string>
+    <string name="actividad_creada">Actividad creada exitosamente</string>
+    <string name="error_crear_actividad">Error al crear la actividad</string>
+    <string name="nueva_actividad_extended">Nueva Actividad</string>
+
+    <!-- Content Descriptions -->
+    <string name="icono_calendario_vacio">Icono de calendario vacío</string>
+
+    <!-- ============================================ -->
+    <!-- Días de la semana (NUEVOS) -->
+    <!-- ============================================ -->
+    <string name="dia_lunes">LUN</string>
+    <string name="dia_martes">MAR</string>
+    <string name="dia_miercoles">MIÉ</string>
+    <string name="dia_jueves">JUE</string>
+    <string name="dia_viernes">VIE</string>
+    <string name="dia_sabado">SÁB</string>
+    <string name="dia_domingo">DOM</string>
+
+    <!-- ============================================ -->
+    <!-- Estados de citas (NUEVOS) -->
+    <!-- ============================================ -->
+    <string name="estado_activa">Activa</string>
+    <string name="estado_pendiente">Pendiente</string>
+    <string name="estado_cancelada">Cancelada</string>
+    <string name="estado_completada">Completada</string>
+    <string name="estado_reprogramada">Reprogramada</string>
+
+    <!-- ============================================ -->
+    <!-- Fragment Configuración (EXISTENTES) -->
+    <!-- ============================================ -->
     <string name="usuario">Usuario</string>
     <string name="mantenedores">Mantenedores</string>
     <string name="gestionar_usuarios">Gestionar usuarios</string>
@@ -17,8 +57,11 @@
     <string name="cerrar_sesion">Cerrar sesión</string>
     <string name="acerca_de">Acerca de</string>
 
-    <!-- Login Logos -->
+    <!-- ============================================ -->
+    <!-- Login Logos (EXISTENTES) -->
+    <!-- ============================================ -->
     <string name="logo_centro_alerce">Centro Integral Alerce</string>
     <string name="logo_los_muchachos">Los Muchachos</string>
     <string name="logo_santo_tomas">Santo Tomás</string>
+
 </resources>
