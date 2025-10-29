@@ -1,38 +1,250 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="280dp"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="300dp"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/dialog_background">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@color/blanco">
 
-    <TextView
-        android:id="@+id/tv_nombre_actividad"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nombre actividad"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:textColor="@android:color/black"/>
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_lugar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lugar"
-        android:layout_marginTop="8dp"/>
+        <!-- Header del Dialog -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_header_gradient"
+            android:backgroundTint="@color/verde_santo_tomas"
+            android:padding="16dp"
+            android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/tv_hora"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hora"
-        android:layout_marginTop="4dp"/>
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_calendar"
+                android:background="@drawable/bg_icon_circle"
+                android:backgroundTint="@color/verde_secundario"
+                android:padding="6dp"
+                app:tint="@color/blanco"
+                android:layout_marginEnd="12dp" />
 
-    <TextView
-        android:id="@+id/tv_tipo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Tipo"
-        android:layout_marginTop="4dp"/>
-</LinearLayout>
+            <TextView
+                android:id="@+id/tv_nombre_actividad"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Cita de Actividad"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/blanco"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="Taller de Programación" />
+
+        </LinearLayout>
+
+        <!-- Contenido del Dialog -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Lugar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/verde_santo_tomas"
+                    android:layout_marginEnd="12dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lugar"
+                        android:textSize="11sp"
+                        android:textColor="@color/gris_medio"
+                        android:letterSpacing="0.05" />
+
+                    <TextView
+                        android:id="@+id/tv_lugar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Oficina Centro Integral"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gris_oscuro"
+                        android:layout_marginTop="2dp"
+                        tools:text="Sala de Capacitaciones" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gris_borde"
+                android:layout_marginVertical="8dp" />
+
+            <!-- Hora -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="@color/verde_santo_tomas"
+                    android:layout_marginEnd="12dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hora"
+                        android:textSize="11sp"
+                        android:textColor="@color/gris_medio"
+                        android:letterSpacing="0.05" />
+
+                    <TextView
+                        android:id="@+id/tv_hora"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="14:00"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gris_oscuro"
+                        android:layout_marginTop="2dp"
+                        tools:text="10:30" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gris_borde"
+                android:layout_marginVertical="8dp" />
+
+            <!-- Estado -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_list"
+                    app:tint="@color/verde_santo_tomas"
+                    android:layout_marginEnd="12dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Estado"
+                        android:textSize="11sp"
+                        android:textColor="@color/gris_medio"
+                        android:letterSpacing="0.05" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_estado"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Programada"
+                        app:chipBackgroundColor="@color/verde_exito"
+                        android:textColor="@color/blanco"
+                        android:textSize="12sp"
+                        app:chipMinHeight="28dp"
+                        tools:text="Activa" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Divider antes de acciones -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gris_borde" />
+
+        <!-- Botones de acción -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_ver_detalle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Ver Detalle"
+                android:textSize="13sp"
+                style="@style/Widget.Material3.Button"
+                app:cornerRadius="8dp"
+                app:backgroundTint="@color/verde_santo_tomas"
+                android:textColor="@color/blanco" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cerrar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Cerrar"
+                android:textSize="13sp"
+                style="@style/Widget.Material3.Button"
+                app:cornerRadius="8dp"
+                app:backgroundTint="@color/gris_medio"
+                android:textColor="@color/blanco" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

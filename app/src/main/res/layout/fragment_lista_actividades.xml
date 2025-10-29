@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grisClaro">
+    android:background="@color/gris_claro">
 
     <!-- NestedScrollView para mejor scroll -->
     <androidx.core.widget.NestedScrollView
@@ -35,15 +35,30 @@
                     android:padding="16dp">
 
                     <!-- Título de sección -->
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Buscar Actividades"
-                        android:textSize="14sp"
-                        android:textColor="@color/grisMedio"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.05"
-                        android:layout_marginBottom="12dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_search"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Buscar Actividades"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
 
                     <!-- Barra de búsqueda -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -56,11 +71,11 @@
                         app:boxCornerRadiusBottomStart="12dp"
                         app:boxCornerRadiusBottomEnd="12dp"
                         app:startIconDrawable="@drawable/ic_search"
-                        app:startIconTint="@color/verdeSantoTomas"
+                        app:startIconTint="@color/verde_santo_tomas"
                         app:endIconMode="clear_text"
-                        app:endIconTint="@color/grisMedio"
-                        app:boxStrokeColor="@color/verdeSantoTomas"
-                        app:hintTextColor="@color/verdeSantoTomas"
+                        app:endIconTint="@color/gris_medio"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -95,8 +110,12 @@
                                 android:layout_height="wrap_content"
                                 android:text="Todas"
                                 android:checked="true"
-                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipIcon="@drawable/ic_list"
+                                app:chipIconTint="@color/verde_santo_tomas"
+                                app:chipBackgroundColor="@color/verde_claro"
                                 app:chipStrokeWidth="0dp"
+                                android:textColor="@color/verde_santo_tomas"
+                                android:textStyle="bold"
                                 style="@style/Widget.Material3.Chip.Filter" />
 
                             <com.google.android.material.chip.Chip
@@ -104,8 +123,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Hoy"
-                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipIcon="@drawable/ic_calendar"
+                                app:chipIconTint="@color/verde_santo_tomas"
+                                app:chipBackgroundColor="@color/verde_claro"
                                 app:chipStrokeWidth="0dp"
+                                android:textColor="@color/verde_santo_tomas"
                                 style="@style/Widget.Material3.Chip.Filter" />
 
                             <com.google.android.material.chip.Chip
@@ -113,8 +135,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Esta semana"
-                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipIcon="@drawable/ic_calendar"
+                                app:chipIconTint="@color/verde_santo_tomas"
+                                app:chipBackgroundColor="@color/verde_claro"
                                 app:chipStrokeWidth="0dp"
+                                android:textColor="@color/verde_santo_tomas"
                                 style="@style/Widget.Material3.Chip.Filter" />
 
                             <com.google.android.material.chip.Chip
@@ -122,8 +147,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Este mes"
-                                app:chipBackgroundColor="@color/verdeClaro"
+                                app:chipIcon="@drawable/ic_calendar"
+                                app:chipIconTint="@color/verde_santo_tomas"
+                                app:chipBackgroundColor="@color/verde_claro"
                                 app:chipStrokeWidth="0dp"
+                                android:textColor="@color/verde_santo_tomas"
                                 style="@style/Widget.Material3.Chip.Filter" />
 
                         </com.google.android.material.chip.ChipGroup>
@@ -134,6 +162,36 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Contador de resultados -->
+            <LinearLayout
+                android:id="@+id/layout_results_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="24dp"
+                android:paddingVertical="8dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_list"
+                    app:tint="@color/gris_medio"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_results_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="12 actividades encontradas"
+                    android:textSize="12sp"
+                    android:textColor="@color/gris_medio"
+                    tools:text="5 actividades encontradas" />
+
+            </LinearLayout>
+
             <!-- RecyclerView de actividades -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_activities_list"
@@ -141,7 +199,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginBottom="80dp"
+                android:layout_marginBottom="100dp"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_activity_card"
@@ -156,14 +214,14 @@
                 android:gravity="center"
                 android:padding="48dp"
                 android:visibility="gone"
-                tools:visibility="visible">
+                tools:visibility="gone">
 
                 <ImageView
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:src="@drawable/ic_list_empty"
                     android:alpha="0.3"
-                    app:tint="@color/grisMedio" />
+                    app:tint="@color/gris_medio" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -172,17 +230,31 @@
                     android:text="No se encontraron actividades"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/grisMedio"
+                    android:textColor="@color/gris_medio"
                     android:gravity="center" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Intenta cambiar los filtros de búsqueda"
+                    android:text="Intenta cambiar los filtros de búsqueda\no crea una nueva actividad"
                     android:textSize="14sp"
-                    android:textColor="@color/grisMedio"
-                    android:gravity="center" />
+                    android:textColor="@color/gris_medio"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_empty_create"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Crear Actividad"
+                    android:textSize="14sp"
+                    app:icon="@drawable/ic_add"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="12dp"
+                    app:backgroundTint="@color/verde_santo_tomas"
+                    style="@style/Widget.Material3.Button" />
 
             </LinearLayout>
 
@@ -197,18 +269,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:indeterminateTint="@color/verde_santo_tomas"
         android:visibility="gone" />
 
     <!-- FloatingActionButton -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fab_new_activity_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
-        android:src="@drawable/ic_add"
-        app:tint="@color/blanco"
-        app:backgroundTint="@color/verdeSantoTomas"
+        android:text="Nueva Actividad"
+        android:textStyle="bold"
+        app:icon="@drawable/ic_add"
+        app:iconTint="@color/blanco"
+        android:textColor="@color/blanco"
+        app:backgroundTint="@color/verde_santo_tomas"
         app:elevation="6dp"
         app:borderWidth="0dp"
         android:contentDescription="Nueva Actividad" />

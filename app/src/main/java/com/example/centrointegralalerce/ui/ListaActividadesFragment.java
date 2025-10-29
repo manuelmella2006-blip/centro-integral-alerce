@@ -20,7 +20,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+// ❌ QUITAR este import ↓
+// import com.google.android.material.floatingactionbutton.FloatingActionButton;
+// ✅ USAR este import ↓
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton; // <-- cambio
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-// NUEVOS IMPORTS
 import android.app.Activity;
 import android.content.Intent;
 import androidx.activity.result.ActivityResultLauncher;
@@ -43,7 +45,10 @@ public class ListaActividadesFragment extends Fragment {
     private RecyclerView rvActivitiesList;
     private TextInputEditText etSearch;
     private ChipGroup chipGroupFilters;
-    private FloatingActionButton fabNewActivityList;
+
+    // private FloatingActionButton fabNewActivityList;
+    private ExtendedFloatingActionButton fabNewActivityList; // <-- cambio
+
     private LinearLayout layoutEmptyList;
     private ProgressBar progressBar;
 
@@ -52,7 +57,7 @@ public class ListaActividadesFragment extends Fragment {
     private List<Actividad> filteredActividadesList;
     private ActividadesListAdapter adapter;
 
-    // NUEVO: listas paralelas de IDs (mismo orden que las listas de Actividad)
+    // IDs paralelos
     private List<String> actividadIds;
     private List<String> filteredActividadIds;
 
@@ -74,23 +79,25 @@ public class ListaActividadesFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_lista_actividades, container, false);
 
         // Inicializar vistas
-        rvActivitiesList = view.findViewById(R.id.rv_activities_list);
-        etSearch = view.findViewById(R.id.et_search);
-        chipGroupFilters = view.findViewById(R.id.chip_group_filters);
-        fabNewActivityList = view.findViewById(R.id.fab_new_activity_list);
-        layoutEmptyList = view.findViewById(R.id.layout_empty_list);
-        progressBar = view.findViewById(R.id.progress_bar);
+        rvActivitiesList   = view.findViewById(R.id.rv_activities_list);
+        etSearch           = view.findViewById(R.id.et_search);
+        chipGroupFilters   = view.findViewById(R.id.chip_group_filters);
+        fabNewActivityList = view.findViewById(R.id.fab_new_activity_list); // <-- ahora el tipo coincide
+        layoutEmptyList    = view.findViewById(R.id.layout_empty_list);
+        progressBar        = view.findViewById(R.id.progress_bar);
 
         auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
+        db   = FirebaseFirestore.getInstance();
 
-        actividadesList = new ArrayList<>();
+        actividadesList         = new ArrayList<>();
         filteredActividadesList = new ArrayList<>();
-        actividadIds = new ArrayList<>();
-        filteredActividadIds = new ArrayList<>();
+        actividadIds            = new ArrayList<>();
+        filteredActividadIds    = new ArrayList<>();
+
         adapter = new ActividadesListAdapter(filteredActividadesList);
 
         setupRecyclerView();
@@ -105,7 +112,7 @@ public class ListaActividadesFragment extends Fragment {
         rvActivitiesList.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvActivitiesList.setAdapter(adapter);
 
-        // Listener de clic: usar ID desde la lista paralela filtrada
+        // Click en una actividad -> ir al detalle con su ID real
         adapter.setOnItemClickListener(actividad -> {
             int pos = filteredActividadesList.indexOf(actividad);
             if (pos >= 0 && pos < filteredActividadIds.size()) {
@@ -120,28 +127,27 @@ public class ListaActividadesFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Búsqueda (IME action buscar)
+        // Buscar al presionar el action del teclado (lupa en el ime)
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
-            String query = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
+            String query = etSearch.getText() != null
+                    ? etSearch.getText().toString().trim()
+                    : "";
             filterActivities(query);
             return true;
         });
 
-        // Filtros por chips
+        // Chips -> futuro filtro más específico
         chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
             filterActivitiesByType();
         });
 
-        // FAB nueva actividad -> abre AgregarActividadActivity
+        // FAB crear nueva actividad
         fabNewActivityList.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), AgregarActividadActivity.class);
             crearActividadLauncher.launch(intent);
         });
     }
 
-    /**
-     * Cargar actividades desde Firebase Firestore - COLECCIÓN CORRECTA
-     */
     private void loadActivitiesFromFirebase() {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
@@ -158,7 +164,7 @@ public class ListaActividadesFragment extends Fragment {
                             Actividad actividad = document.toObject(Actividad.class);
                             if (actividad != null) {
                                 actividadesList.add(actividad);
-                                actividadIds.add(document.getId()); // capturar el documentId
+                                actividadIds.add(document.getId());
                                 Log.d(TAG, "Actividad cargada: " + actividad.getNombre());
                             }
                         } catch (Exception e) {
@@ -166,7 +172,6 @@ public class ListaActividadesFragment extends Fragment {
                         }
                     }
 
-                    // Sin filtros: copiar listas completas
                     filteredActividadesList.addAll(actividadesList);
                     filteredActividadIds.addAll(actividadIds);
                     adapter.setActividadesList(filteredActividadesList);
@@ -176,25 +181,26 @@ public class ListaActividadesFragment extends Fragment {
                     updateUI();
 
                     if (actividadesList.isEmpty()) {
-                        Toast.makeText(requireContext(),
+                        Toast.makeText(
+                                requireContext(),
                                 "No hay actividades disponibles",
-                                Toast.LENGTH_SHORT).show();
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al cargar actividades: " + e.getMessage(), e);
-                    Toast.makeText(requireContext(),
+                    Toast.makeText(
+                            requireContext(),
                             "Error al cargar actividades: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG
+                    ).show();
 
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
                     updateUI();
                 });
     }
 
-    /**
-     * Filtrar actividades por búsqueda de texto
-     */
     private void filterActivities(String query) {
         String q = query == null ? "" : query.trim().toLowerCase(Locale.getDefault());
         filteredActividadesList.clear();
@@ -207,16 +213,20 @@ public class ListaActividadesFragment extends Fragment {
             for (int i = 0; i < actividadesList.size(); i++) {
                 Actividad actividad = actividadesList.get(i);
 
-                String nombre = safe(actividad.getNombre()).toLowerCase(Locale.getDefault());
-                String tipo = safe(actividad.getTipoActividadId()).toLowerCase(Locale.getDefault());
-                String lugar = safe(actividad.getLugar()).toLowerCase(Locale.getDefault());
-                String fecha = safe(actividad.getFecha()).toLowerCase(Locale.getDefault());
-                String estado = safe(actividad.getEstado()).toLowerCase(Locale.getDefault());
+                String nombre  = safe(actividad.getNombre()).toLowerCase(Locale.getDefault());
+                String tipo    = safe(actividad.getTipoActividadId()).toLowerCase(Locale.getDefault());
+                String lugar   = safe(actividad.getLugar()).toLowerCase(Locale.getDefault());
+                String fecha   = safe(actividad.getFecha()).toLowerCase(Locale.getDefault());
+                String estado  = safe(actividad.getEstado()).toLowerCase(Locale.getDefault());
 
-                if (nombre.contains(q) || tipo.contains(q) || lugar.contains(q) ||
-                        fecha.contains(q) || estado.contains(q)) {
+                if (nombre.contains(q)
+                        || tipo.contains(q)
+                        || lugar.contains(q)
+                        || fecha.contains(q)
+                        || estado.contains(q)) {
+
                     filteredActividadesList.add(actividad);
-                    filteredActividadIds.add(actividadIds.get(i)); // mantener id alineado
+                    filteredActividadIds.add(actividadIds.get(i));
                 }
             }
         }
@@ -225,22 +235,18 @@ public class ListaActividadesFragment extends Fragment {
         updateUI();
     }
 
-    /**
-     * Filtro por chips - implementación básica
-     */
     private void filterActivitiesByType() {
-        // Por ahora, mostramos todas las actividades
+        // por ahora no filtramos realmente los chips (está como stub)
         filteredActividadesList.clear();
         filteredActividadIds.clear();
+
         filteredActividadesList.addAll(actividadesList);
         filteredActividadIds.addAll(actividadIds);
+
         adapter.setActividadesList(filteredActividadesList);
         updateUI();
     }
 
-    /**
-     * Actualizar la UI basándose en la lista filtrada
-     */
     private void updateUI() {
         boolean isEmpty = filteredActividadesList.isEmpty();
 
@@ -253,9 +259,6 @@ public class ListaActividadesFragment extends Fragment {
         }
     }
 
-    /**
-     * Verificar rol del usuario para mostrar/ocultar FAB
-     */
     private void checkUserRole() {
         if (auth.getCurrentUser() == null) {
             fabNewActivityList.setVisibility(View.GONE);
@@ -272,8 +275,9 @@ public class ListaActividadesFragment extends Fragment {
                         boolean esInvitado = getActivity() instanceof MainActivity &&
                                 ((MainActivity) getActivity()).isGuest();
 
-                        boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
-                                "administrador".equalsIgnoreCase(rolId);
+                        boolean esAdmin =
+                                "admin".equalsIgnoreCase(rolId) ||
+                                        "administrador".equalsIgnoreCase(rolId);
 
                         fabNewActivityList.setVisibility(
                                 (esAdmin && !esInvitado) ? View.VISIBLE : View.GONE
@@ -288,7 +292,6 @@ public class ListaActividadesFragment extends Fragment {
                 });
     }
 
-    // Helper de seguridad para strings
     private String safe(String s) {
         return s == null ? "" : s;
     }

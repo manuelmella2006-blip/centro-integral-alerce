@@ -1,72 +1,594 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/gris_claro">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <!-- AppBar con Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/verde_santo_tomas"
+        android:theme="@style/ThemeOverlay.Material3.Dark">
 
-        <TextView
-            android:text="Nombre"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tv_nombre"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/verde_santo_tomas"
+            app:title="Detalle de Actividad"
+            app:titleTextColor="@color/blanco"
+            app:navigationIcon="@drawable/ic_chevron_left"
+            app:navigationIconTint="@color/blanco" />
 
-        <TextView
-            android:text="Tipo"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tv_tipo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <TextView
-            android:text="Cupo"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tv_cupo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+    <!-- Contenido scrolleable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
 
-        <TextView
-            android:text="Lugar"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tv_lugar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <TextView
-            android:text="Fecha y Hora"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tv_fecha_hora"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            <!-- Card Header con nombre y tipo -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
 
-        <TextView
-            android:text="Oferentes"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tv_oferentes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Nombre de la actividad -->
+                    <TextView
+                        android:id="@+id/tv_nombre"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Nombre de la Actividad"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gris_oscuro"
+                        tools:text="Taller de Desarrollo Android" />
+
+                    <!-- Chip de Tipo -->
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_tipo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        app:chipBackgroundColor="@color/verde_santo_tomas"
+                        app:chipIcon="@drawable/ic_file"
+                        app:chipIconTint="@color/blanco"
+                        android:textColor="@color/blanco"
+                        android:textStyle="bold"
+                        tools:text="Taller" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Información Principal -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="INFORMACIÓN GENERAL"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Periodicidad -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_calendar"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Periodicidad"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_periodicidad"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Puntual"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="Periódica" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gris_borde"
+                        android:layout_marginVertical="12dp" />
+
+                    <!-- Cupo -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_menu"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cupo Disponible"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_cupo"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="30 personas"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="25 personas" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gris_borde"
+                        android:layout_marginVertical="12dp" />
+
+                    <!-- Lugar -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_search"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Lugar"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_lugar"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Oficina Centro Integral"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="Sala de capacitaciones" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gris_borde"
+                        android:layout_marginVertical="12dp" />
+
+                    <!-- Fecha y Hora -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_recent_history"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Fecha y Hora"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_fecha_hora"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="15/10/2024 - 14:00"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="20/10/2024 - 10:00" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Participantes -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PARTICIPANTES"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Oferentes -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_menu"
+                            android:padding="8dp"
+                            android:background="@drawable/bg_icon_circle"
+                            android:backgroundTint="@color/verde_claro"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Oferente"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_oferentes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Universidad Santo Tomás"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="Carrera de Informática" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gris_borde"
+                        android:layout_marginVertical="12dp" />
+
+                    <!-- Socio Comunitario -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_menu"
+                            android:padding="8dp"
+                            android:background="@drawable/bg_icon_circle"
+                            android:backgroundTint="@color/verde_claro"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Socio Comunitario"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_socio_comunitario"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Junta de Vecinos Alerce"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="Organización Local" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gris_borde"
+                        android:layout_marginVertical="12dp" />
+
+                    <!-- Beneficiarios -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_menu"
+                            android:padding="8dp"
+                            android:background="@drawable/bg_icon_circle"
+                            android:backgroundTint="@color/verde_claro"
+                            app:tint="@color/verde_santo_tomas"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Beneficiarios"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_medio" />
+
+                            <TextView
+                                android:id="@+id/tv_beneficiarios"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Comunidad de Alerce"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gris_oscuro"
+                                tools:text="Adultos mayores" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Archivos Adjuntos -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_archivos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="100dp"
+                android:visibility="gone"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ARCHIVOS ADJUNTOS"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- RecyclerView para archivos -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_archivos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        tools:itemCount="2"
+                        tools:listitem="@layout/item_archivo" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Botones de acción flotantes -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/blanco"
+        android:elevation="8dp"
+        android:weightSum="3">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_modificar"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Modificar"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_settings"
+            app:iconGravity="textStart"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/verde_santo_tomas"
+            style="@style/Widget.Material3.Button" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancelar"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="4dp"
+            android:text="Cancelar"
+            android:textSize="14sp"
+            app:icon="@android:drawable/ic_menu_close_clear_cancel"
+            app:iconGravity="textStart"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/rojo_error"
+            style="@style/Widget.Material3.Button" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reagendar"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Reagendar"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_calendar"
+            app:iconGravity="textStart"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/amarillo_advertencia"
+            style="@style/Widget.Material3.Button" />
+
     </LinearLayout>
-</ScrollView>
+
+    <!-- FAB Adjuntar -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_adjuntar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="88dp"
+        android:src="@drawable/ic_file"
+        app:tint="@color/blanco"
+        app:backgroundTint="@color/verde_secundario"
+        app:elevation="6dp"
+        app:borderWidth="0dp"
+        android:contentDescription="Adjuntar archivo" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

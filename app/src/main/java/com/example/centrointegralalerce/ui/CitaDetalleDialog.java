@@ -4,20 +4,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.centrointegralalerce.R;
-
-// IMPORTA Cita desde el paquete donde la definiste.
-// Si está en "model":
 import com.example.centrointegralalerce.data.Cita;
-// Si la dejaste en "data", cambia el import anterior por:
-// import com.example.centrointegralalerce.data.Cita;
-
-import android.widget.TextView;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -35,26 +31,80 @@ public class CitaDetalleDialog extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.dialog_cita_detalle, container, false);
 
-        TextView tvNombre = view.findViewById(R.id.tv_nombre_actividad); // si tu layout muestra un nombre genérico
-        TextView tvLugar  = view.findViewById(R.id.tv_lugar);
-        TextView tvHora   = view.findViewById(R.id.tv_hora);
-        TextView tvTipo   = view.findViewById(R.id.tv_tipo); // lo reutilizamos para estado
+        // Referencias a la UI según dialog_cita_detalle.xml actualizado
+        TextView tvNombreActividad = view.findViewById(R.id.tv_nombre_actividad);
+        TextView tvLugar           = view.findViewById(R.id.tv_lugar);
+        TextView tvHora            = view.findViewById(R.id.tv_hora);
+        Chip chipEstado            = view.findViewById(R.id.chip_estado);
 
-        // Formatear fecha si existe
+        MaterialButton btnVerDetalle = view.findViewById(R.id.btn_ver_detalle);
+        MaterialButton btnCerrar     = view.findViewById(R.id.btn_cerrar);
+
+        // ---------- TÍTULO / CABECERA ----------
+        // Si no tenemos nombre de la actividad en Cita (correcto, no lo tienes),
+        // usamos la fecha bonita (lunes 27 de octubre 2025).
         String fechaTexto = "";
         if (cita.getFecha() != null) {
-            SimpleDateFormat df = new SimpleDateFormat("EEEE dd 'de' MMMM yyyy", new Locale("es", "ES"));
+            SimpleDateFormat df = new SimpleDateFormat(
+                    "EEEE dd 'de' MMMM yyyy",
+                    new Locale("es", "ES")
+            );
             fechaTexto = df.format(cita.getFecha());
         }
 
-        // Asignar valores disponibles en el nuevo modelo
-        // Si no tienes "nombre de actividad" en Cita, muestra la fecha como título
-        if (tvNombre != null) tvNombre.setText(fechaTexto.isEmpty() ? "Cita" : fechaTexto);
-        if (tvLugar  != null) tvLugar.setText(cita.getLugarId() != null ? cita.getLugarId() : "Sin lugar");
-        if (tvHora   != null) tvHora.setText(cita.getHora() != null ? cita.getHora() : "Sin hora");
-        if (tvTipo   != null) tvTipo.setText(cita.getEstado() != null ? cita.getEstado() : "Sin estado");
+        if (tvNombreActividad != null) {
+            if (!fechaTexto.isEmpty()) {
+                tvNombreActividad.setText(fechaTexto);
+            } else {
+                tvNombreActividad.setText("Cita");
+            }
+        }
+
+        // ---------- LUGAR ----------
+        if (tvLugar != null) {
+            // tu modelo Cita trae lugarId, no un nombre de lugar amigable todavía
+            String lugar = cita.getLugarId();
+            if (lugar == null || lugar.isEmpty()) {
+                lugar = "Sin lugar";
+            }
+            tvLugar.setText(lugar);
+        }
+
+        // ---------- HORA ----------
+        if (tvHora != null) {
+            String hora = cita.getHora();
+            if (hora == null || hora.isEmpty()) {
+                hora = "Sin hora";
+            }
+            tvHora.setText(hora);
+        }
+
+        // ---------- ESTADO ----------
+        if (chipEstado != null) {
+            String estado = cita.getEstado();
+            if (estado == null || estado.isEmpty()) {
+                estado = "Sin estado";
+            }
+            chipEstado.setText(estado);
+        }
+
+        // ---------- BOTONES ACCIÓN ----------
+        if (btnCerrar != null) {
+            btnCerrar.setOnClickListener(v -> dismiss());
+        }
+
+        if (btnVerDetalle != null) {
+            btnVerDetalle.setOnClickListener(v -> {
+                // Aquí idealmente irías al detalle de la Actividad completa.
+                // Para eso necesitas el ID de la actividad relacionada con esta cita.
+                // Ese ID lo tienes en CitaFirebase (campo actividadId), pero no en Cita.
+                // Así que de momento no navegamos, sólo cerramos.
+                dismiss();
+            });
+        }
 
         return view;
     }
