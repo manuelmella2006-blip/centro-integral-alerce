@@ -18,6 +18,17 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
 
     private List<Actividad> actividadesList;
 
+    // Listener de clic
+    public interface OnItemClickListener {
+        void onItemClick(Actividad actividad);
+    }
+
+    private OnItemClickListener listener;
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
     public ActividadesListAdapter(List<Actividad> actividadesList) {
         this.actividadesList = actividadesList;
     }
@@ -39,6 +50,13 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
     public void onBindViewHolder(@NonNull ActividadViewHolder holder, int position) {
         Actividad actividad = actividadesList.get(position);
         holder.bind(actividad);
+
+        // Clic: captura la actividad ya vinculada
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(actividad);
+            }
+        });
     }
 
     @Override
@@ -47,7 +65,7 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
     }
 
     static class ActividadViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvNombre, tvTipo, tvFechaHora, tvLugar, tvEstado;
+        private final TextView tvNombre, tvTipo, tvFechaHora, tvLugar, tvEstado;
 
         public ActividadViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -59,21 +77,35 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
         }
 
         public void bind(Actividad actividad) {
+            // Nombre
             tvNombre.setText(actividad.getNombre() != null ? actividad.getNombre() : "Sin nombre");
-            tvTipo.setText(actividad.getTipoActividadId() != null ? actividad.getTipoActividadId() : "Sin tipo");
 
-            // Combinar fecha y hora
+            // Tipo: muestra por ahora el ID del tipo
+            String tipoDisplay = actividad.getTipoActividadId() != null
+                    ? "Tipo: " + actividad.getTipoActividadId()
+                    : "Sin tipo";
+            tvTipo.setText(tipoDisplay);
+
+            // Fecha y hora simples (según tu POJO actual)
             String fechaHora = "";
             if (actividad.getFecha() != null) {
-                fechaHora = actividad.getFecha();
+                fechaHora = "Fecha: " + actividad.getFecha();
             }
             if (actividad.getHora() != null) {
-                fechaHora += " " + actividad.getHora();
+                fechaHora += (fechaHora.isEmpty() ? "" : " ") + actividad.getHora();
             }
             tvFechaHora.setText(fechaHora.isEmpty() ? "Sin fecha/hora" : fechaHora);
 
-            tvLugar.setText(actividad.getLugar() != null ? actividad.getLugar() : "Sin lugar");
-            tvEstado.setText(actividad.getEstado() != null ? actividad.getEstado() : "Sin estado");
+            // Lugar (tu POJO expone lugar como String)
+            String lugarDisplay = actividad.getLugar() != null
+                    ? "Lugar: " + actividad.getLugar()
+                    : "Sin lugar";
+            tvLugar.setText(lugarDisplay);
+
+            // Estado
+            tvEstado.setText(actividad.getEstado() != null
+                    ? "Estado: " + actividad.getEstado()
+                    : "Sin estado");
         }
     }
 }
