@@ -390,191 +390,142 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Bloque Inicio -->
+                <!-- ====== BLOQUE INICIO ====== -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Inicio"
-                    android:textStyle="bold"
                     android:textSize="13sp"
+                    android:textStyle="bold"
                     android:textColor="@color/gris_oscuro"
                     android:layout_marginBottom="8dp" />
 
+                <!-- contenedor para simular borde gris -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:background="@color/gris_borde"
+                    android:padding="1dp"
                     android:layout_marginBottom="20dp">
 
-                    <!-- Fecha Inicio -->
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginEnd="8dp">
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="@color/blanco"
+                        app:cardElevation="0dp">
 
-                        <com.google.android.material.textfield.TextInputLayout
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxCornerRadiusTopStart="12dp"
-                            app:boxCornerRadiusTopEnd="12dp"
-                            app:boxCornerRadiusBottomStart="12dp"
-                            app:boxCornerRadiusBottomEnd="12dp"
-                            app:startIconDrawable="@drawable/ic_calendar"
-                            app:startIconTint="@color/verde_santo_tomas"
-                            app:boxStrokeColor="@color/verde_santo_tomas"
-                            app:hintTextColor="@color/verde_santo_tomas"
-                            android:hint="Fecha inicio"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                            android:orientation="horizontal"
+                            android:padding="12dp"
+                            android:gravity="center_vertical"
+                            android:weightSum="2">
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etFechaInicio"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="false"
-                                android:clickable="true"
-                                android:inputType="none"
-                                android:textSize="16sp"
-                                android:textColor="@color/gris_oscuro"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnFechaInicio"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="56dp"
+                                android:layout_weight="1"
+                                android:text="Fecha inicio"
+                                android:textAllCaps="false"
+                                android:textColor="@color/verde_santo_tomas"
+                                app:icon="@drawable/ic_calendar"
+                                app:iconGravity="textStart"
+                                app:iconTint="@color/verde_santo_tomas" />
 
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
+                            <Space
+                                android:layout_width="12dp"
+                                android:layout_height="0dp" />
 
-                    <!-- Hora Inicio -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="8dp">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnHoraInicio"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="56dp"
+                                android:layout_weight="1"
+                                android:text="Hora inicio"
+                                android:textAllCaps="false"
+                                android:textColor="@color/verde_santo_tomas"
+                                app:icon="@android:drawable/ic_menu_recent_history"
+                                app:iconGravity="textStart"
+                                app:iconTint="@color/verde_santo_tomas" />
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxCornerRadiusTopStart="12dp"
-                            app:boxCornerRadiusTopEnd="12dp"
-                            app:boxCornerRadiusBottomStart="12dp"
-                            app:boxCornerRadiusBottomEnd="12dp"
-                            app:startIconDrawable="@android:drawable/ic_menu_recent_history"
-                            app:startIconTint="@color/verde_santo_tomas"
-                            app:boxStrokeColor="@color/verde_santo_tomas"
-                            app:hintTextColor="@color/verde_santo_tomas"
-                            android:hint="Hora inicio"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                        </LinearLayout>
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etHoraInicio"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="false"
-                                android:clickable="true"
-                                android:inputType="none"
-                                android:textSize="16sp"
-                                android:textColor="@color/gris_oscuro"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
+                <!-- ====== FIN BLOQUE INICIO ====== -->
 
-                <!-- Bloque Término -->
+                <!-- ====== BLOQUE TÉRMINO ====== -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Término"
-                    android:textStyle="bold"
                     android:textSize="13sp"
+                    android:textStyle="bold"
                     android:textColor="@color/gris_oscuro"
                     android:layout_marginBottom="8dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="20dp">
+                    android:background="@color/gris_borde"
+                    android:padding="1dp"
+                    android:layout_marginBottom="24dp">
 
-                    <!-- Fecha Término -->
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginEnd="8dp">
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="@color/blanco"
+                        app:cardElevation="0dp">
 
-                        <com.google.android.material.textfield.TextInputLayout
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxCornerRadiusTopStart="12dp"
-                            app:boxCornerRadiusTopEnd="12dp"
-                            app:boxCornerRadiusBottomStart="12dp"
-                            app:boxCornerRadiusBottomEnd="12dp"
-                            app:startIconDrawable="@drawable/ic_calendar"
-                            app:startIconTint="@color/verde_santo_tomas"
-                            app:boxStrokeColor="@color/verde_santo_tomas"
-                            app:hintTextColor="@color/verde_santo_tomas"
-                            android:hint="Fecha término"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                            android:orientation="horizontal"
+                            android:padding="12dp"
+                            android:gravity="center_vertical"
+                            android:weightSum="2">
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etFechaTermino"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="false"
-                                android:clickable="true"
-                                android:inputType="none"
-                                android:textSize="16sp"
-                                android:textColor="@color/gris_oscuro"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnFechaTermino"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="56dp"
+                                android:layout_weight="1"
+                                android:text="Fecha término"
+                                android:textAllCaps="false"
+                                android:textColor="@color/verde_santo_tomas"
+                                app:icon="@drawable/ic_calendar"
+                                app:iconGravity="textStart"
+                                app:iconTint="@color/verde_santo_tomas" />
 
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
+                            <Space
+                                android:layout_width="12dp"
+                                android:layout_height="0dp" />
 
-                    <!-- Hora Término -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="8dp">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnHoraTermino"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="56dp"
+                                android:layout_weight="1"
+                                android:text="Hora término"
+                                android:textAllCaps="false"
+                                android:textColor="@color/verde_santo_tomas"
+                                app:icon="@android:drawable/ic_menu_recent_history"
+                                app:iconGravity="textStart"
+                                app:iconTint="@color/verde_santo_tomas" />
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxCornerRadiusTopStart="12dp"
-                            app:boxCornerRadiusTopEnd="12dp"
-                            app:boxCornerRadiusBottomStart="12dp"
-                            app:boxCornerRadiusBottomEnd="12dp"
-                            app:startIconDrawable="@android:drawable/ic_menu_recent_history"
-                            app:startIconTint="@color/verde_santo_tomas"
-                            app:boxStrokeColor="@color/verde_santo_tomas"
-                            app:hintTextColor="@color/verde_santo_tomas"
-                            android:hint="Hora término"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                        </LinearLayout>
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etHoraTermino"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="false"
-                                android:clickable="true"
-                                android:inputType="none"
-                                android:textSize="16sp"
-                                android:textColor="@color/gris_oscuro"
-                                android:paddingTop="14dp"
-                                android:paddingBottom="14dp" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
+                <!-- ====== FIN BLOQUE TÉRMINO ====== -->
 
                 <!-- Días de la Semana (para periódicas) -->
                 <LinearLayout

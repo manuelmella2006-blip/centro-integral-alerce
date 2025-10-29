@@ -20,17 +20,19 @@ import java.util.*;
 
 public class AgregarActividadActivity extends AppCompatActivity {
 
-    // Inputs de texto libres
+    // Text inputs simples
     private EditText etNombreActividad, etCupo, etDiasAvisoPrevio;
-    private EditText etFechaInicio, etHoraInicio, etFechaTermino, etHoraTermino;
 
-    // ❗ AHORA: dropdowns tipo Material (AutoCompleteTextView)
+    // Dropdowns tipo Material (AutoCompleteTextView)
     private MaterialAutoCompleteTextView spLugar;
     private MaterialAutoCompleteTextView spTipoActividad;
     private MaterialAutoCompleteTextView spOferente;
     private MaterialAutoCompleteTextView spSocioComunitario;
     private MaterialAutoCompleteTextView spProyecto;
     private MaterialAutoCompleteTextView spPeriodicidad;
+
+    // NUEVO: botones fecha/hora (ya no EditText)
+    private Button btnFechaInicio, btnHoraInicio, btnFechaTermino, btnHoraTermino;
 
     private Button btnGuardarActividad;
 
@@ -69,17 +71,12 @@ public class AgregarActividadActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // EditText simples
+        // Text inputs libres
         etNombreActividad = findViewById(R.id.etNombreActividad);
         etCupo = findViewById(R.id.etCupo);
         etDiasAvisoPrevio = findViewById(R.id.etDiasAvisoPrevio);
 
-        etFechaInicio = findViewById(R.id.etFechaInicio);
-        etHoraInicio = findViewById(R.id.etHoraInicio);
-        etFechaTermino = findViewById(R.id.etFechaTermino);
-        etHoraTermino = findViewById(R.id.etHoraTermino);
-
-        // ⚠ Obtener los dropdowns como MaterialAutoCompleteTextView
+        // Dropdowns Material
         spTipoActividad = findViewById(R.id.spTipoActividad);
         spPeriodicidad = findViewById(R.id.spPeriodicidad);
         spOferente = findViewById(R.id.spOferente);
@@ -87,7 +84,13 @@ public class AgregarActividadActivity extends AppCompatActivity {
         spProyecto = findViewById(R.id.spProyecto);
         spLugar = findViewById(R.id.spLugar);
 
-        // Botón
+        // Botones fecha / hora
+        btnFechaInicio = findViewById(R.id.btnFechaInicio);
+        btnHoraInicio = findViewById(R.id.btnHoraInicio);
+        btnFechaTermino = findViewById(R.id.btnFechaTermino);
+        btnHoraTermino = findViewById(R.id.btnHoraTermino);
+
+        // Botón guardar
         btnGuardarActividad = findViewById(R.id.btnGuardarActividad);
 
         // CheckBox días
@@ -100,7 +103,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cbSabado = findViewById(R.id.cbSabado);
         cbDomingo = findViewById(R.id.cbDomingo);
 
-        // Configurar adapters vacíos primero para que el dropdown no crashee si abres rápido
+        // Adapters vacíos iniciales
         setupEmptyAdapters();
 
         // Llenar Periodicidad (local)
@@ -109,10 +112,10 @@ public class AgregarActividadActivity extends AppCompatActivity {
         // Llenar los demás dropdowns desde Firestore
         cargarSpinnersDesdeFirebase();
 
-        // DatePickers / TimePickers
+        // Date/Time pickers para los botones
         configurarPickers();
 
-        // Guardar
+        // Guardar en Firestore
         btnGuardarActividad.setOnClickListener(v -> guardarActividad());
     }
 
@@ -133,7 +136,6 @@ public class AgregarActividadActivity extends AppCompatActivity {
     }
 
     private ArrayAdapter<String> makeAdapter(List<String> data) {
-        // layout simple tipo dropdown material
         return new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, data);
     }
 
@@ -194,8 +196,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
     }
 
     /**
-     * Reemplazo de cargarSpinner(... Spinner spinner)
-     * Ahora llenamos listas + notificamos al adapter del AutoCompleteTextView
+     * Llena un dropdown Material con datos desde Firestore
      */
     private void cargarDropdown(
             String coleccion,
@@ -226,37 +227,41 @@ public class AgregarActividadActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Configura listeners para abrir DatePicker / TimePicker
+     * y setear el texto en los botones.
+     */
     private void configurarPickers() {
-        View.OnClickListener dateListener = v -> mostrarDatePicker((EditText) v);
-        View.OnClickListener timeListener = v -> mostrarTimePicker((EditText) v);
+        btnFechaInicio.setOnClickListener(v -> pickDate(btnFechaInicio));
+        btnFechaTermino.setOnClickListener(v -> pickDate(btnFechaTermino));
 
-        etFechaInicio.setOnClickListener(dateListener);
-        etFechaTermino.setOnClickListener(dateListener);
-
-        etHoraInicio.setOnClickListener(timeListener);
-        etHoraTermino.setOnClickListener(timeListener);
+        btnHoraInicio.setOnClickListener(v -> pickTime(btnHoraInicio));
+        btnHoraTermino.setOnClickListener(v -> pickTime(btnHoraTermino));
     }
 
-    private void mostrarDatePicker(EditText et) {
+    private void pickDate(Button target) {
         Calendar c = Calendar.getInstance();
         new DatePickerDialog(
                 this,
-                (view, year, month, dayOfMonth) -> et.setText(
-                        String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year)
-                ),
+                (view, year, month, dayOfMonth) -> {
+                    String fecha = String.format(Locale.getDefault(), "%02d/%02d/%d",
+                            dayOfMonth, month + 1, year);
+                    target.setText(fecha);
+                },
                 c.get(Calendar.YEAR),
                 c.get(Calendar.MONTH),
                 c.get(Calendar.DAY_OF_MONTH)
         ).show();
     }
 
-    private void mostrarTimePicker(EditText et) {
+    private void pickTime(Button target) {
         Calendar c = Calendar.getInstance();
         new TimePickerDialog(
                 this,
-                (view, hour, minute) -> et.setText(
-                        String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
-                ),
+                (view, hour, minute) -> {
+                    String hora = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+                    target.setText(hora);
+                },
                 c.get(Calendar.HOUR_OF_DAY),
                 c.get(Calendar.MINUTE),
                 true
@@ -266,10 +271,10 @@ public class AgregarActividadActivity extends AppCompatActivity {
     private void guardarActividad() {
         String nombre = etNombreActividad.getText().toString().trim();
         String periodicidadTxt = spPeriodicidad.getText().toString().trim();
-        String fechaInicio = etFechaInicio.getText().toString().trim();
-        String horaInicio = etHoraInicio.getText().toString().trim();
-        String fechaTermino = etFechaTermino.getText().toString().trim();
-        String horaTermino = etHoraTermino.getText().toString().trim();
+        String fechaInicio = btnFechaInicio.getText().toString().trim();
+        String horaInicio = btnHoraInicio.getText().toString().trim();
+        String fechaTermino = btnFechaTermino.getText().toString().trim();
+        String horaTermino = btnHoraTermino.getText().toString().trim();
 
         if (nombre.isEmpty() ||
                 fechaInicio.isEmpty() ||
@@ -289,8 +294,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
                 ? 0
                 : Integer.parseInt(etDiasAvisoPrevio.getText().toString());
 
-        // ⚠ Necesitamos mapear lo seleccionado en cada dropdown al ID correspondiente.
-        // Para eso: buscamos el índice del texto actual en su lista de nombres.
+        // Mapear selección visible -> id Firestore
         String tipoActividadId = getSelectedId(spTipoActividad, tipoActividadList, tipoActividadIds);
         String oferenteId = getSelectedId(spOferente, oferentesList, oferenteIds);
         String socioId = getSelectedId(spSocioComunitario, sociosList, socioIds);
@@ -337,7 +341,6 @@ public class AgregarActividadActivity extends AppCompatActivity {
 
     /**
      * Dado un dropdown y sus listas paralelas, devuelve el ID elegido en Firestore.
-     * Si no encuentra match, devuelve null.
      */
     private String getSelectedId(MaterialAutoCompleteTextView view,
                                  List<String> nombres,
@@ -436,10 +439,10 @@ public class AgregarActividadActivity extends AppCompatActivity {
         spProyecto.setText("", false);
         spPeriodicidad.setText("", false);
 
-        etFechaInicio.setText("");
-        etHoraInicio.setText("");
-        etFechaTermino.setText("");
-        etHoraTermino.setText("");
+        btnFechaInicio.setText("Fecha inicio");
+        btnHoraInicio.setText("Hora inicio");
+        btnFechaTermino.setText("Fecha término");
+        btnHoraTermino.setText("Hora término");
 
         llDiasSemana.setVisibility(View.GONE);
         cbLunes.setChecked(false);
