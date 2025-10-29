@@ -5,8 +5,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.graphics.drawable.Drawable;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -20,16 +20,16 @@ import com.example.centrointegralalerce.data.Cita;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
- * Adaptador profesional para ViewPager2 con diseño Santo Tomás
+ * Adaptador para ViewPager2 que muestra una semana desplazable horizontalmente.
+ * Se alinea con layout_week_page.xml actual (encabezado simple con tv_day_0 ... tv_day_6).
  */
 public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdapter.WeekViewHolder> {
+
     private static final String TAG = "CalendarPagerAdapter";
 
     private static final int TOTAL_WEEKS = 1000;
@@ -38,17 +38,23 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
     private final List<Cita> allCitas;
     private final FragmentManager fragmentManager;
     private final Calendar baseWeekStart;
-    private Calendar today; // Día actual para resaltar
+    private final Calendar today; // día actual real
 
-    public CalendarPagerAdapter(List<Cita> allCitas, FragmentManager fragmentManager, Calendar currentWeek) {
-        this.allCitas = allCitas != null ? allCitas : new ArrayList<>();
+    public CalendarPagerAdapter(List<Cita> allCitas,
+                                FragmentManager fragmentManager,
+                                Calendar currentWeek) {
+
+        this.allCitas = (allCitas != null) ? allCitas : new ArrayList<>();
         this.fragmentManager = fragmentManager;
-        this.baseWeekStart = currentWeek != null ? (Calendar) currentWeek.clone() : Calendar.getInstance();
+
+        // Semana base (normalizada a Lunes)
+        this.baseWeekStart = (currentWeek != null)
+                ? (Calendar) currentWeek.clone()
+                : Calendar.getInstance();
         normalizeToMonday(this.baseWeekStart);
 
-        // Guardar fecha actual
+        // Hoy (sin tocarlo a lunes, lo usamos para resaltar)
         this.today = Calendar.getInstance();
-        normalizeToMonday(this.today);
 
         Log.d(TAG, "✅ Adapter creado con " + this.allCitas.size() + " citas");
     }
@@ -58,10 +64,10 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             cal.setFirstDayOfWeek(Calendar.MONDAY);
             cal.setMinimalDaysInFirstWeek(4);
 
-            int currentDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-            int daysFromMonday = (currentDayOfWeek == Calendar.SUNDAY) ? 6 : currentDayOfWeek - Calendar.MONDAY;
+            int dow = cal.get(Calendar.DAY_OF_WEEK);
+            int offsetFromMonday = (dow == Calendar.SUNDAY) ? 6 : dow - Calendar.MONDAY;
 
-            cal.add(Calendar.DAY_OF_MONTH, -daysFromMonday);
+            cal.add(Calendar.DAY_OF_MONTH, -offsetFromMonday);
             cal.set(Calendar.HOUR_OF_DAY, 0);
             cal.set(Calendar.MINUTE, 0);
             cal.set(Calendar.SECOND, 0);
@@ -113,16 +119,17 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
         }
     }
 
-    // ============================================
-    // VIEW HOLDER CON DISEÑO PROFESIONAL
-    // ============================================
+    // =========================
+    // ViewHolder
+    // =========================
     public static class WeekViewHolder extends RecyclerView.ViewHolder {
+
         private static final String TAG = "WeekViewHolder";
 
         private final RecyclerView rvCalendarWeek;
-        private final LinearLayout[] dayHeaders;
-        private final TextView[] dayNames;
-        private final TextView[] dayNumbers;
+
+        // Ahora: solo 1 TextView por día (Lun, Mar, Mié...) según tu layout actual.
+        private final TextView[] dayHeaders = new TextView[7];
 
         public WeekViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -132,109 +139,129 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
                 rvCalendarWeek.setLayoutManager(new LinearLayoutManager(itemView.getContext()));
             }
 
-            // Inicializar arrays para headers mejorados
-            dayHeaders = new LinearLayout[7];
-            dayNames = new TextView[7];
-            dayNumbers = new TextView[7];
-
+            // Obtener referencias tv_day_0 ... tv_day_6
             for (int i = 0; i < 7; i++) {
-                // Obtener el LinearLayout contenedor
-                int headerId = itemView.getResources().getIdentifier("tv_day_" + i, "id", itemView.getContext().getPackageName());
-                dayHeaders[i] = itemView.findViewById(headerId);
+                int headerId = itemView.getResources().getIdentifier(
+                        "tv_day_" + i,
+                        "id",
+                        itemView.getContext().getPackageName()
+                );
 
-                if (dayHeaders[i] != null) {
-                    // Obtener los TextViews internos
-                    int nameId = itemView.getResources().getIdentifier("tv_day_name_" + i, "id", itemView.getContext().getPackageName());
-                    int numberId = itemView.getResources().getIdentifier("tv_day_number_" + i, "id", itemView.getContext().getPackageName());
+                TextView tv = itemView.findViewById(headerId);
+                dayHeaders[i] = tv;
 
-                    dayNames[i] = itemView.findViewById(nameId);
-                    dayNumbers[i] = itemView.findViewById(numberId);
+                if (tv == null) {
+                    Log.w(TAG, "⚠ No encontré tv_day_" + i + " en layout_week_page.xml");
                 }
             }
         }
 
-        public void bind(Calendar weekStart, List<Cita> allCitas, FragmentManager fragmentManager, Calendar today) {
-            try {
-                if (weekStart == null) {
-                    Log.e(TAG, "❌ weekStart es null");
-                    return;
-                }
+        public void bind(Calendar weekStart,
+                         List<Cita> allCitas,
+                         FragmentManager fragmentManager,
+                         Calendar todayOriginal) {
 
-                // Actualizar headers con indicador de día actual
-                updateDayHeadersProfessional(weekStart, today);
+            if (weekStart == null) {
+                Log.e(TAG, "❌ weekStart es null en bind()");
+                return;
+            }
 
-                // Filtrar citas de esta semana
-                List<Cita> citasSemana = filterCitasForWeek(weekStart, allCitas);
-                Log.d(TAG, "📅 Semana: " + weekStart.getTime() + " | Citas: " + citasSemana.size());
+            // 1. Actualizar encabezados (LUN 28, MAR 29, ...)
+            updateDayHeadersSimple(weekStart, todayOriginal);
 
-                // Obtener horas únicas
-                List<String> horasConCitas = getHorasUnicasOrdenadas(citasSemana);
+            // 2. Filtrar citas de esa semana
+            List<Cita> citasSemana = filterCitasForWeek(weekStart, allCitas);
+            Log.d(TAG, "📅 Semana: " + weekStart.getTime() + " | Citas: " + citasSemana.size());
 
-                if (rvCalendarWeek != null) {
-                    CalendarioAdapter adapter = new CalendarioAdapter(
-                            itemView.getContext(),
-                            horasConCitas,
-                            citasSemana,
-                            fragmentManager
-                    );
-                    rvCalendarWeek.setAdapter(adapter);
-                }
+            // 3. Obtener horas únicas ordenadas
+            List<String> horasConCitas = getHorasUnicasOrdenadas(citasSemana);
 
-            } catch (Exception e) {
-                Log.e(TAG, "❌ Error en bind()", e);
+            // 4. Cargar adaptador interno de la lista de horas/citas
+            if (rvCalendarWeek != null) {
+                CalendarioAdapter adapter = new CalendarioAdapter(
+                        itemView.getContext(),
+                        horasConCitas,
+                        citasSemana,
+                        fragmentManager
+                );
+                rvCalendarWeek.setAdapter(adapter);
             }
         }
 
         /**
-         * Actualiza los headers con estilo profesional y marca el día actual
+         * Versión adaptada a tu XML actual:
+         * - Cada columna de día es UN TextView (tv_day_i).
+         * - Le ponemos "LUN 28", "MAR 29", etc.
+         * - Si es HOY, lo resaltamos en verde (bg_day_today + texto blanco).
          */
-        private void updateDayHeadersProfessional(Calendar weekStart, Calendar today) {
-            if (weekStart == null) return;
-
+        private void updateDayHeadersSimple(Calendar weekStart, Calendar todayOriginal) {
             try {
-                String[] diasSemana = {"LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"};
-                Calendar cal = (Calendar) weekStart.clone();
-                Calendar todayNormalized = (Calendar) today.clone();
+                String[] abrevs = {"LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"};
 
-                // Normalizar today para comparación
-                todayNormalized.set(Calendar.HOUR_OF_DAY, 0);
-                todayNormalized.set(Calendar.MINUTE, 0);
-                todayNormalized.set(Calendar.SECOND, 0);
-                todayNormalized.set(Calendar.MILLISECOND, 0);
+                Calendar cal = (Calendar) weekStart.clone();
+
+                // Normalizamos "today" para comparación solo de fecha (año/mes/día)
+                Calendar todayNorm = (Calendar) todayOriginal.clone();
+                todayNorm.set(Calendar.HOUR_OF_DAY, 0);
+                todayNorm.set(Calendar.MINUTE, 0);
+                todayNorm.set(Calendar.SECOND, 0);
+                todayNorm.set(Calendar.MILLISECOND, 0);
 
                 for (int i = 0; i < 7; i++) {
-                    if (dayNames[i] == null || dayNumbers[i] == null) continue;
+
+                    TextView header = dayHeaders[i];
+                    if (header == null) {
+                        cal.add(Calendar.DAY_OF_MONTH, 1);
+                        continue;
+                    }
 
                     int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
 
-                    // Actualizar textos
-                    dayNames[i].setText(diasSemana[i]);
-                    dayNumbers[i].setText(String.valueOf(dayOfMonth));
+                    // Texto del header: "LUN 28", etc.
+                    String label = abrevs[i] + " " + dayOfMonth;
+                    header.setText(label);
 
-                    // Verificar si es el día actual
-                    boolean isToday = cal.get(Calendar.YEAR) == todayNormalized.get(Calendar.YEAR) &&
-                            cal.get(Calendar.MONTH) == todayNormalized.get(Calendar.MONTH) &&
-                            cal.get(Calendar.DAY_OF_MONTH) == todayNormalized.get(Calendar.DAY_OF_MONTH);
+                    // ¿Es hoy?
+                    boolean isToday =
+                            cal.get(Calendar.YEAR) == todayNorm.get(Calendar.YEAR) &&
+                                    cal.get(Calendar.MONTH) == todayNorm.get(Calendar.MONTH) &&
+                                    cal.get(Calendar.DAY_OF_MONTH) == todayNorm.get(Calendar.DAY_OF_MONTH);
 
                     if (isToday) {
-                        // Resaltar día actual
-                        dayHeaders[i].setBackgroundResource(R.drawable.bg_day_today);
-                        dayNames[i].setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.blanco));
-                        dayNumbers[i].setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.blanco));
-                        dayNumbers[i].setTypeface(null, Typeface.BOLD);
+                        // Fondo verde personalizado (tu drawable bg_day_today)
+                        try {
+                            header.setBackgroundResource(R.drawable.bg_day_today);
+                        } catch (Exception e) {
+                            // Si no existe bg_day_today, no revienta, solo loguea
+                            Log.w(TAG, "⚠ bg_day_today faltante, usando fallback transparente");
+                            header.setBackgroundColor(
+                                    ContextCompat.getColor(itemView.getContext(), android.R.color.transparent)
+                            );
+                        }
+
+                        header.setTextColor(ContextCompat.getColor(
+                                itemView.getContext(),
+                                R.color.blanco
+                        ));
+                        header.setTypeface(null, Typeface.BOLD);
+
                     } else {
-                        // Estilo normal
-                        dayHeaders[i].setBackgroundResource(android.R.color.transparent);
-                        dayNames[i].setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.gris_medio));
-                        dayNumbers[i].setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.gris_oscuro));
-                        dayNumbers[i].setTypeface(null, Typeface.NORMAL);
+                        // Estado normal
+                        header.setBackgroundColor(
+                                ContextCompat.getColor(itemView.getContext(), android.R.color.transparent)
+                        );
+                        header.setTextColor(ContextCompat.getColor(
+                                itemView.getContext(),
+                                R.color.gris_oscuro
+                        ));
+                        header.setTypeface(null, Typeface.NORMAL);
                     }
 
                     cal.add(Calendar.DAY_OF_MONTH, 1);
                 }
 
             } catch (Exception e) {
-                Log.e(TAG, "Error actualizando headers", e);
+                Log.e(TAG, "Error en updateDayHeadersSimple()", e);
             }
         }
 
@@ -249,11 +276,14 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
                 weekEnd.set(Calendar.MINUTE, 59);
                 weekEnd.set(Calendar.SECOND, 59);
 
+                long startMs = weekStart.getTimeInMillis();
+                long endMs = weekEnd.getTimeInMillis();
+
                 for (Cita cita : allCitas) {
                     if (cita == null || cita.getFecha() == null) continue;
 
                     long t = cita.getFecha().getTime();
-                    if (t >= weekStart.getTimeInMillis() && t <= weekEnd.getTimeInMillis()) {
+                    if (t >= startMs && t <= endMs) {
                         citasSemana.add(cita);
                     }
                 }
