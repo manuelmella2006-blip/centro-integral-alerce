@@ -47,10 +47,14 @@ public class ListaActividadesFragment extends Fragment {
     private LinearLayout layoutEmptyList;
     private ProgressBar progressBar;
 
-    // CAMBIO: Usar Actividad en lugar de Cita
+    // Listas de datos
     private List<Actividad> actividadesList;
     private List<Actividad> filteredActividadesList;
     private ActividadesListAdapter adapter;
+
+    // NUEVO: listas paralelas de IDs (mismo orden que las listas de Actividad)
+    private List<String> actividadIds;
+    private List<String> filteredActividadIds;
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -61,7 +65,7 @@ public class ListaActividadesFragment extends Fragment {
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == Activity.RESULT_OK) {
-                            loadActivitiesFromFirebase(); // vuelve a consultar y repinta
+                            loadActivitiesFromFirebase();
                         }
                     }
             );
@@ -85,6 +89,8 @@ public class ListaActividadesFragment extends Fragment {
 
         actividadesList = new ArrayList<>();
         filteredActividadesList = new ArrayList<>();
+        actividadIds = new ArrayList<>();
+        filteredActividadIds = new ArrayList<>();
         adapter = new ActividadesListAdapter(filteredActividadesList);
 
         setupRecyclerView();
@@ -98,6 +104,19 @@ public class ListaActividadesFragment extends Fragment {
     private void setupRecyclerView() {
         rvActivitiesList.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvActivitiesList.setAdapter(adapter);
+
+        // Listener de clic: usar ID desde la lista paralela filtrada
+        adapter.setOnItemClickListener(actividad -> {
+            int pos = filteredActividadesList.indexOf(actividad);
+            if (pos >= 0 && pos < filteredActividadIds.size()) {
+                String actividadId = filteredActividadIds.get(pos);
+                Intent intent = new Intent(requireContext(), DetalleActividadActivity.class);
+                intent.putExtra("actividadId", actividadId);
+                startActivity(intent);
+            } else {
+                Toast.makeText(requireContext(), "No se pudo obtener el ID", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupListeners() {
@@ -126,19 +145,20 @@ public class ListaActividadesFragment extends Fragment {
     private void loadActivitiesFromFirebase() {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        // CAMBIO: Cargar desde la colección "actividades" en lugar de "citas"
         db.collection("actividades")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     actividadesList.clear();
+                    actividadIds.clear();
                     filteredActividadesList.clear();
+                    filteredActividadIds.clear();
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         try {
                             Actividad actividad = document.toObject(Actividad.class);
                             if (actividad != null) {
-                                // Establecer el ID del documento si es necesario
                                 actividadesList.add(actividad);
+                                actividadIds.add(document.getId()); // capturar el documentId
                                 Log.d(TAG, "Actividad cargada: " + actividad.getNombre());
                             }
                         } catch (Exception e) {
@@ -146,13 +166,14 @@ public class ListaActividadesFragment extends Fragment {
                         }
                     }
 
-                    // Actualizar lista filtrada y UI
+                    // Sin filtros: copiar listas completas
                     filteredActividadesList.addAll(actividadesList);
+                    filteredActividadIds.addAll(actividadIds);
                     adapter.setActividadesList(filteredActividadesList);
 
                     Log.d(TAG, "Total actividades cargadas: " + actividadesList.size());
-                    updateUI();
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    updateUI();
 
                     if (actividadesList.isEmpty()) {
                         Toast.makeText(requireContext(),
@@ -177,11 +198,15 @@ public class ListaActividadesFragment extends Fragment {
     private void filterActivities(String query) {
         String q = query == null ? "" : query.trim().toLowerCase(Locale.getDefault());
         filteredActividadesList.clear();
+        filteredActividadIds.clear();
 
         if (q.isEmpty()) {
             filteredActividadesList.addAll(actividadesList);
+            filteredActividadIds.addAll(actividadIds);
         } else {
-            for (Actividad actividad : actividadesList) {
+            for (int i = 0; i < actividadesList.size(); i++) {
+                Actividad actividad = actividadesList.get(i);
+
                 String nombre = safe(actividad.getNombre()).toLowerCase(Locale.getDefault());
                 String tipo = safe(actividad.getTipoActividadId()).toLowerCase(Locale.getDefault());
                 String lugar = safe(actividad.getLugar()).toLowerCase(Locale.getDefault());
@@ -191,6 +216,7 @@ public class ListaActividadesFragment extends Fragment {
                 if (nombre.contains(q) || tipo.contains(q) || lugar.contains(q) ||
                         fecha.contains(q) || estado.contains(q)) {
                     filteredActividadesList.add(actividad);
+                    filteredActividadIds.add(actividadIds.get(i)); // mantener id alineado
                 }
             }
         }
@@ -205,7 +231,9 @@ public class ListaActividadesFragment extends Fragment {
     private void filterActivitiesByType() {
         // Por ahora, mostramos todas las actividades
         filteredActividadesList.clear();
+        filteredActividadIds.clear();
         filteredActividadesList.addAll(actividadesList);
+        filteredActividadIds.addAll(actividadIds);
         adapter.setActividadesList(filteredActividadesList);
         updateUI();
     }
@@ -241,7 +269,6 @@ public class ListaActividadesFragment extends Fragment {
                     if (documentSnapshot.exists()) {
                         String rolId = documentSnapshot.getString("rolId");
 
-                        // Asumiendo que tienes MainActivity con método isGuest()
                         boolean esInvitado = getActivity() instanceof MainActivity &&
                                 ((MainActivity) getActivity()).isGuest();
 
