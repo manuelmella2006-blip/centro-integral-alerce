@@ -631,21 +631,48 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Botón Guardar -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGuardarActividad"
+        <!-- ACCIONES FINALES: Cancelar / Guardar -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Guardar Actividad"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:icon="@android:drawable/ic_menu_save"
-            app:iconGravity="textStart"
-            app:iconPadding="12dp"
-            app:cornerRadius="12dp"
-            app:backgroundTint="@color/verde_santo_tomas"
-            android:elevation="4dp"
-            style="@style/Widget.Material3.Button" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelarActividad"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Cancelar"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/rojo_error"
+                android:elevation="4dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardarActividad"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Guardar Actividad"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:icon="@android:drawable/ic_menu_save"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/verde_santo_tomas"
+                android:elevation="4dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

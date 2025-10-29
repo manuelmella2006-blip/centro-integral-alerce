@@ -11,7 +11,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -39,45 +42,87 @@ public class DetalleActividadActivity extends AppCompatActivity {
     // Archivos
     @Nullable private RecyclerView rvArchivos;
 
+    // Botones acción
+    @Nullable private MaterialButton btnModificar;
+    @Nullable private MaterialButton btnCancelar;
+    @Nullable private MaterialButton btnReagendar;
+    @Nullable private FloatingActionButton fabAdjuntar;
+
     private FirebaseFirestore db;
+
+    private String actividadId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalle_actividad);
 
-        // ==== BIND DE VISTAS SEGÚN TU XML ====
-        // Header
+        // ==== Toolbar con back (<) ====
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> {
+                // simplemente volvemos a la lista anterior
+                finish();
+            });
+        }
+
+        // ==== Bind vistas de datos ====
         tvNombre        = findViewById(R.id.tv_nombre);
         chipTipo        = findViewById(R.id.chip_tipo);
 
-        // Info general
         tvPeriodicidad  = findViewById(R.id.tv_periodicidad);
         tvCupo          = findViewById(R.id.tv_cupo);
         tvLugar         = findViewById(R.id.tv_lugar);
         tvFechaHora     = findViewById(R.id.tv_fecha_hora);
 
-        // Participantes
         tvOferentes         = findViewById(R.id.tv_oferentes);
         tvSocioComunitario  = findViewById(R.id.tv_socio_comunitario);
         tvBeneficiarios     = findViewById(R.id.tv_beneficiarios);
 
-        // Archivos
         rvArchivos      = findViewById(R.id.rv_archivos);
-        // (no configuramos adapter aquí todavía porque eso depende de tu equipo de datos)
 
-        // ==== TOOLBAR: opcionalmente habilitar back ====
-        // como tu XML tiene un MaterialToolbar con id @+id/toolbar, lo enganchamos:
-        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            toolbar.setNavigationOnClickListener(v -> finish());
+        // ==== Bind botones inferiores / fab ====
+        btnModificar = findViewById(R.id.btn_modificar);
+        btnCancelar = findViewById(R.id.btn_cancelar);
+        btnReagendar = findViewById(R.id.btn_reagendar);
+        fabAdjuntar = findViewById(R.id.fab_adjuntar);
+
+        // Modificar (placeholder)
+        if (btnModificar != null) {
+            btnModificar.setOnClickListener(v -> {
+                Toast.makeText(this, "Modificar (pendiente implementar)", Toast.LENGTH_SHORT).show();
+                // acá iría lógica para editar la actividad
+            });
         }
 
+        // Reagendar (placeholder)
+        if (btnReagendar != null) {
+            btnReagendar.setOnClickListener(v -> {
+                Toast.makeText(this, "Reagendar (pendiente implementar)", Toast.LENGTH_SHORT).show();
+                // acá abrirías selector nueva fecha/hora
+            });
+        }
+
+        // Adjuntar archivo (placeholder)
+        if (fabAdjuntar != null) {
+            fabAdjuntar.setOnClickListener(v -> {
+                Toast.makeText(this, "Adjuntar archivo (pendiente implementar)", Toast.LENGTH_SHORT).show();
+                // acá lanzas picker de archivos
+            });
+        }
+
+        // Cancelar ABAJO (botón rojo): ahora SOLO vuelve a la lista, sin diálogo
+        if (btnCancelar != null) {
+            btnCancelar.setOnClickListener(v -> {
+                finish(); // volvemos directamente
+            });
+        }
+
+        // ==== Firestore ====
         db = FirebaseFirestore.getInstance();
 
-        // Obtenemos el ID de la actividad desde el intent
-        String actividadId = getIntent().getStringExtra("actividadId");
+        // ID de la actividad
+        actividadId = getIntent().getStringExtra("actividadId");
         if (actividadId == null || actividadId.isEmpty()) {
             Toast.makeText(this, "No se recibió la actividad", Toast.LENGTH_SHORT).show();
             finish();
@@ -113,17 +158,16 @@ public class DetalleActividadActivity extends AppCompatActivity {
             return;
         }
 
-        // Rellenar UI con lo que tenemos
+        // Pintar UI con los datos cargados
         mostrarActividad(actividad);
 
-        // En paralelo resolvemos nombre humano del oferente
+        // Cargar nombre humano del oferente en segundo plano
         if (actividad.getOferenteId() != null && !actividad.getOferenteId().isEmpty()) {
             loadOferenteNombre(actividad.getOferenteId());
         }
     }
 
     private void mostrarActividad(Actividad a) {
-
         // ===== HEADER =====
         if (tvNombre != null) {
             String nombreTexto = a.getNombre();
@@ -133,7 +177,6 @@ public class DetalleActividadActivity extends AppCompatActivity {
             tvNombre.setText(nombreTexto);
         }
 
-        // chip_tipo ← tipoActividadId
         if (chipTipo != null) {
             String tipoTexto = a.getTipoActividadId();
             if (tipoTexto == null || tipoTexto.isEmpty()) {
@@ -143,15 +186,12 @@ public class DetalleActividadActivity extends AppCompatActivity {
         }
 
         // ===== INFO GENERAL =====
-
-        // tv_periodicidad
         if (tvPeriodicidad != null) {
             String p = a.getPeriodicidad();
             if (p == null || p.isEmpty()) p = "Sin periodicidad";
             tvPeriodicidad.setText(p);
         }
 
-        // tv_cupo
         if (tvCupo != null) {
             tvCupo.setText(
                     a.getCupo() > 0
@@ -160,7 +200,6 @@ public class DetalleActividadActivity extends AppCompatActivity {
             );
         }
 
-        // tv_lugar
         if (tvLugar != null) {
             String lugarTexto = a.getLugar();
             if (lugarTexto == null || lugarTexto.isEmpty()) {
@@ -169,25 +208,20 @@ public class DetalleActividadActivity extends AppCompatActivity {
             tvLugar.setText(lugarTexto);
         }
 
-        // tv_fecha_hora
         if (tvFechaHora != null) {
             String fecha = a.getFecha() != null ? a.getFecha() : "";
             String hora  = a.getHora()  != null ? a.getHora()  : "";
             String fh = (fecha + " - " + hora).trim();
 
-            // limpia el caso " - " (sin datos reales)
             if (fh.equals("-") || fh.equals(" - ") || fh.equals(" -") || fh.equals("- ")) {
                 fh = "";
             }
-
             if (fh.isEmpty()) fh = "Sin fecha/hora";
 
             tvFechaHora.setText(fh);
         }
 
         // ===== PARTICIPANTES =====
-
-        // oferente
         if (tvOferentes != null) {
             String oferenteTexto = a.getOferenteId();
             if (oferenteTexto == null || oferenteTexto.isEmpty()) {
@@ -196,7 +230,6 @@ public class DetalleActividadActivity extends AppCompatActivity {
             tvOferentes.setText(oferenteTexto);
         }
 
-        // socio comunitario
         if (tvSocioComunitario != null) {
             String socio = a.getSocioComunitarioId();
             if (socio == null || socio.isEmpty()) {
@@ -205,10 +238,8 @@ public class DetalleActividadActivity extends AppCompatActivity {
             tvSocioComunitario.setText(socio);
         }
 
-        // beneficiarios
         if (tvBeneficiarios != null) {
-            // ⚠ Tu modelo Actividad NO tiene getBeneficiarios() como lista/string.
-            // Podemos usar estado o proyectoId como placeholder temporal
+            // placeholder: usamos proyectoId como "beneficiarios"
             String beneficiarios = a.getProyectoId();
             if (beneficiarios == null || beneficiarios.isEmpty()) {
                 beneficiarios = "No especificado";
@@ -219,9 +250,7 @@ public class DetalleActividadActivity extends AppCompatActivity {
         // ===== ARCHIVOS ADJUNTOS =====
         if (rvArchivos != null) {
             List<String> adjuntos = a.getArchivosAdjuntos();
-            // Aquí normalmente setearías un adapter tipo ArchivosAdapter(adjuntos)
-            // y mostrarías card_archivos visible solo si hay adjuntos.
-            // Como aún no me pasas el adapter, no lo toco para que compile.
+            // acá iría tu adapter si ya lo tienes
         }
     }
 
@@ -231,17 +260,15 @@ public class DetalleActividadActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(d -> {
                     if (d.exists()) {
-                        String nombre = d.getString("nombre"); // Ajusta al nombre real del campo de Firestore
-                        if (nombre != null && !nombre.isEmpty()) {
-                            if (tvOferentes != null) {
-                                tvOferentes.setText(nombre);
-                            }
+                        String nombre = d.getString("nombre"); // ajustar si el campo se llama distinto
+                        if (nombre != null && !nombre.isEmpty() && tvOferentes != null) {
+                            tvOferentes.setText(nombre);
                         }
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "No se pudo cargar nombre de oferente: " + e.getMessage());
-                    // Silencioso; dejamos el ID que ya mostramos
+                    // dejamos el ID que ya estaba mostrado
                 });
     }
 }

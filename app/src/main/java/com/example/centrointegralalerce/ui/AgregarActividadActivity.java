@@ -4,8 +4,13 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.*;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.centrointegralalerce.R;
@@ -16,12 +21,18 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class AgregarActividadActivity extends AppCompatActivity {
 
     // Text inputs simples
-    private EditText etNombreActividad, etCupo, etDiasAvisoPrevio;
+    private android.widget.EditText etNombreActividad, etCupo, etDiasAvisoPrevio;
 
     // Dropdowns tipo Material (AutoCompleteTextView)
     private MaterialAutoCompleteTextView spLugar;
@@ -31,10 +42,12 @@ public class AgregarActividadActivity extends AppCompatActivity {
     private MaterialAutoCompleteTextView spProyecto;
     private MaterialAutoCompleteTextView spPeriodicidad;
 
-    // NUEVO: botones fecha/hora (ya no EditText)
+    // Botones fecha/hora
     private Button btnFechaInicio, btnHoraInicio, btnFechaTermino, btnHoraTermino;
 
+    // Acciones finales
     private Button btnGuardarActividad;
+    private Button btnCancelarActividad;
 
     private LinearLayout llDiasSemana;
     private CheckBox cbLunes, cbMartes, cbMiercoles, cbJueves, cbViernes, cbSabado, cbDomingo;
@@ -90,8 +103,9 @@ public class AgregarActividadActivity extends AppCompatActivity {
         btnFechaTermino = findViewById(R.id.btnFechaTermino);
         btnHoraTermino = findViewById(R.id.btnHoraTermino);
 
-        // Botón guardar
+        // Botones finales
         btnGuardarActividad = findViewById(R.id.btnGuardarActividad);
+        btnCancelarActividad = findViewById(R.id.btnCancelarActividad);
 
         // CheckBox días
         llDiasSemana = findViewById(R.id.llDiasSemana);
@@ -117,6 +131,16 @@ public class AgregarActividadActivity extends AppCompatActivity {
 
         // Guardar en Firestore
         btnGuardarActividad.setOnClickListener(v -> guardarActividad());
+
+        // Cancelar: mostrar confirmación antes de descartar
+        btnCancelarActividad.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Descartar actividad")
+                    .setMessage("¿Seguro que quieres descartar esta actividad? Perderás los datos no guardados.")
+                    .setPositiveButton("Sí, salir", (dialog, which) -> finish())
+                    .setNegativeButton("Seguir editando", null)
+                    .show();
+        });
     }
 
     private void setupEmptyAdapters() {
@@ -159,40 +183,11 @@ public class AgregarActividadActivity extends AppCompatActivity {
     }
 
     private void cargarSpinnersDesdeFirebase() {
-        cargarDropdown(
-                "tiposActividad",
-                tipoActividadList,
-                tipoActividadIds,
-                adapterTipoActividad
-        );
-
-        cargarDropdown(
-                "oferentes",
-                oferentesList,
-                oferenteIds,
-                adapterOferente
-        );
-
-        cargarDropdown(
-                "sociosComunitarios",
-                sociosList,
-                socioIds,
-                adapterSocio
-        );
-
-        cargarDropdown(
-                "proyectos",
-                proyectosList,
-                proyectoIds,
-                adapterProyecto
-        );
-
-        cargarDropdown(
-                "lugares",
-                lugaresList,
-                lugarIds,
-                adapterLugar
-        );
+        cargarDropdown("tiposActividad", tipoActividadList, tipoActividadIds, adapterTipoActividad);
+        cargarDropdown("oferentes", oferentesList, oferenteIds, adapterOferente);
+        cargarDropdown("sociosComunitarios", sociosList, socioIds, adapterSocio);
+        cargarDropdown("proyectos", proyectosList, proyectoIds, adapterProyecto);
+        cargarDropdown("lugares", lugaresList, lugarIds, adapterLugar);
     }
 
     /**
@@ -329,6 +324,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
                             horaInicio
                     );
                     limpiarCampos();
+                    finish(); // después de guardar, volvemos atrás
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(
