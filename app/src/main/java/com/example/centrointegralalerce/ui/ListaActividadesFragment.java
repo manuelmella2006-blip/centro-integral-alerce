@@ -259,29 +259,25 @@ public class ListaActividadesFragment extends Fragment {
         }
     }
 
+    /**
+     * Verificar rol del usuario para mostrar/ocultar el botón FAB
+     */
     private void checkUserRole() {
         if (auth.getCurrentUser() == null) {
             fabNewActivityList.setVisibility(View.GONE);
             return;
         }
 
-        String uid = auth.getCurrentUser().getUid();
+        db.collection("usuarios")
+                .whereEqualTo("email", auth.getCurrentUser().getEmail())
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        String rolId = querySnapshot.getDocuments().get(0).getString("rolId");
+                        boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
+                                "administrador".equalsIgnoreCase(rolId);
 
-        db.collection("usuarios").document(uid).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String rolId = documentSnapshot.getString("rolId");
-
-                        boolean esInvitado = getActivity() instanceof MainActivity &&
-                                ((MainActivity) getActivity()).isGuest();
-
-                        boolean esAdmin =
-                                "admin".equalsIgnoreCase(rolId) ||
-                                        "administrador".equalsIgnoreCase(rolId);
-
-                        fabNewActivityList.setVisibility(
-                                (esAdmin && !esInvitado) ? View.VISIBLE : View.GONE
-                        );
+                        fabNewActivityList.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
                     } else {
                         fabNewActivityList.setVisibility(View.GONE);
                     }
@@ -291,6 +287,7 @@ public class ListaActividadesFragment extends Fragment {
                     fabNewActivityList.setVisibility(View.GONE);
                 });
     }
+
 
     private String safe(String s) {
         return s == null ? "" : s;

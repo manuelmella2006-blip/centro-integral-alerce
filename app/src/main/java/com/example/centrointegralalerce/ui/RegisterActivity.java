@@ -136,10 +136,11 @@ public class RegisterActivity extends AppCompatActivity {
                         Map<String, Object> datosUsuario = new HashMap<>();
                         datosUsuario.put("nombre", nombre);
                         datosUsuario.put("email", email);
-                        datosUsuario.put("rol", rol);
-                        datosUsuario.put("fechaRegistro", System.currentTimeMillis());
+                        datosUsuario.put("rolId", rol);
+                        datosUsuario.put("fechaRegistro", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
-                        db.collection("users").document(userId)
+                        db.collection("usuarios").document(userId)
+
                                 .set(datosUsuario)
                                 .addOnSuccessListener(aVoid -> {
                                     Toast.makeText(RegisterActivity.this,

@@ -143,6 +143,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         });
     }
 
+
     private void setupEmptyAdapters() {
         adapterTipoActividad = makeAdapter(tipoActividadList);
         adapterOferente = makeAdapter(oferentesList);
