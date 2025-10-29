@@ -63,5 +63,19 @@
     <string name="logo_centro_alerce">Centro Integral Alerce</string>
     <string name="logo_los_muchachos">Los Muchachos</string>
     <string name="logo_santo_tomas">Santo Tomás</string>
+    <!-- ============================================ -->
+    <!-- Firebase Notificaciones -->
+    <!-- ============================================ -->
+    <string name="default_notification_channel_id">general_channel</string>
+
+    <!-- Mensajes de alerta -->
+    <string name="confirmacion_eliminar">¿Estás seguro de que deseas eliminar esto?</string>
+    <string name="accion_deshacer">DESHACER</string>
+    <string name="accion_cancelar">Cancelar</string>
+    <string name="accion_aceptar">Aceptar</string>
+    <string name="accion_eliminar">Eliminar</string>
+    <string name="eliminado_exitosamente">Elemento eliminado</string>
+    <string name="guardado_exitosamente">Cambios guardados</string>
+    <string name="error_generico">Ocurrió un error. Intenta de nuevo.</string>
 
 </resources>

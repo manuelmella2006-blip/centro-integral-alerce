@@ -3,7 +3,6 @@ package com.example.centrointegralalerce.ui;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
+import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -49,7 +49,6 @@ public class DetalleActividadActivity extends AppCompatActivity {
     @Nullable private FloatingActionButton fabAdjuntar;
 
     private FirebaseFirestore db;
-
     private String actividadId;
 
     @Override
@@ -60,75 +59,76 @@ public class DetalleActividadActivity extends AppCompatActivity {
         // ==== Toolbar con back (<) ====
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
-            toolbar.setNavigationOnClickListener(v -> {
-                // simplemente volvemos a la lista anterior
-                finish();
-            });
+            toolbar.setNavigationOnClickListener(v -> finish());
         }
 
-        // ==== Bind vistas de datos ====
+        // ==== Bind vistas ====
         tvNombre        = findViewById(R.id.tv_nombre);
         chipTipo        = findViewById(R.id.chip_tipo);
-
         tvPeriodicidad  = findViewById(R.id.tv_periodicidad);
         tvCupo          = findViewById(R.id.tv_cupo);
         tvLugar         = findViewById(R.id.tv_lugar);
         tvFechaHora     = findViewById(R.id.tv_fecha_hora);
-
-        tvOferentes         = findViewById(R.id.tv_oferentes);
-        tvSocioComunitario  = findViewById(R.id.tv_socio_comunitario);
-        tvBeneficiarios     = findViewById(R.id.tv_beneficiarios);
-
+        tvOferentes     = findViewById(R.id.tv_oferentes);
+        tvSocioComunitario = findViewById(R.id.tv_socio_comunitario);
+        tvBeneficiarios = findViewById(R.id.tv_beneficiarios);
         rvArchivos      = findViewById(R.id.rv_archivos);
+        btnModificar    = findViewById(R.id.btn_modificar);
+        btnCancelar     = findViewById(R.id.btn_cancelar);
+        btnReagendar    = findViewById(R.id.btn_reagendar);
+        fabAdjuntar     = findViewById(R.id.fab_adjuntar);
 
-        // ==== Bind botones inferiores / fab ====
-        btnModificar = findViewById(R.id.btn_modificar);
-        btnCancelar = findViewById(R.id.btn_cancelar);
-        btnReagendar = findViewById(R.id.btn_reagendar);
-        fabAdjuntar = findViewById(R.id.fab_adjuntar);
-
-        // Modificar (placeholder)
-        if (btnModificar != null) {
-            btnModificar.setOnClickListener(v -> {
-                Toast.makeText(this, "Modificar (pendiente implementar)", Toast.LENGTH_SHORT).show();
-                // acá iría lógica para editar la actividad
-            });
-        }
-
-        // Reagendar (placeholder)
-        if (btnReagendar != null) {
-            btnReagendar.setOnClickListener(v -> {
-                Toast.makeText(this, "Reagendar (pendiente implementar)", Toast.LENGTH_SHORT).show();
-                // acá abrirías selector nueva fecha/hora
-            });
-        }
-
-        // Adjuntar archivo (placeholder)
-        if (fabAdjuntar != null) {
-            fabAdjuntar.setOnClickListener(v -> {
-                Toast.makeText(this, "Adjuntar archivo (pendiente implementar)", Toast.LENGTH_SHORT).show();
-                // acá lanzas picker de archivos
-            });
-        }
-
-        // Cancelar ABAJO (botón rojo): ahora SOLO vuelve a la lista, sin diálogo
-        if (btnCancelar != null) {
-            btnCancelar.setOnClickListener(v -> {
-                finish(); // volvemos directamente
-            });
-        }
-
-        // ==== Firestore ====
         db = FirebaseFirestore.getInstance();
 
-        // ID de la actividad
+        // ==== ID de la actividad ====
         actividadId = getIntent().getStringExtra("actividadId");
         if (actividadId == null || actividadId.isEmpty()) {
-            Toast.makeText(this, "No se recibió la actividad", Toast.LENGTH_SHORT).show();
+            AlertManager.showErrorToast(this, "No se recibió la actividad");
             finish();
             return;
         }
 
+        // ==== Botones acción ====
+        if (btnModificar != null) {
+            btnModificar.setOnClickListener(v ->
+                    AlertManager.showInfoToast(this, "Modificar actividad — en desarrollo 🛠️"));
+        }
+
+        if (btnReagendar != null) {
+            btnReagendar.setOnClickListener(v ->
+                    AlertManager.showInfoToast(this, "Reagendar actividad — próximamente 📅"));
+        }
+
+        if (fabAdjuntar != null) {
+            fabAdjuntar.setOnClickListener(v ->
+                    AlertManager.showInfoSnackbar(AlertManager.getRootView(this),
+                            "Funcionalidad de adjuntar archivos aún no disponible 📎"));
+        }
+
+        if (btnCancelar != null) {
+            btnCancelar.setOnClickListener(v ->
+                    AlertManager.showDestructiveDialog(
+                            this,
+                            "Cancelar actividad",
+                            "¿Estás seguro que deseas cancelar esta actividad?",
+                            "Cancelar",
+                            new AlertManager.OnConfirmListener() {
+                                @Override
+                                public void onConfirm() {
+                                    finish();
+                                    AlertManager.showSuccessToast(DetalleActividadActivity.this,
+                                            "Actividad cancelada correctamente ✅");
+                                }
+
+                                @Override
+                                public void onCancel() {
+                                    AlertManager.showInfoToast(DetalleActividadActivity.this,
+                                            "Acción cancelada");
+                                }
+                            }));
+        }
+
+        // ==== Cargar datos desde Firestore ====
         loadActividad(actividadId);
     }
 
@@ -138,30 +138,32 @@ public class DetalleActividadActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(this::onActividadCargada)
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar actividad: " + e.getMessage(), e);
-                    Toast.makeText(this, "Error al cargar actividad", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error al cargar actividad", e);
+                    AlertManager.showErrorSnackbar(AlertManager.getRootView(this),
+                            "Error al cargar la actividad. Intenta nuevamente.");
                     finish();
                 });
     }
 
     private void onActividadCargada(DocumentSnapshot doc) {
         if (!doc.exists()) {
-            Toast.makeText(this, "Actividad no encontrada", Toast.LENGTH_SHORT).show();
+            AlertManager.showWarningToast(this, "Actividad no encontrada");
             finish();
             return;
         }
 
         Actividad actividad = doc.toObject(Actividad.class);
         if (actividad == null) {
-            Toast.makeText(this, "Datos de actividad inválidos", Toast.LENGTH_SHORT).show();
+            AlertManager.showErrorToast(this, "Datos de actividad inválidos");
             finish();
             return;
         }
 
-        // Pintar UI con los datos cargados
         mostrarActividad(actividad);
+        AlertManager.showSuccessSnackbar(AlertManager.getRootView(this),
+                "Actividad cargada correctamente ✅");
 
-        // Cargar nombre humano del oferente en segundo plano
+        // Cargar oferente si aplica
         if (actividad.getOferenteId() != null && !actividad.getOferenteId().isEmpty()) {
             loadOferenteNombre(actividad.getOferenteId());
         }
@@ -170,87 +172,57 @@ public class DetalleActividadActivity extends AppCompatActivity {
     private void mostrarActividad(Actividad a) {
         // ===== HEADER =====
         if (tvNombre != null) {
-            String nombreTexto = a.getNombre();
-            if (nombreTexto == null || nombreTexto.isEmpty()) {
-                nombreTexto = "Sin nombre";
-            }
-            tvNombre.setText(nombreTexto);
+            tvNombre.setText(a.getNombre() != null && !a.getNombre().isEmpty() ? a.getNombre() : "Sin nombre");
         }
 
         if (chipTipo != null) {
-            String tipoTexto = a.getTipoActividadId();
-            if (tipoTexto == null || tipoTexto.isEmpty()) {
-                tipoTexto = "Sin tipo";
-            }
-            chipTipo.setText(tipoTexto);
+            chipTipo.setText(a.getTipoActividadId() != null && !a.getTipoActividadId().isEmpty()
+                    ? a.getTipoActividadId() : "Sin tipo");
         }
 
         // ===== INFO GENERAL =====
         if (tvPeriodicidad != null) {
             String p = a.getPeriodicidad();
-            if (p == null || p.isEmpty()) p = "Sin periodicidad";
-            tvPeriodicidad.setText(p);
+            tvPeriodicidad.setText(p != null && !p.isEmpty() ? p : "Sin periodicidad");
         }
 
         if (tvCupo != null) {
-            tvCupo.setText(
-                    a.getCupo() > 0
-                            ? a.getCupo() + " personas"
-                            : "Sin cupo"
-            );
+            tvCupo.setText(a.getCupo() > 0 ? a.getCupo() + " personas" : "Sin cupo");
         }
 
         if (tvLugar != null) {
-            String lugarTexto = a.getLugar();
-            if (lugarTexto == null || lugarTexto.isEmpty()) {
-                lugarTexto = "Sin lugar";
-            }
-            tvLugar.setText(lugarTexto);
+            tvLugar.setText(a.getLugar() != null && !a.getLugar().isEmpty() ? a.getLugar() : "Sin lugar");
         }
 
         if (tvFechaHora != null) {
             String fecha = a.getFecha() != null ? a.getFecha() : "";
-            String hora  = a.getHora()  != null ? a.getHora()  : "";
+            String hora = a.getHora() != null ? a.getHora() : "";
             String fh = (fecha + " - " + hora).trim();
-
-            if (fh.equals("-") || fh.equals(" - ") || fh.equals(" -") || fh.equals("- ")) {
-                fh = "";
-            }
-            if (fh.isEmpty()) fh = "Sin fecha/hora";
-
+            if (fh.equals("-") || fh.isEmpty()) fh = "Sin fecha/hora";
             tvFechaHora.setText(fh);
         }
 
         // ===== PARTICIPANTES =====
         if (tvOferentes != null) {
-            String oferenteTexto = a.getOferenteId();
-            if (oferenteTexto == null || oferenteTexto.isEmpty()) {
-                oferenteTexto = "Sin oferente";
-            }
-            tvOferentes.setText(oferenteTexto);
+            tvOferentes.setText(a.getOferenteId() != null && !a.getOferenteId().isEmpty()
+                    ? a.getOferenteId() : "Sin oferente");
         }
 
         if (tvSocioComunitario != null) {
-            String socio = a.getSocioComunitarioId();
-            if (socio == null || socio.isEmpty()) {
-                socio = "Sin socio comunitario";
-            }
-            tvSocioComunitario.setText(socio);
+            tvSocioComunitario.setText(a.getSocioComunitarioId() != null && !a.getSocioComunitarioId().isEmpty()
+                    ? a.getSocioComunitarioId() : "Sin socio comunitario");
         }
 
         if (tvBeneficiarios != null) {
-            // placeholder: usamos proyectoId como "beneficiarios"
             String beneficiarios = a.getProyectoId();
-            if (beneficiarios == null || beneficiarios.isEmpty()) {
-                beneficiarios = "No especificado";
-            }
-            tvBeneficiarios.setText(beneficiarios);
+            tvBeneficiarios.setText(beneficiarios != null && !beneficiarios.isEmpty()
+                    ? beneficiarios : "No especificado");
         }
 
-        // ===== ARCHIVOS ADJUNTOS =====
+        // ===== ARCHIVOS =====
         if (rvArchivos != null) {
             List<String> adjuntos = a.getArchivosAdjuntos();
-            // acá iría tu adapter si ya lo tienes
+            // Aquí iría tu adapter personalizado si ya lo implementaste
         }
     }
 
@@ -260,7 +232,7 @@ public class DetalleActividadActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(d -> {
                     if (d.exists()) {
-                        String nombre = d.getString("nombre"); // ajustar si el campo se llama distinto
+                        String nombre = d.getString("nombre");
                         if (nombre != null && !nombre.isEmpty() && tvOferentes != null) {
                             tvOferentes.setText(nombre);
                         }
@@ -268,7 +240,8 @@ public class DetalleActividadActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "No se pudo cargar nombre de oferente: " + e.getMessage());
-                    // dejamos el ID que ya estaba mostrado
+                    AlertManager.showWarningSnackbar(AlertManager.getRootView(this),
+                            "No se pudo cargar el oferente");
                 });
     }
 }

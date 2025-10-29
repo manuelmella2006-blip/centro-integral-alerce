@@ -1,15 +1,16 @@
 package com.example.centrointegralalerce.ui;
 
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -30,7 +31,7 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Referencias del layout
+        // Referencias UI
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
@@ -48,8 +49,12 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
+        // Validación
         if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Por favor ingresa correo y contraseña", Toast.LENGTH_SHORT).show();
+            AlertManager.showWarningSnackbar(
+                    AlertManager.getRootView(this),
+                    "Por favor ingresa correo y contraseña"
+            );
             return;
         }
 
@@ -70,27 +75,39 @@ public class LoginActivity extends AppCompatActivity {
                                     if (documentSnapshot.exists()) {
                                         String rolId = documentSnapshot.getString("rolId");
 
+                                        AlertManager.showSuccessSnackbar(
+                                                AlertManager.getRootView(this),
+                                                "Inicio de sesión exitoso ✅"
+                                        );
+
                                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                         intent.putExtra("ROL", rolId);
                                         startActivity(intent);
                                         finish();
 
                                     } else {
-                                        Toast.makeText(LoginActivity.this, "No se encontró información del usuario en Firestore.", Toast.LENGTH_LONG).show();
+                                        AlertManager.showErrorSnackbar(
+                                                AlertManager.getRootView(this),
+                                                "No se encontró información del usuario en Firestore."
+                                        );
                                     }
                                 })
                                 .addOnFailureListener(e -> {
-                                    Toast.makeText(LoginActivity.this, "Error al leer usuario: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                    e.printStackTrace();
+                                    AlertManager.showErrorSnackbar(
+                                            AlertManager.getRootView(this),
+                                            "Error al leer usuario: " + e.getMessage()
+                                    );
                                 });
 
                     } else {
                         String errorMsg = "Error al iniciar sesión";
                         if (task.getException() != null) {
                             errorMsg = task.getException().getMessage();
-                            task.getException().printStackTrace();
                         }
-                        Toast.makeText(LoginActivity.this, "Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                        AlertManager.showErrorSnackbar(
+                                AlertManager.getRootView(this),
+                                "Error: " + errorMsg
+                        );
                     }
                 });
     }

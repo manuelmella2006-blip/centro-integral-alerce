@@ -1,9 +1,35 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- 🎨 Tema base heredando de Material 3 -->
     <style name="Base.Theme.CentroIntegralAlerce" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Colores principales -->
+        <item name="colorPrimary">@color/verde_santo_tomas</item>
+        <item name="colorPrimaryContainer">@color/verde_santo_tomas</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
+        <!-- Color de error -->
+        <item name="colorError">@color/rojo_error</item>
+
+        <!-- Estilo para diálogos -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
     </style>
 
+    <!-- Tema final que usará toda la app -->
     <style name="Theme.CentroIntegralAlerce" parent="Base.Theme.CentroIntegralAlerce" />
+
+    <!-- 🎯 Estilos personalizados -->
+    <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.App.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.App.Button.TextButton</item>
+    </style>
+
+    <style name="Widget.App.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/verde_santo_tomas</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="Widget.App.Button.TextButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/verde_santo_tomas</item>
+    </style>
+
 </resources>

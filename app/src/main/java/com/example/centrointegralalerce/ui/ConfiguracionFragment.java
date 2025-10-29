@@ -7,15 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -58,23 +57,20 @@ public class ConfiguracionFragment extends Fragment {
     }
 
     private void cargarInfoUsuario() {
-        // Verificar si hay usuario autenticado
         if (auth.getCurrentUser() == null) {
             tvUserName.setText("Usuario no autenticado");
             tvUserEmail.setText("Sin correo");
             chipUserRole.setText("Invitado");
             itemGestionarUsuarios.setVisibility(View.GONE);
             itemMantenedores.setVisibility(View.GONE);
+            AlertManager.showWarningToast(requireContext(), "Debes iniciar sesión");
             return;
         }
 
         String uid = auth.getCurrentUser().getUid();
         String email = auth.getCurrentUser().getEmail();
-
-        // Mostrar email inmediatamente
         tvUserEmail.setText(email != null ? email : "Sin correo");
 
-        // Cargar datos desde Firestore
         db.collection("usuarios").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -83,7 +79,6 @@ public class ConfiguracionFragment extends Fragment {
 
                         tvUserName.setText(nombre != null ? nombre : "Usuario");
 
-                        // Cargar información del rol
                         if (rolId != null) {
                             db.collection("roles").document(rolId).get()
                                     .addOnSuccessListener(rolDoc -> {
@@ -91,18 +86,19 @@ public class ConfiguracionFragment extends Fragment {
                                             String rolNombre = rolDoc.getString("nombre");
                                             chipUserRole.setText(rolNombre != null ? rolNombre : rolId);
 
-                                            // Mostrar opciones según rol
                                             boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
                                                     "administrador".equalsIgnoreCase(rolId);
+
                                             itemGestionarUsuarios.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
                                             itemMantenedores.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
+                                        } else {
+                                            chipUserRole.setText("Rol desconocido");
                                         }
                                     })
                                     .addOnFailureListener(e -> {
                                         chipUserRole.setText("Error al cargar rol");
-                                        Toast.makeText(requireContext(),
-                                                "Error: " + e.getMessage(),
-                                                Toast.LENGTH_SHORT).show();
+                                        AlertManager.showErrorToast(requireContext(),
+                                                "Error al obtener el rol: " + e.getMessage());
                                     });
                         } else {
                             chipUserRole.setText("Sin rol");
@@ -114,6 +110,10 @@ public class ConfiguracionFragment extends Fragment {
                         chipUserRole.setText("Sin rol");
                         itemGestionarUsuarios.setVisibility(View.GONE);
                         itemMantenedores.setVisibility(View.GONE);
+                        AlertManager.showWarningSnackbar(
+                                AlertManager.getRootViewSafe(this),
+                                "Usuario no registrado en Firestore"
+                        );
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -121,63 +121,75 @@ public class ConfiguracionFragment extends Fragment {
                     chipUserRole.setText("Error");
                     itemGestionarUsuarios.setVisibility(View.GONE);
                     itemMantenedores.setVisibility(View.GONE);
-                    Toast.makeText(requireContext(),
-                            "Error al conectar con Firestore: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    AlertManager.showErrorSnackbar(
+                            AlertManager.getRootViewSafe(this),
+                            "Error al conectar con Firestore"
+                    );
                 });
     }
 
     private void setupListeners() {
-        // ✅ ACTUALIZADO: Navegar al fragment de Mantenedores
+        // Navegar a Mantenedores
         itemMantenedores.setOnClickListener(v -> {
             MainActivity mainActivity = (MainActivity) getActivity();
             if (mainActivity != null) {
                 mainActivity.navigateToMantenedores();
+                AlertManager.showInfoSnackbar(
+                        AlertManager.getRootViewSafe(this),
+                        "Abriendo Mantenedores..."
+                );
             } else {
-                Toast.makeText(requireContext(),
-                        "Error al navegar a Mantenedores",
-                        Toast.LENGTH_SHORT).show();
+                AlertManager.showErrorToast(requireContext(), "Error al abrir Mantenedores");
             }
         });
 
         itemGestionarUsuarios.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), RegisterActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(requireContext(), RegisterActivity.class));
+            AlertManager.showInfoToast(requireContext(), "Abriendo gestión de usuarios...");
         });
 
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) ->
-                Toast.makeText(requireContext(),
-                        "Notificaciones " + (isChecked ? "activadas" : "desactivadas"),
-                        Toast.LENGTH_SHORT).show());
+                AlertManager.showSuccessToast(requireContext(),
+                        "Notificaciones " + (isChecked ? "activadas 🔔" : "desactivadas 🔕")));
 
         itemDiasAviso.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Días de aviso - Por implementar", Toast.LENGTH_SHORT).show());
+                AlertManager.showInfoSnackbar(AlertManager.getRootViewSafe(this),
+                        "Funcionalidad 'Días de aviso' aún no disponible"));
 
         itemChangePassword.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Cambiar contraseña - Por implementar", Toast.LENGTH_SHORT).show());
+                AlertManager.showInfoToast(requireContext(),
+                        "Cambio de contraseña - Próximamente"));
 
         itemLogout.setOnClickListener(v -> showLogoutDialog());
 
         itemAbout.setOnClickListener(v ->
-                new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Acerca de")
-                        .setMessage("Centro Integral Alerce App\nVersión 1.0\n\nUniversidad Santo Tomás\n2024")
-                        .setPositiveButton("Aceptar", null)
-                        .show());
+                AlertManager.showInfoDialog(requireContext(),
+                        "Acerca de",
+                        "Centro Integral Alerce App\nVersión 1.0\n\nUniversidad Santo Tomás\n2024"));
     }
 
     private void showLogoutDialog() {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Cerrar sesión")
-                .setMessage("¿Estás seguro que deseas cerrar sesión?")
-                .setPositiveButton("Cerrar sesión", (dialog, which) -> {
-                    auth.signOut();
-                    Intent intent = new Intent(requireContext(), LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    requireActivity().finish();
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
+        AlertManager.showDestructiveDialog(
+                requireContext(),
+                "Cerrar sesión",
+                "¿Estás seguro que deseas cerrar sesión?",
+                "Cerrar sesión",
+                new AlertManager.OnConfirmListener() {
+                    @Override
+                    public void onConfirm() {
+                        auth.signOut();
+                        Intent intent = new Intent(requireContext(), LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        requireActivity().finish();
+                        AlertManager.showSuccessToast(requireContext(), "Sesión cerrada correctamente");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        AlertManager.showInfoToast(requireContext(), "Operación cancelada");
+                    }
+                }
+        );
     }
 }

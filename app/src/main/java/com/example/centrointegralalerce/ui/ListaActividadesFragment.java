@@ -7,10 +7,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.centrointegralalerce.data.Actividad;
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.utils.AlertManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,10 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.chip.ChipGroup;
-// ❌ QUITAR este import ↓
-// import com.google.android.material.floatingactionbutton.FloatingActionButton;
-// ✅ USAR este import ↓
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton; // <-- cambio
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -45,9 +42,7 @@ public class ListaActividadesFragment extends Fragment {
     private RecyclerView rvActivitiesList;
     private TextInputEditText etSearch;
     private ChipGroup chipGroupFilters;
-
-    // private FloatingActionButton fabNewActivityList;
-    private ExtendedFloatingActionButton fabNewActivityList; // <-- cambio
+    private ExtendedFloatingActionButton fabNewActivityList;
 
     private LinearLayout layoutEmptyList;
     private ProgressBar progressBar;
@@ -86,7 +81,7 @@ public class ListaActividadesFragment extends Fragment {
         rvActivitiesList   = view.findViewById(R.id.rv_activities_list);
         etSearch           = view.findViewById(R.id.et_search);
         chipGroupFilters   = view.findViewById(R.id.chip_group_filters);
-        fabNewActivityList = view.findViewById(R.id.fab_new_activity_list); // <-- ahora el tipo coincide
+        fabNewActivityList = view.findViewById(R.id.fab_new_activity_list);
         layoutEmptyList    = view.findViewById(R.id.layout_empty_list);
         progressBar        = view.findViewById(R.id.progress_bar);
 
@@ -121,13 +116,13 @@ public class ListaActividadesFragment extends Fragment {
                 intent.putExtra("actividadId", actividadId);
                 startActivity(intent);
             } else {
-                Toast.makeText(requireContext(), "No se pudo obtener el ID", Toast.LENGTH_SHORT).show();
+                AlertManager.showWarningToast(requireContext(), "No se pudo obtener el ID de la actividad ❗");
             }
         });
     }
 
     private void setupListeners() {
-        // Buscar al presionar el action del teclado (lupa en el ime)
+        // Buscar al presionar el action del teclado
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             String query = etSearch.getText() != null
                     ? etSearch.getText().toString().trim()
@@ -136,7 +131,7 @@ public class ListaActividadesFragment extends Fragment {
             return true;
         });
 
-        // Chips -> futuro filtro más específico
+        // Chips -> filtros
         chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
             filterActivitiesByType();
         });
@@ -176,28 +171,25 @@ public class ListaActividadesFragment extends Fragment {
                     filteredActividadIds.addAll(actividadIds);
                     adapter.setActividadesList(filteredActividadesList);
 
-                    Log.d(TAG, "Total actividades cargadas: " + actividadesList.size());
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
                     updateUI();
 
+                    View root = AlertManager.getRootView(requireActivity());
                     if (actividadesList.isEmpty()) {
-                        Toast.makeText(
-                                requireContext(),
-                                "No hay actividades disponibles",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        AlertManager.showInfoSnackbar(root, "No hay actividades disponibles 📭");
+                    } else {
+                        AlertManager.showSuccessSnackbar(root, "Actividades cargadas correctamente ✅");
                     }
+
+                    Log.d(TAG, "Total actividades cargadas: " + actividadesList.size());
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al cargar actividades: " + e.getMessage(), e);
-                    Toast.makeText(
-                            requireContext(),
-                            "Error al cargar actividades: " + e.getMessage(),
-                            Toast.LENGTH_LONG
-                    ).show();
-
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
                     updateUI();
+
+                    View root = AlertManager.getRootView(requireActivity());
+                    AlertManager.showErrorSnackbar(root, "Error al cargar actividades. Intenta nuevamente ⚠️");
                 });
     }
 
@@ -233,10 +225,14 @@ public class ListaActividadesFragment extends Fragment {
 
         adapter.setActividadesList(filteredActividadesList);
         updateUI();
+
+        // Mostrar alerta si no hay resultados
+        if (filteredActividadesList.isEmpty()) {
+            AlertManager.showInfoToast(requireContext(), "No se encontraron resultados para \"" + query + "\"");
+        }
     }
 
     private void filterActivitiesByType() {
-        // por ahora no filtramos realmente los chips (está como stub)
         filteredActividadesList.clear();
         filteredActividadIds.clear();
 
@@ -285,9 +281,11 @@ public class ListaActividadesFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al verificar rol: " + e.getMessage(), e);
                     fabNewActivityList.setVisibility(View.GONE);
+
+                    View root = AlertManager.getRootView(requireActivity());
+                    AlertManager.showErrorSnackbar(root, "Error al verificar permisos del usuario");
                 });
     }
-
 
     private String safe(String s) {
         return s == null ? "" : s;

@@ -95,9 +95,7 @@
                         android:textColor="@color/gris_oscuro"
                         android:layout_marginTop="2dp"
                         tools:text="Sala de Capacitaciones" />
-
                 </LinearLayout>
-
             </LinearLayout>
 
             <!-- Divider -->
@@ -146,9 +144,7 @@
                         android:textColor="@color/gris_oscuro"
                         android:layout_marginTop="2dp"
                         tools:text="10:30" />
-
                 </LinearLayout>
-
             </LinearLayout>
 
             <!-- Divider -->
@@ -197,11 +193,8 @@
                         android:textSize="12sp"
                         app:chipMinHeight="28dp"
                         tools:text="Activa" />
-
                 </LinearLayout>
-
             </LinearLayout>
-
         </LinearLayout>
 
         <!-- Divider antes de acciones -->
@@ -214,37 +207,55 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:padding="12dp">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_ver_detalle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Ver Detalle"
-                android:textSize="13sp"
+                android:id="@+id/btn_marcar_completada"
                 style="@style/Widget.Material3.Button"
-                app:cornerRadius="8dp"
-                app:backgroundTint="@color/verde_santo_tomas"
-                android:textColor="@color/blanco" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_cerrar"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Cerrar"
+                android:text="Marcar como completada"
                 android:textSize="13sp"
-                style="@style/Widget.Material3.Button"
+                android:icon="@drawable/ic_check"
+                app:iconTint="@color/blanco"
+                app:backgroundTint="@color/verde_exito"
+                android:textColor="@color/blanco"
                 app:cornerRadius="8dp"
-                app:backgroundTint="@color/gris_medio"
-                android:textColor="@color/blanco" />
+                android:layout_marginBottom="10dp" />
 
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ver_detalle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Ver Detalle"
+                    android:textSize="13sp"
+                    style="@style/Widget.Material3.Button"
+                    app:cornerRadius="8dp"
+                    app:backgroundTint="@color/verde_santo_tomas"
+                    android:textColor="@color/blanco" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_cerrar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Cerrar"
+                    android:textSize="13sp"
+                    style="@style/Widget.Material3.Button"
+                    app:cornerRadius="8dp"
+                    app:backgroundTint="@color/gris_medio"
+                    android:textColor="@color/blanco" />
+            </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
-
 </com.google.android.material.card.MaterialCardView>

@@ -1,7 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- 🎨 Tema base noche -->
     <style name="Base.Theme.CentroIntegralAlerce" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- Colores principales -->
+        <item name="colorPrimary">@color/verde_santo_tomas</item>
+        <item name="colorPrimaryContainer">@color/verde_santo_tomas</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
+        <!-- Color de error -->
+        <item name="colorError">@color/rojo_error</item>
+
+        <!-- Estilo para diálogos -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
     </style>
 </resources>

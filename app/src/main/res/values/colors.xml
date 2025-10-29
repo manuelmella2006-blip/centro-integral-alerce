@@ -17,6 +17,7 @@
     <color name="gris_claro">#F8F9FA</color>
     <color name="gris_borde">#E9ECEF</color>
 
+
     <!-- COLORES DE ESTADO -->
     <color name="verde_exito">#28A745</color>
     <color name="amarillo_advertencia">#FFC107</color>

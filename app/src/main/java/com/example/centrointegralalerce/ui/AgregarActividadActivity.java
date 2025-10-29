@@ -8,12 +8,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -35,26 +34,20 @@ public class AgregarActividadActivity extends AppCompatActivity {
     private android.widget.EditText etNombreActividad, etCupo, etDiasAvisoPrevio;
 
     // Dropdowns tipo Material (AutoCompleteTextView)
-    private MaterialAutoCompleteTextView spLugar;
-    private MaterialAutoCompleteTextView spTipoActividad;
-    private MaterialAutoCompleteTextView spOferente;
-    private MaterialAutoCompleteTextView spSocioComunitario;
-    private MaterialAutoCompleteTextView spProyecto;
-    private MaterialAutoCompleteTextView spPeriodicidad;
+    private MaterialAutoCompleteTextView spLugar, spTipoActividad, spOferente, spSocioComunitario, spProyecto, spPeriodicidad;
 
     // Botones fecha/hora
     private Button btnFechaInicio, btnHoraInicio, btnFechaTermino, btnHoraTermino;
 
     // Acciones finales
-    private Button btnGuardarActividad;
-    private Button btnCancelarActividad;
+    private Button btnGuardarActividad, btnCancelarActividad;
 
     private LinearLayout llDiasSemana;
     private CheckBox cbLunes, cbMartes, cbMiercoles, cbJueves, cbViernes, cbSabado, cbDomingo;
 
     private FirebaseFirestore db;
 
-    // Listas de nombres mostrados en cada dropdown
+    // Listas de nombres y IDs
     private final ArrayList<String> tipoActividadList = new ArrayList<>();
     private final ArrayList<String> oferentesList = new ArrayList<>();
     private final ArrayList<String> sociosList = new ArrayList<>();
@@ -62,20 +55,13 @@ public class AgregarActividadActivity extends AppCompatActivity {
     private final ArrayList<String> lugaresList = new ArrayList<>();
     private final ArrayList<String> periodicidadesList = new ArrayList<>();
 
-    // Listas paralelas de IDs reales en Firestore
     private final ArrayList<String> tipoActividadIds = new ArrayList<>();
     private final ArrayList<String> oferenteIds = new ArrayList<>();
     private final ArrayList<String> socioIds = new ArrayList<>();
     private final ArrayList<String> proyectoIds = new ArrayList<>();
     private final ArrayList<String> lugarIds = new ArrayList<>();
 
-    // Adaptadores para los dropdowns
-    private ArrayAdapter<String> adapterTipoActividad;
-    private ArrayAdapter<String> adapterOferente;
-    private ArrayAdapter<String> adapterSocio;
-    private ArrayAdapter<String> adapterProyecto;
-    private ArrayAdapter<String> adapterLugar;
-    private ArrayAdapter<String> adapterPeriodicidad;
+    private ArrayAdapter<String> adapterTipoActividad, adapterOferente, adapterSocio, adapterProyecto, adapterLugar, adapterPeriodicidad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,30 +70,22 @@ public class AgregarActividadActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // Text inputs libres
+        // Referencias UI
         etNombreActividad = findViewById(R.id.etNombreActividad);
         etCupo = findViewById(R.id.etCupo);
         etDiasAvisoPrevio = findViewById(R.id.etDiasAvisoPrevio);
-
-        // Dropdowns Material
         spTipoActividad = findViewById(R.id.spTipoActividad);
         spPeriodicidad = findViewById(R.id.spPeriodicidad);
         spOferente = findViewById(R.id.spOferente);
         spSocioComunitario = findViewById(R.id.spSocioComunitario);
         spProyecto = findViewById(R.id.spProyecto);
         spLugar = findViewById(R.id.spLugar);
-
-        // Botones fecha / hora
         btnFechaInicio = findViewById(R.id.btnFechaInicio);
         btnHoraInicio = findViewById(R.id.btnHoraInicio);
         btnFechaTermino = findViewById(R.id.btnFechaTermino);
         btnHoraTermino = findViewById(R.id.btnHoraTermino);
-
-        // Botones finales
         btnGuardarActividad = findViewById(R.id.btnGuardarActividad);
         btnCancelarActividad = findViewById(R.id.btnCancelarActividad);
-
-        // CheckBox días
         llDiasSemana = findViewById(R.id.llDiasSemana);
         cbLunes = findViewById(R.id.cbLunes);
         cbMartes = findViewById(R.id.cbMartes);
@@ -117,32 +95,33 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cbSabado = findViewById(R.id.cbSabado);
         cbDomingo = findViewById(R.id.cbDomingo);
 
-        // Adapters vacíos iniciales
         setupEmptyAdapters();
-
-        // Llenar Periodicidad (local)
         cargarPeriodicidad();
-
-        // Llenar los demás dropdowns desde Firestore
         cargarSpinnersDesdeFirebase();
-
-        // Date/Time pickers para los botones
         configurarPickers();
 
-        // Guardar en Firestore
         btnGuardarActividad.setOnClickListener(v -> guardarActividad());
 
-        // Cancelar: mostrar confirmación antes de descartar
         btnCancelarActividad.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Descartar actividad")
-                    .setMessage("¿Seguro que quieres descartar esta actividad? Perderás los datos no guardados.")
-                    .setPositiveButton("Sí, salir", (dialog, which) -> finish())
-                    .setNegativeButton("Seguir editando", null)
-                    .show();
+            AlertManager.showDestructiveDialog(
+                    this,
+                    "Descartar actividad",
+                    "¿Seguro que quieres descartar esta actividad? Perderás los datos no guardados.",
+                    "Sí, salir",
+                    new AlertManager.OnConfirmListener() {
+                        @Override
+                        public void onConfirm() {
+                            finish();
+                        }
+
+                        @Override
+                        public void onCancel() {
+                            AlertManager.showInfoToast(AgregarActividadActivity.this, "Continuas editando la actividad");
+                        }
+                    }
+            );
         });
     }
-
 
     private void setupEmptyAdapters() {
         adapterTipoActividad = makeAdapter(tipoActividadList);
@@ -164,17 +143,12 @@ public class AgregarActividadActivity extends AppCompatActivity {
         return new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, data);
     }
 
-    /**
-     * Periodicidad es local (Puntual / Periódica)
-     */
     private void cargarPeriodicidad() {
         periodicidadesList.clear();
         periodicidadesList.add("Puntual");
         periodicidadesList.add("Periódica");
-
         adapterPeriodicidad.notifyDataSetChanged();
 
-        // Mostrar/ocultar la fila de días según elección
         spPeriodicidad.setOnItemClickListener((parent, view, position, id) -> {
             String periodicidad = periodicidadesList.get(position);
             llDiasSemana.setVisibility(
@@ -191,77 +165,48 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cargarDropdown("lugares", lugaresList, lugarIds, adapterLugar);
     }
 
-    /**
-     * Llena un dropdown Material con datos desde Firestore
-     */
-    private void cargarDropdown(
-            String coleccion,
-            List<String> listaNombres,
-            List<String> listaIds,
-            ArrayAdapter<String> adapter
-    ) {
-
+    private void cargarDropdown(String coleccion, List<String> nombres, List<String> ids, ArrayAdapter<String> adapter) {
         db.collection(coleccion)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        listaNombres.clear();
-                        listaIds.clear();
-
+                        nombres.clear();
+                        ids.clear();
                         for (QueryDocumentSnapshot doc : task.getResult()) {
                             String nombre = doc.getString("nombre");
                             if (nombre != null) {
-                                listaNombres.add(nombre);
-                                listaIds.add(doc.getId());
+                                nombres.add(nombre);
+                                ids.add(doc.getId());
                             }
                         }
-
                         adapter.notifyDataSetChanged();
                     } else {
-                        Toast.makeText(this, "Error cargando " + coleccion, Toast.LENGTH_SHORT).show();
+                        AlertManager.showErrorToast(this, "Error cargando " + coleccion);
                     }
                 });
     }
 
-    /**
-     * Configura listeners para abrir DatePicker / TimePicker
-     * y setear el texto en los botones.
-     */
     private void configurarPickers() {
         btnFechaInicio.setOnClickListener(v -> pickDate(btnFechaInicio));
         btnFechaTermino.setOnClickListener(v -> pickDate(btnFechaTermino));
-
         btnHoraInicio.setOnClickListener(v -> pickTime(btnHoraInicio));
         btnHoraTermino.setOnClickListener(v -> pickTime(btnHoraTermino));
     }
 
     private void pickDate(Button target) {
         Calendar c = Calendar.getInstance();
-        new DatePickerDialog(
-                this,
-                (view, year, month, dayOfMonth) -> {
-                    String fecha = String.format(Locale.getDefault(), "%02d/%02d/%d",
-                            dayOfMonth, month + 1, year);
-                    target.setText(fecha);
-                },
-                c.get(Calendar.YEAR),
-                c.get(Calendar.MONTH),
-                c.get(Calendar.DAY_OF_MONTH)
-        ).show();
+        new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+            String fecha = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year);
+            target.setText(fecha);
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void pickTime(Button target) {
         Calendar c = Calendar.getInstance();
-        new TimePickerDialog(
-                this,
-                (view, hour, minute) -> {
-                    String hora = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-                    target.setText(hora);
-                },
-                c.get(Calendar.HOUR_OF_DAY),
-                c.get(Calendar.MINUTE),
-                true
-        ).show();
+        new TimePickerDialog(this, (view, hour, minute) -> {
+            String hora = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+            target.setText(hora);
+        }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();
     }
 
     private void guardarActividad() {
@@ -272,29 +217,18 @@ public class AgregarActividadActivity extends AppCompatActivity {
         String fechaTermino = btnFechaTermino.getText().toString().trim();
         String horaTermino = btnHoraTermino.getText().toString().trim();
 
-        if (nombre.isEmpty() ||
-                fechaInicio.isEmpty() ||
-                horaInicio.isEmpty() ||
-                fechaTermino.isEmpty() ||
-                horaTermino.isEmpty()) {
-            Toast.makeText(this, "Complete todos los campos de fechas y hora", Toast.LENGTH_SHORT).show();
+        if (nombre.isEmpty() || fechaInicio.isEmpty() || horaInicio.isEmpty() || fechaTermino.isEmpty() || horaTermino.isEmpty()) {
+            AlertManager.showWarningSnackbar(AlertManager.getRootView(this), "Complete todos los campos de fechas y hora ⚠️");
             return;
         }
 
-        // cupo / diasAvisoPrevio
-        int cupo = etCupo.getText().toString().isEmpty()
-                ? 0
-                : Integer.parseInt(etCupo.getText().toString());
+        int cupo = etCupo.getText().toString().isEmpty() ? 0 : Integer.parseInt(etCupo.getText().toString());
+        int diasAviso = etDiasAvisoPrevio.getText().toString().isEmpty() ? 0 : Integer.parseInt(etDiasAvisoPrevio.getText().toString());
 
-        int diasAviso = etDiasAvisoPrevio.getText().toString().isEmpty()
-                ? 0
-                : Integer.parseInt(etDiasAvisoPrevio.getText().toString());
-
-        // Mapear selección visible -> id Firestore
         String tipoActividadId = getSelectedId(spTipoActividad, tipoActividadList, tipoActividadIds);
         String oferenteId = getSelectedId(spOferente, oferentesList, oferenteIds);
         String socioId = getSelectedId(spSocioComunitario, sociosList, socioIds);
-        String proyectoId = getSelectedId(spProyecto, proyectosList, proyectoIds); // opcional
+        String proyectoId = getSelectedId(spProyecto, proyectosList, proyectoIds);
         String lugarId = getSelectedId(spLugar, lugaresList, lugarIds);
 
         Map<String, Object> actividad = new HashMap<>();
@@ -316,51 +250,25 @@ public class AgregarActividadActivity extends AppCompatActivity {
         db.collection("actividades")
                 .add(actividad)
                 .addOnSuccessListener(docRef -> {
-                    Toast.makeText(this, "Actividad guardada", Toast.LENGTH_SHORT).show();
-                    crearCitas(
-                            docRef.getId(),
-                            periodicidadTxt,
-                            fechaInicio,
-                            fechaTermino,
-                            horaInicio
-                    );
+                    AlertManager.showSuccessSnackbar(AlertManager.getRootView(this), "Actividad guardada correctamente ✅");
+                    crearCitas(docRef.getId(), periodicidadTxt, fechaInicio, fechaTermino, horaInicio);
                     limpiarCampos();
-                    finish(); // después de guardar, volvemos atrás
+                    finish();
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(
-                                this,
-                                "Error al guardar: " + e.getMessage(),
-                                Toast.LENGTH_LONG
-                        ).show()
+                        AlertManager.showErrorSnackbar(AlertManager.getRootView(this), "Error al guardar actividad: " + e.getMessage())
                 );
     }
 
-    /**
-     * Dado un dropdown y sus listas paralelas, devuelve el ID elegido en Firestore.
-     */
-    private String getSelectedId(MaterialAutoCompleteTextView view,
-                                 List<String> nombres,
-                                 List<String> ids) {
+    private String getSelectedId(MaterialAutoCompleteTextView view, List<String> nombres, List<String> ids) {
         String texto = view.getText() != null ? view.getText().toString().trim() : "";
         int index = nombres.indexOf(texto);
-        if (index >= 0 && index < ids.size()) {
-            return ids.get(index);
-        }
+        if (index >= 0 && index < ids.size()) return ids.get(index);
         return null;
     }
 
-    private void crearCitas(String actividadId,
-                            String periodicidad,
-                            String fechaInicio,
-                            String fechaTermino,
-                            String hora) {
-
-        CollectionReference citasRef = db
-                .collection("actividades")
-                .document(actividadId)
-                .collection("citas");
-
+    private void crearCitas(String actividadId, String periodicidad, String fechaInicio, String fechaTermino, String hora) {
+        CollectionReference citasRef = db.collection("actividades").document(actividadId).collection("citas");
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         try {
             Date inicio = sdf.parse(fechaInicio);
@@ -375,10 +283,9 @@ public class AgregarActividadActivity extends AppCompatActivity {
                 cita.put("estado", "programada");
                 citasRef.add(cita);
             } else {
-                // Periódica: generar citas en los días marcados
                 while (!calendar.getTime().after(fin)) {
-                    int diaSemana = calendar.get(Calendar.DAY_OF_WEEK); // 1=Dom, 2=Lun...
-                    boolean crear = false;
+                    int diaSemana = calendar.get(Calendar.DAY_OF_WEEK);
+                    boolean crear;
                     switch (diaSemana) {
                         case Calendar.MONDAY:
                             crear = cbLunes.isChecked();
@@ -401,6 +308,9 @@ public class AgregarActividadActivity extends AppCompatActivity {
                         case Calendar.SUNDAY:
                             crear = cbDomingo.isChecked();
                             break;
+                        default:
+                            crear = false;
+                            break;
                     }
 
                     if (crear) {
@@ -415,12 +325,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
                 }
             }
         } catch (ParseException e) {
-            e.printStackTrace();
-            Toast.makeText(
-                    this,
-                    "Error creando citas: " + e.getMessage(),
-                    Toast.LENGTH_LONG
-            ).show();
+            AlertManager.showErrorSnackbar(AlertManager.getRootView(this), "Error creando citas: " + e.getMessage());
         }
     }
 
@@ -428,19 +333,16 @@ public class AgregarActividadActivity extends AppCompatActivity {
         etNombreActividad.setText("");
         etCupo.setText("");
         etDiasAvisoPrevio.setText("");
-
         spLugar.setText("", false);
         spTipoActividad.setText("", false);
         spOferente.setText("", false);
         spSocioComunitario.setText("", false);
         spProyecto.setText("", false);
         spPeriodicidad.setText("", false);
-
         btnFechaInicio.setText("Fecha inicio");
         btnHoraInicio.setText("Hora inicio");
         btnFechaTermino.setText("Fecha término");
         btnHoraTermino.setText("Hora término");
-
         llDiasSemana.setVisibility(View.GONE);
         cbLunes.setChecked(false);
         cbMartes.setChecked(false);
