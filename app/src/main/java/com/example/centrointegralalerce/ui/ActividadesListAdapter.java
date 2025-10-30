@@ -80,32 +80,45 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
             // Nombre
             tvNombre.setText(actividad.getNombre() != null ? actividad.getNombre() : "Sin nombre");
 
-            // Tipo: muestra por ahora el ID del tipo
-            String tipoDisplay = actividad.getTipoActividadId() != null
-                    ? "Tipo: " + actividad.getTipoActividadId()
-                    : "Sin tipo";
+            // Tipo: ahora muestra el nombre si está disponible
+            String tipoDisplay;
+            if (actividad.getTipoActividadNombre() != null && !actividad.getTipoActividadNombre().isEmpty()) {
+                tipoDisplay = "Tipo: " + actividad.getTipoActividadNombre();
+            } else if (actividad.getTipoActividadId() != null) {
+                tipoDisplay = "Tipo: " + actividad.getTipoActividadId();
+            } else {
+                tipoDisplay = "Sin tipo";
+            }
             tvTipo.setText(tipoDisplay);
 
-            // Fecha y hora simples (según tu POJO actual)
+            // ⭐ Fecha y hora - ACTUALIZADO para usar fechaInicio y horaInicio
             String fechaHora = "";
-            if (actividad.getFecha() != null) {
-                fechaHora = "Fecha: " + actividad.getFecha();
+            if (actividad.getFechaInicio() != null && !actividad.getFechaInicio().isEmpty()) {
+                fechaHora = actividad.getFechaInicio();
             }
-            if (actividad.getHora() != null) {
-                fechaHora += (fechaHora.isEmpty() ? "" : " ") + actividad.getHora();
+            if (actividad.getHoraInicio() != null && !actividad.getHoraInicio().isEmpty()) {
+                if (!fechaHora.isEmpty()) {
+                    fechaHora += " - " + actividad.getHoraInicio();
+                } else {
+                    fechaHora = actividad.getHoraInicio();
+                }
             }
             tvFechaHora.setText(fechaHora.isEmpty() ? "Sin fecha/hora" : fechaHora);
 
-            // Lugar (tu POJO expone lugar como String)
-            String lugarDisplay = actividad.getLugar() != null
-                    ? "Lugar: " + actividad.getLugar()
-                    : "Sin lugar";
+            // ⭐ Lugar - ACTUALIZADO para usar lugarNombre
+            String lugarDisplay;
+            if (actividad.getLugarNombre() != null && !actividad.getLugarNombre().isEmpty()) {
+                lugarDisplay = actividad.getLugarNombre();
+            } else if (actividad.getLugarId() != null) {
+                lugarDisplay = "Lugar: " + actividad.getLugarId();
+            } else {
+                lugarDisplay = "Sin lugar";
+            }
             tvLugar.setText(lugarDisplay);
 
             // Estado
-            tvEstado.setText(actividad.getEstado() != null
-                    ? "Estado: " + actividad.getEstado()
-                    : "Sin estado");
+            String estadoDisplay = actividad.getEstado() != null ? actividad.getEstado() : "Sin estado";
+            tvEstado.setText(estadoDisplay);
         }
     }
 }

@@ -1,8 +1,7 @@
 package com.example.centrointegralalerce.data;
-
 import java.util.List;
-
 public class Actividad {
+    private String id;
     private String nombre;
     private String tipoActividadId;
     private String periodicidad;
@@ -10,48 +9,32 @@ public class Actividad {
     private String proyectoId;
     private String oferenteId;
     private String socioComunitarioId;
-    private List<String> archivosAdjuntos;
+    private String lugarId;
     private int diasAvisoPrevio;
     private String estado;
 
-    // Nuevos atributos
-    private String fecha; // "dd/MM/yyyy"
-    private String hora;  // "HH:mm"
-    private String lugar; // Nombre del lugar
+    // ⭐ Campos que necesitas para mostrar en la lista
+    private String fechaInicio;    // Cambiado de "fecha"
+    private String horaInicio;     // Cambiado de "hora"
+    private String fechaTermino;
+    private String horaTermino;
 
-    // Constructor vacío requerido por Firestore
+    // ⭐ Campos adicionales para mostrar nombres en vez de IDs
+    private String tipoActividadNombre;
+    private String lugarNombre;
+    private List<String> archivosAdjuntos;
+    // Constructor vacío
     public Actividad() {}
 
-    // Constructor completo incluyendo los nuevos atributos
-    public Actividad(String nombre,
-                     String tipoActividadId,
-                     String periodicidad,
-                     int cupo,
-                     String proyectoId,
-                     String oferenteId,
-                     String socioComunitarioId,
-                     List<String> archivosAdjuntos,
-                     int diasAvisoPrevio,
-                     String estado,
-                     String fecha,
-                     String hora,
-                     String lugar) {
-        this.nombre = nombre;
-        this.tipoActividadId = tipoActividadId;
-        this.periodicidad = periodicidad;
-        this.cupo = cupo;
-        this.proyectoId = proyectoId;
-        this.oferenteId = oferenteId;
-        this.socioComunitarioId = socioComunitarioId;
-        this.archivosAdjuntos = archivosAdjuntos;
-        this.diasAvisoPrevio = diasAvisoPrevio;
-        this.estado = estado;
-        this.fecha = fecha;
-        this.hora = hora;
-        this.lugar = lugar;
+    // Getters y Setters para todos los campos
+    public String getId() {
+        return id;
     }
 
-    // Getters y setters
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getNombre() {
         return nombre;
     }
@@ -108,12 +91,12 @@ public class Actividad {
         this.socioComunitarioId = socioComunitarioId;
     }
 
-    public List<String> getArchivosAdjuntos() {
-        return archivosAdjuntos;
+    public String getLugarId() {
+        return lugarId;
     }
 
-    public void setArchivosAdjuntos(List<String> archivosAdjuntos) {
-        this.archivosAdjuntos = archivosAdjuntos;
+    public void setLugarId(String lugarId) {
+        this.lugarId = lugarId;
     }
 
     public int getDiasAvisoPrevio() {
@@ -132,28 +115,58 @@ public class Actividad {
         this.estado = estado;
     }
 
-    // Nuevos getters y setters
-    public String getFecha() {
-        return fecha;
+    public String getFechaInicio() {
+        return fechaInicio;
     }
 
-    public void setFecha(String fecha) {
-        this.fecha = fecha;
+    public void setFechaInicio(String fechaInicio) {
+        this.fechaInicio = fechaInicio;
     }
 
-    public String getHora() {
-        return hora;
+    public String getHoraInicio() {
+        return horaInicio;
     }
 
-    public void setHora(String hora) {
-        this.hora = hora;
+    public void setHoraInicio(String horaInicio) {
+        this.horaInicio = horaInicio;
     }
 
-    public String getLugar() {
-        return lugar;
+    public String getFechaTermino() {
+        return fechaTermino;
     }
 
-    public void setLugar(String lugar) {
-        this.lugar = lugar;
+    public void setFechaTermino(String fechaTermino) {
+        this.fechaTermino = fechaTermino;
+    }
+
+    public String getHoraTermino() {
+        return horaTermino;
+    }
+
+    public void setHoraTermino(String horaTermino) {
+        this.horaTermino = horaTermino;
+    }
+
+    public String getTipoActividadNombre() {
+        return tipoActividadNombre;
+    }
+
+    public void setTipoActividadNombre(String tipoActividadNombre) {
+        this.tipoActividadNombre = tipoActividadNombre;
+    }
+
+    public String getLugarNombre() {
+        return lugarNombre;
+    }
+
+    public void setLugarNombre(String lugarNombre) {
+        this.lugarNombre = lugarNombre;
+    }
+    public List<String> getArchivosAdjuntos() {
+        return archivosAdjuntos;
+    }
+
+    public void setArchivosAdjuntos(List<String> archivosAdjuntos) {
+        this.archivosAdjuntos = archivosAdjuntos;
     }
 }

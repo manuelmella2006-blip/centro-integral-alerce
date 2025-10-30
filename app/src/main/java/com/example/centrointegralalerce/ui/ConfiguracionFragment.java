@@ -79,35 +79,28 @@ public class ConfiguracionFragment extends Fragment {
 
                         tvUserName.setText(nombre != null ? nombre : "Usuario");
 
-                        if (rolId != null) {
-                            db.collection("roles").document(rolId).get()
-                                    .addOnSuccessListener(rolDoc -> {
-                                        if (rolDoc.exists()) {
-                                            String rolNombre = rolDoc.getString("nombre");
-                                            chipUserRole.setText(rolNombre != null ? rolNombre : rolId);
+                        // ⭐ SIMPLIFICADO: Mostrar directamente el rolId
+                        if (rolId != null && !rolId.isEmpty()) {
+                            chipUserRole.setText(rolId);
+                            chipUserRole.setChipBackgroundColorResource(android.R.color.holo_green_light);
 
-                                            boolean esAdmin = "admin".equalsIgnoreCase(rolId) ||
-                                                    "administrador".equalsIgnoreCase(rolId);
+                            // Verificar si es admin (sin consultar otra colección)
+                            boolean esAdmin = "Administrador".equalsIgnoreCase(rolId) ||
+                                    "admin".equalsIgnoreCase(rolId);
 
-                                            itemGestionarUsuarios.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
-                                            itemMantenedores.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
-                                        } else {
-                                            chipUserRole.setText("Rol desconocido");
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        chipUserRole.setText("Error al cargar rol");
-                                        AlertManager.showErrorToast(requireContext(),
-                                                "Error al obtener el rol: " + e.getMessage());
-                                    });
+                            itemGestionarUsuarios.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
+                            itemMantenedores.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
                         } else {
-                            chipUserRole.setText("Sin rol");
+                            chipUserRole.setText("Sin rol asignado");
+                            chipUserRole.setChipBackgroundColorResource(android.R.color.darker_gray);
                             itemGestionarUsuarios.setVisibility(View.GONE);
                             itemMantenedores.setVisibility(View.GONE);
+                            AlertManager.showWarningToast(requireContext(), "No tienes un rol asignado");
                         }
                     } else {
                         tvUserName.setText("Usuario no encontrado");
                         chipUserRole.setText("Sin rol");
+                        chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
                         itemGestionarUsuarios.setVisibility(View.GONE);
                         itemMantenedores.setVisibility(View.GONE);
                         AlertManager.showWarningSnackbar(
@@ -118,12 +111,13 @@ public class ConfiguracionFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     tvUserName.setText("Error al cargar");
-                    chipUserRole.setText("Error");
+                    chipUserRole.setText("Error al cargar rol");
+                    chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
                     itemGestionarUsuarios.setVisibility(View.GONE);
                     itemMantenedores.setVisibility(View.GONE);
                     AlertManager.showErrorSnackbar(
                             AlertManager.getRootViewSafe(this),
-                            "Error al conectar con Firestore"
+                            "Error: " + e.getMessage()
                     );
                 });
     }

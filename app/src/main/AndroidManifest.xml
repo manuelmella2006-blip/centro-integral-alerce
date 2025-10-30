@@ -39,6 +39,9 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.CrearLugarActivity"
+            android:exported="false" />
 
         <!-- 🔹 Servicio de Firebase Cloud Messaging -->
         <service

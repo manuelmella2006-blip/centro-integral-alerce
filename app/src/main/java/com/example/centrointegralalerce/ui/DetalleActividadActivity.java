@@ -176,8 +176,12 @@ public class DetalleActividadActivity extends AppCompatActivity {
         }
 
         if (chipTipo != null) {
-            chipTipo.setText(a.getTipoActividadId() != null && !a.getTipoActividadId().isEmpty()
-                    ? a.getTipoActividadId() : "Sin tipo");
+            // ⭐ ACTUALIZADO: Usar tipoActividadNombre primero, luego ID
+            String tipoTexto = a.getTipoActividadNombre();
+            if (tipoTexto == null || tipoTexto.isEmpty()) {
+                tipoTexto = a.getTipoActividadId();
+            }
+            chipTipo.setText(tipoTexto != null && !tipoTexto.isEmpty() ? tipoTexto : "Sin tipo");
         }
 
         // ===== INFO GENERAL =====
@@ -191,15 +195,28 @@ public class DetalleActividadActivity extends AppCompatActivity {
         }
 
         if (tvLugar != null) {
-            tvLugar.setText(a.getLugar() != null && !a.getLugar().isEmpty() ? a.getLugar() : "Sin lugar");
+            // ⭐ ACTUALIZADO: Usar lugarNombre primero, luego ID
+            String lugarTexto = a.getLugarNombre();
+            if (lugarTexto == null || lugarTexto.isEmpty()) {
+                lugarTexto = a.getLugarId();
+            }
+            tvLugar.setText(lugarTexto != null && !lugarTexto.isEmpty() ? lugarTexto : "Sin lugar");
         }
 
         if (tvFechaHora != null) {
-            String fecha = a.getFecha() != null ? a.getFecha() : "";
-            String hora = a.getHora() != null ? a.getHora() : "";
-            String fh = (fecha + " - " + hora).trim();
-            if (fh.equals("-") || fh.isEmpty()) fh = "Sin fecha/hora";
-            tvFechaHora.setText(fh);
+            // ⭐ ACTUALIZADO: Usar fechaInicio y horaInicio
+            String fecha = a.getFechaInicio() != null ? a.getFechaInicio() : "";
+            String hora = a.getHoraInicio() != null ? a.getHoraInicio() : "";
+
+            String fh = "";
+            if (!fecha.isEmpty()) {
+                fh = fecha;
+            }
+            if (!hora.isEmpty()) {
+                fh += (fh.isEmpty() ? "" : " - ") + hora;
+            }
+
+            tvFechaHora.setText(fh.isEmpty() ? "Sin fecha/hora" : fh);
         }
 
         // ===== PARTICIPANTES =====

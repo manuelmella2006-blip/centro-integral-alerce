@@ -206,9 +206,9 @@ public class ListaActividadesFragment extends Fragment {
                 Actividad actividad = actividadesList.get(i);
 
                 String nombre  = safe(actividad.getNombre()).toLowerCase(Locale.getDefault());
-                String tipo    = safe(actividad.getTipoActividadId()).toLowerCase(Locale.getDefault());
-                String lugar   = safe(actividad.getLugar()).toLowerCase(Locale.getDefault());
-                String fecha   = safe(actividad.getFecha()).toLowerCase(Locale.getDefault());
+                String tipo    = safe(actividad.getTipoActividadNombre()).toLowerCase(Locale.getDefault()); // ⭐ Cambiado
+                String lugar   = safe(actividad.getLugarNombre()).toLowerCase(Locale.getDefault()); // ⭐ Cambiado
+                String fecha   = safe(actividad.getFechaInicio()).toLowerCase(Locale.getDefault()); // ⭐ Cambiado
                 String estado  = safe(actividad.getEstado()).toLowerCase(Locale.getDefault());
 
                 if (nombre.contains(q)
@@ -239,8 +239,10 @@ public class ListaActividadesFragment extends Fragment {
         filteredActividadesList.addAll(actividadesList);
         filteredActividadIds.addAll(actividadIds);
 
-        adapter.setActividadesList(filteredActividadesList);
-        updateUI();
+        // No olvides notificar al adapter que los datos cambiaron
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void updateUI() {

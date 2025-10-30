@@ -6,10 +6,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import android.content.Intent;
+import androidx.cardview.widget.CardView;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.example.centrointegralalerce.ui.CrearLugarActivity;
 
 import com.example.centrointegralalerce.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -106,14 +111,12 @@ public class MantenedoresFragment extends Fragment {
 
     private void setupListeners() {
         // Card Crear Lugar
+        // Card Crear Lugar
         cardCrearLugar.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "🏢 Crear Lugar - Próximamente disponible",
-                    Toast.LENGTH_SHORT).show();
-            // TODO: Abrir activity/dialog para crear lugar
-            // Intent intent = new Intent(requireContext(), CrearLugarActivity.class);
-            // startActivity(intent);
+            Intent intent = new Intent(requireContext(), CrearLugarActivity.class);
+            startActivity(intent);
         });
+
 
         // Card Tipos de Actividad
         cardTiposActividad.setOnClickListener(v -> {
