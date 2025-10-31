@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.firebase.firestore.CollectionReference;
@@ -35,7 +36,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
     // Text inputs simples
     private android.widget.EditText etNombreActividad, etCupo, etDiasAvisoPrevio;
 
-    // Dropdowns tipo Material (AutoCompleteTextView)
+    // Dropdowns tipo Material
     private MaterialAutoCompleteTextView spLugar, spTipoActividad, spOferente, spSocioComunitario, spProyecto, spPeriodicidad;
 
     // Botones fecha/hora
@@ -49,7 +50,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
-    // Listas de nombres y IDs
+    // Listas
     private final ArrayList<String> tipoActividadList = new ArrayList<>();
     private final ArrayList<String> oferentesList = new ArrayList<>();
     private final ArrayList<String> sociosList = new ArrayList<>();
@@ -96,6 +97,16 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cbViernes = findViewById(R.id.cbViernes);
         cbSabado = findViewById(R.id.cbSabado);
         cbDomingo = findViewById(R.id.cbDomingo);
+
+        // ✅ Recomendación de integración con UserSession
+        // Verificamos si el usuario tiene permiso para crear actividades
+        if (!UserSession.getInstance().puede("crear_actividades")) {
+            btnGuardarActividad.setEnabled(false);
+            btnGuardarActividad.setVisibility(View.GONE);
+            Toast.makeText(this, "No tienes permiso para crear actividades", Toast.LENGTH_LONG).show();
+            finish(); // O podrías dejar la pantalla deshabilitada en lugar de cerrar
+            return;
+        }
 
         setupEmptyAdapters();
         cargarPeriodicidad();
@@ -256,7 +267,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
         actividad.put("fechaTermino", fechaTermino);
         actividad.put("horaTermino", horaTermino);
 
-        // 2️⃣ Generar lista de citas (según periodicidad)
+        // 2️⃣ Generar lista de citas
         List<Map<String, Object>> citas = generarCitas(periodicidadTxt, fechaInicio, fechaTermino, horaInicio);
 
         // 3️⃣ Guardar con batch
@@ -270,6 +281,7 @@ public class AgregarActividadActivity extends AppCompatActivity {
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Error al guardar: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
+
     private List<Map<String, Object>> generarCitas(String periodicidad, String fechaInicio, String fechaTermino, String hora) {
         List<Map<String, Object>> citas = new ArrayList<>();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -291,27 +303,13 @@ public class AgregarActividadActivity extends AppCompatActivity {
                     int diaSemana = cal.get(Calendar.DAY_OF_WEEK);
                     boolean crear = false;
                     switch (diaSemana) {
-                        case Calendar.MONDAY:
-                            crear = cbLunes.isChecked();
-                            break;
-                        case Calendar.TUESDAY:
-                            crear = cbMartes.isChecked();
-                            break;
-                        case Calendar.WEDNESDAY:
-                            crear = cbMiercoles.isChecked();
-                            break;
-                        case Calendar.THURSDAY:
-                            crear = cbJueves.isChecked();
-                            break;
-                        case Calendar.FRIDAY:
-                            crear = cbViernes.isChecked();
-                            break;
-                        case Calendar.SATURDAY:
-                            crear = cbSabado.isChecked();
-                            break;
-                        case Calendar.SUNDAY:
-                            crear = cbDomingo.isChecked();
-                            break;
+                        case Calendar.MONDAY: crear = cbLunes.isChecked(); break;
+                        case Calendar.TUESDAY: crear = cbMartes.isChecked(); break;
+                        case Calendar.WEDNESDAY: crear = cbMiercoles.isChecked(); break;
+                        case Calendar.THURSDAY: crear = cbJueves.isChecked(); break;
+                        case Calendar.FRIDAY: crear = cbViernes.isChecked(); break;
+                        case Calendar.SATURDAY: crear = cbSabado.isChecked(); break;
+                        case Calendar.SUNDAY: crear = cbDomingo.isChecked(); break;
                     }
                     if (crear) {
                         Map<String, Object> cita = new HashMap<>();
@@ -329,74 +327,11 @@ public class AgregarActividadActivity extends AppCompatActivity {
         return citas;
     }
 
-
     private String getSelectedId(MaterialAutoCompleteTextView view, List<String> nombres, List<String> ids) {
         String texto = view.getText() != null ? view.getText().toString().trim() : "";
         int index = nombres.indexOf(texto);
         if (index >= 0 && index < ids.size()) return ids.get(index);
         return null;
-    }
-
-    private void crearCitas(String actividadId, String periodicidad, String fechaInicio, String fechaTermino, String hora) {
-        CollectionReference citasRef = db.collection("actividades").document(actividadId).collection("citas");
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        try {
-            Date inicio = sdf.parse(fechaInicio);
-            Date fin = sdf.parse(fechaTermino);
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(inicio);
-
-            if (periodicidad.equalsIgnoreCase("Puntual")) {
-                Map<String, Object> cita = new HashMap<>();
-                cita.put("fecha", fechaInicio);
-                cita.put("hora", hora);
-                cita.put("estado", "programada");
-                citasRef.add(cita);
-            } else {
-                while (!calendar.getTime().after(fin)) {
-                    int diaSemana = calendar.get(Calendar.DAY_OF_WEEK);
-                    boolean crear;
-                    switch (diaSemana) {
-                        case Calendar.MONDAY:
-                            crear = cbLunes.isChecked();
-                            break;
-                        case Calendar.TUESDAY:
-                            crear = cbMartes.isChecked();
-                            break;
-                        case Calendar.WEDNESDAY:
-                            crear = cbMiercoles.isChecked();
-                            break;
-                        case Calendar.THURSDAY:
-                            crear = cbJueves.isChecked();
-                            break;
-                        case Calendar.FRIDAY:
-                            crear = cbViernes.isChecked();
-                            break;
-                        case Calendar.SATURDAY:
-                            crear = cbSabado.isChecked();
-                            break;
-                        case Calendar.SUNDAY:
-                            crear = cbDomingo.isChecked();
-                            break;
-                        default:
-                            crear = false;
-                            break;
-                    }
-
-                    if (crear) {
-                        Map<String, Object> cita = new HashMap<>();
-                        cita.put("fecha", sdf.format(calendar.getTime()));
-                        cita.put("hora", hora);
-                        cita.put("estado", "programada");
-                        citasRef.add(cita);
-                    }
-
-                    calendar.add(Calendar.DAY_OF_MONTH, 1);
-                }
-            }
-        } catch (ParseException e) {
-            AlertManager.showErrorSnackbar(AlertManager.getRootView(this), "Error creando citas: " + e.getMessage());
-        }
     }
 
     private void limpiarCampos() {

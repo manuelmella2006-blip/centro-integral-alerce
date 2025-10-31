@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Calendar;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,12 +49,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Obtener datos del Login
         esInvitado = getIntent().getBooleanExtra("INVITADO", false);
-        String rol = getIntent().getStringExtra("ROL");
-        if (rol != null) {
-            rolUsuario = rol;
+        String rolId = getIntent().getStringExtra("ROL");
+        if (rolId != null) {
+            rolUsuario = rolId;
         }
 
-        // Mensaje según rol (usando Snackbars)
+        // Mensaje según rol
         if (esInvitado) {
             AlertManager.showWarningSnackbar(rootView, "Modo invitado - Funcionalidad limitada");
         } else if ("admin".equals(rolUsuario)) {
@@ -75,14 +76,71 @@ public class MainActivity extends AppCompatActivity {
         // 🔹 Actualizar badges al iniciar
         actualizarBadges();
 
-        // Cargar fragment inicial
+        // 🔹 Cargar permisos del rol desde Firestore y abrir Calendario
         if (savedInstanceState == null) {
-            loadFragment(new CalendarioFragment(), "Calendario");
-            bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+            cargarRolYPermisos(rolId);
         }
 
         // Configurar bottom navigation
         setupBottomNavigation();
+    }
+
+    // ✅ Nuevo método: cargar permisos del rol desde Firestore
+    private void cargarRolYPermisos(String rolId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        if (rolId == null) {
+            Log.w(TAG, "⚠️ No se recibió rolId, cargando calendario por defecto");
+            loadFragment(new CalendarioFragment(), "Calendario");
+            bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+            return;
+        }
+
+        db.collection("roles").document(rolId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Map<String, Object> permisos = (Map<String, Object>) documentSnapshot.get("permisos");
+
+                        boolean puedeCrear = (boolean) permisos.getOrDefault("crear_actividades", false);
+                        boolean puedeEliminar = (boolean) permisos.getOrDefault("eliminar_actividades", false);
+                        boolean puedeVerTodas = (boolean) permisos.getOrDefault("ver_todas_actividades", true);
+
+                        // 🔥 Pasamos los permisos al fragment del calendario
+                        Bundle args = new Bundle();
+                        args.putBoolean("puedeCrear", puedeCrear);
+                        args.putBoolean("puedeEliminar", puedeEliminar);
+                        args.putBoolean("puedeVerTodas", puedeVerTodas);
+
+                        CalendarioFragment fragment = new CalendarioFragment();
+                        fragment.setArguments(args);
+
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragmentContainer, fragment)
+                                .commit();
+
+                        bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+
+                        Log.d(TAG, "✅ Permisos cargados correctamente para rol: " + rolId);
+                    } else {
+                        AlertManager.showErrorSnackbar(
+                                AlertManager.getRootView(this),
+                                "No se encontró el rol en Firestore."
+                        );
+                        // Cargar fragment por defecto
+                        loadFragment(new CalendarioFragment(), "Calendario");
+                        bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    AlertManager.showErrorSnackbar(
+                            AlertManager.getRootView(this),
+                            "Error al cargar rol: " + e.getMessage()
+                    );
+                    // Cargar fragment por defecto
+                    loadFragment(new CalendarioFragment(), "Calendario");
+                    bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+                });
     }
 
     // 🔹 Inicializar sistema de notificaciones push
@@ -101,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
         mostrarTokenEnLogcat();
     }
 
-    // 🔹 Verificar y solicitar permiso de notificaciones (Android 13+)
     private void verificarPermisoNotificaciones() {
         View rootView = AlertManager.getRootView(this);
 
@@ -123,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 🔹 Manejar resultado de solicitud de permisos
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -145,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 🔹 Suscribirse a temas de notificaciones según el rol
     private void suscribirseATemasSegunRol() {
         View rootView = AlertManager.getRootView(this);
 
@@ -175,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 🔹 Mostrar token en Logcat para testing
     private void mostrarTokenEnLogcat() {
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
@@ -191,7 +245,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // 🔹 Actualizar los badges del BottomNavigation
     private void actualizarBadges() {
         if (esInvitado) return;
 
@@ -205,7 +258,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Badge: actividades sin confirmar
         db.collection("citas")
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("confirmada", false)
@@ -216,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error al contar actividades", e));
 
-        // Badge: actividades del día actual
         Calendar hoy = Calendar.getInstance();
         hoy.set(Calendar.HOUR_OF_DAY, 0);
         hoy.set(Calendar.MINUTE, 0);
@@ -316,7 +367,6 @@ public class MainActivity extends AppCompatActivity {
         return rolUsuario;
     }
 
-    // 🔹 Limpiar recursos al cerrar sesión
     public void cerrarSesion() {
         View rootView = AlertManager.getRootView(this);
         Log.d(TAG, "Cerrando sesión y limpiando tokens FCM");
@@ -332,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        actualizarBadges(); // 🔹 Actualiza badges al volver a la pantalla
+        actualizarBadges();
     }
 
     @Override
