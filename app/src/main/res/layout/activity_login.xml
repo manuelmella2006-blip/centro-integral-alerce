@@ -14,7 +14,6 @@
         android:layout_height="wrap_content"
         android:padding="24dp">
 
-        <!-- Card contenedor del formulario -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardLogin"
             android:layout_width="0dp"
@@ -34,7 +33,7 @@
                 android:orientation="vertical"
                 android:padding="32dp">
 
-                <!-- Logo superior: círculo verde (mismo color que botón) + logo blanco -->
+                <!-- Logo superior -->
                 <FrameLayout
                     android:id="@+id/fl_top_logo"
                     android:layout_width="100dp"
@@ -54,7 +53,7 @@
                         android:contentDescription="@string/logo_centro_alerce" />
                 </FrameLayout>
 
-                <!-- Título -->
+                <!-- Títulos -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -108,7 +107,6 @@
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:textSize="16sp" />
-
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Campo Password -->
@@ -136,8 +134,17 @@
                         android:inputType="textPassword"
                         android:maxLines="1"
                         android:textSize="16sp" />
-
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- ✅ CheckBox Recordar credenciales -->
+                <CheckBox
+                    android:id="@+id/cbRememberMe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Recordar mis credenciales"
+                    android:textColor="@color/grisOscuro"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- Link Recuperar Contraseña -->
                 <TextView
@@ -178,9 +185,7 @@
                     android:background="@color/grisBorde"
                     android:layout_marginBottom="12dp" />
 
-                <!-- NUEVO FORMATO COMPACTO FINAL -->
-
-                <!-- Desarrollado por LosMuchachos -->
+                <!-- Créditos -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -204,7 +209,6 @@
                         android:contentDescription="@string/logo_los_muchachos"/>
                 </LinearLayout>
 
-                <!-- En colaboración con Santo Tomás -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -231,7 +235,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Versión de la app -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -2,9 +2,8 @@ package com.example.centrointegralalerce.data;
 
 import android.util.Log;
 
-import com.example.centrointegralalerce.data.Cita; // ajusta al paquete real de Cita
 import com.google.firebase.firestore.DocumentId;
-
+import java.util.Calendar;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,6 +31,17 @@ public class CitaFirebase {
     private transient String estadoActividad;
     private transient Integer cupo;
 
+    // Nuevos campos
+    private String fechaInicio;
+    private String fechaTermino;
+    private String horaInicio;
+    private String horaTermino;
+    private String periodicidad;
+    private String oferenteId;
+    private String proyectoId;
+    private String socioComunitarioId;
+    private Integer diasAvisoPrevio;
+
     public CitaFirebase() {}
 
     /**
@@ -45,12 +55,18 @@ public class CitaFirebase {
                 return null;
             }
 
-            return new Cita(
+            Cita cita = new Cita(
                     fechaFinal,
                     hora != null ? hora : "",
                     lugarId != null ? lugarId : "",
                     estado != null ? estado : (estadoActividad != null ? estadoActividad : "")
             );
+
+            // Agregar información adicional
+            cita.setActividadNombre(actividadNombre);
+            cita.setTipoActividadId(tipoActividadId);
+
+            return cita;
         } catch (Exception e) {
             Log.e(TAG, "Error toCita(): " + e.getMessage(), e);
             return null;
@@ -64,14 +80,42 @@ public class CitaFirebase {
         try {
             if (fecha == null || fecha.isEmpty()) return null;
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", new Locale("es", "ES"));
-            sdf.setLenient(false);
+            // Parsear manualmente para evitar problemas de zona horaria
+            String[] fechaParts = fecha.split("/");
+            if (fechaParts.length != 3) {
+                Log.e(TAG, "Formato de fecha inválido: " + fecha);
+                return null;
+            }
 
-            String fechaHoraStr = fecha + " " + (hora != null ? hora : "00:00");
-            return sdf.parse(fechaHoraStr);
+            int day = Integer.parseInt(fechaParts[0]);
+            int month = Integer.parseInt(fechaParts[1]) - 1; // Calendar.MONTH es 0-based
+            int year = Integer.parseInt(fechaParts[2]);
 
-        } catch (ParseException e) {
-            Log.e(TAG, "Error parseando fecha: " + fecha + " " + hora, e);
+            // Parsear hora
+            int hour = 0;
+            int minute = 0;
+            if (hora != null && !hora.isEmpty()) {
+                String[] horaParts = hora.split(":");
+                if (horaParts.length >= 1) hour = Integer.parseInt(horaParts[0]);
+                if (horaParts.length >= 2) minute = Integer.parseInt(horaParts[1]);
+            }
+
+            // Crear Calendar con la fecha/hora exacta
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.YEAR, year);
+            cal.set(Calendar.MONTH, month);
+            cal.set(Calendar.DAY_OF_MONTH, day);
+            cal.set(Calendar.HOUR_OF_DAY, hour);
+            cal.set(Calendar.MINUTE, minute);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+
+            Log.d(TAG, "✅ Fecha parseada: " + cal.getTime() + " | Original: " + fecha + " " + hora);
+
+            return cal.getTime();
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error parseando fecha: " + fecha + " " + hora, e);
             return null;
         }
     }
@@ -106,4 +150,81 @@ public class CitaFirebase {
 
     public Integer getCupo() { return cupo; }
     public void setCupo(Integer cupo) { this.cupo = cupo; }
+
+    // Setters adicionales
+    public void setFechaString(String fecha) {
+        this.fecha = fecha;
+    }
+
+    public void setFechaInicio(String fechaInicio) {
+        this.fechaInicio = fechaInicio;
+    }
+
+    public String getFechaInicio() {
+        return fechaInicio;
+    }
+
+    public void setFechaTermino(String fechaTermino) {
+        this.fechaTermino = fechaTermino;
+    }
+
+    public String getFechaTermino() {
+        return fechaTermino;
+    }
+
+    public void setHoraInicio(String horaInicio) {
+        this.horaInicio = horaInicio;
+    }
+
+    public String getHoraInicio() {
+        return horaInicio;
+    }
+
+    public void setHoraTermino(String horaTermino) {
+        this.horaTermino = horaTermino;
+    }
+
+    public String getHoraTermino() {
+        return horaTermino;
+    }
+
+    public void setPeriodicidad(String periodicidad) {
+        this.periodicidad = periodicidad;
+    }
+
+    public String getPeriodicidad() {
+        return periodicidad;
+    }
+
+    public void setOferenteId(String oferenteId) {
+        this.oferenteId = oferenteId;
+    }
+
+    public String getOferenteId() {
+        return oferenteId;
+    }
+
+    public void setProyectoId(String proyectoId) {
+        this.proyectoId = proyectoId;
+    }
+
+    public String getProyectoId() {
+        return proyectoId;
+    }
+
+    public void setSocioComunitarioId(String socioComunitarioId) {
+        this.socioComunitarioId = socioComunitarioId;
+    }
+
+    public String getSocioComunitarioId() {
+        return socioComunitarioId;
+    }
+
+    public void setDiasAvisoPrevio(Integer diasAvisoPrevio) {
+        this.diasAvisoPrevio = diasAvisoPrevio;
+    }
+
+    public Integer getDiasAvisoPrevio() {
+        return diasAvisoPrevio;
+    }
 }

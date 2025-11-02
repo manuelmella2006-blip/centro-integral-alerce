@@ -8,7 +8,8 @@
     <string name="semana_siguiente">Semana siguiente</string>
     <string name="nueva_actividad">Nueva actividad</string>
     <string name="no_hay_actividades">No hay actividades esta semana</string>
-
+    <string name="seleccionar_actividad">Seleccionar actividad</string>
+    <string name="cancelar_actividad">Cancelar Actividad</string>
     <!-- NUEVOS para calendario mejorado -->
     <string name="calendario_semanal">Calendario Semanal</string>
     <string name="crear_primera_actividad">Crear Primera Actividad</string>

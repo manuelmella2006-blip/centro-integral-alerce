@@ -23,7 +23,7 @@
             android:layout_marginBottom="16dp"
             app:cardElevation="4dp"
             app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="@color/verde_santo_tomas">
+            app:cardBackgroundColor="@color/amarillo_advertencia">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -35,10 +35,10 @@
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@drawable/ic_add"
+                    android:src="@drawable/ic_settings"
                     android:padding="8dp"
                     android:background="@drawable/bg_icon_circle"
-                    android:backgroundTint="@color/verde_secundario"
+                    android:backgroundTint="@color/amarillo_oscuro"
                     app:tint="@color/blanco" />
 
                 <LinearLayout
@@ -51,7 +51,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nueva Actividad"
+                        android:text="Modificar Actividad"
                         android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="@color/blanco" />
@@ -59,9 +59,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Complete los datos requeridos"
+                        android:text="Edite los datos que necesite cambiar"
                         android:textSize="13sp"
-                        android:textColor="@color/verde_claro"
+                        android:textColor="@color/amarillo_claro"
                         android:layout_marginTop="4dp" />
 
                 </LinearLayout>
@@ -306,8 +306,7 @@
                     app:hintTextColor="@color/verde_santo_tomas"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spSocioComunitario"
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView                        android:id="@+id/spSocioComunitario"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
@@ -335,8 +334,7 @@
                     app:hintTextColor="@color/verde_santo_tomas"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spProyecto"
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView                        android:id="@+id/spProyecto"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
@@ -376,8 +374,7 @@
                     app:hintTextColor="@color/verde_santo_tomas"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spLugar"
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView                        android:id="@+id/spLugar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
@@ -631,12 +628,12 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ACCIONES FINALES: Cancelar / Guardar -->
+        <!-- ACCIONES FINALES: Cancelar / Reagendar / Guardar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:weightSum="2">
+            android:weightSum="3">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelarActividad"
@@ -644,30 +641,47 @@
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="4dp"
                 android:text="Cancelar"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 app:icon="@android:drawable/ic_menu_close_clear_cancel"
                 app:iconGravity="textStart"
-                app:iconPadding="12dp"
+                app:iconPadding="8dp"
                 app:cornerRadius="12dp"
                 app:backgroundTint="@color/rojo_error"
                 android:elevation="4dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGuardarActividad"
+                android:id="@+id/btnReagendarActividad"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Guardar Actividad"
-                android:textSize="16sp"
+                android:layout_marginHorizontal="4dp"
+                android:text="Reagendar"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_calendar"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/amarillo_advertencia"
+                android:elevation="4dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardarCambios"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Guardar"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 app:icon="@android:drawable/ic_menu_save"
                 app:iconGravity="textStart"
-                app:iconPadding="12dp"
+                app:iconPadding="8dp"
                 app:cornerRadius="12dp"
                 app:backgroundTint="@color/verde_santo_tomas"
                 android:elevation="4dp" />

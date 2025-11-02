@@ -16,7 +16,10 @@
 
     <!-- Tema final que usará toda la app -->
     <style name="Theme.CentroIntegralAlerce" parent="Base.Theme.CentroIntegralAlerce" />
-
+    <style name="Theme.App.SplashScreen" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
     <!-- 🎯 Estilos personalizados -->
     <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="buttonBarPositiveButtonStyle">@style/Widget.App.Button</item>

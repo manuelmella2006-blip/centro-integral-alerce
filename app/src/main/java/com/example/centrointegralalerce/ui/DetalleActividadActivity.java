@@ -1,11 +1,17 @@
 package com.example.centrointegralalerce.ui;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
@@ -17,8 +23,11 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DetalleActividadActivity extends AppCompatActivity {
 
@@ -41,6 +50,7 @@ public class DetalleActividadActivity extends AppCompatActivity {
 
     // Archivos
     @Nullable private RecyclerView rvArchivos;
+    private TextView tvSinArchivos;
 
     // Botones acción
     @Nullable private MaterialButton btnModificar;
@@ -50,6 +60,27 @@ public class DetalleActividadActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private String actividadId;
+    private Actividad actividadActual;
+
+    // Nuevas variables para archivos
+    private ArchivosAdapter archivosAdapter;
+    private final List<Map<String, Object>> archivosList = new ArrayList<>();
+
+    // ✅ Nuevo launcher para CancelarActividadActivity
+    private final ActivityResultLauncher<Intent> cancelarActividadLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            // Recargar los datos de la actividad
+                            loadActividad(actividadId);
+                            AlertManager.showSuccessSnackbar(
+                                    AlertManager.getRootView(this),
+                                    "Actividad cancelada correctamente"
+                            );
+                        }
+                    }
+            );
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -78,6 +109,15 @@ public class DetalleActividadActivity extends AppCompatActivity {
         btnReagendar    = findViewById(R.id.btn_reagendar);
         fabAdjuntar     = findViewById(R.id.fab_adjuntar);
 
+        // ==== Nuevo: Configurar RecyclerView para archivos ====
+        tvSinArchivos = findViewById(R.id.tv_sin_archivos); // Necesitarás agregar este TextView en tu layout
+
+        if (rvArchivos != null) {
+            archivosAdapter = new ArchivosAdapter(archivosList);
+            rvArchivos.setLayoutManager(new LinearLayoutManager(this));
+            rvArchivos.setAdapter(archivosAdapter);
+        }
+
         db = FirebaseFirestore.getInstance();
 
         // ==== ID de la actividad ====
@@ -90,46 +130,52 @@ public class DetalleActividadActivity extends AppCompatActivity {
 
         // ==== Botones acción ====
         if (btnModificar != null) {
-            btnModificar.setOnClickListener(v ->
-                    AlertManager.showInfoToast(this, "Modificar actividad — en desarrollo 🛠️"));
+            btnModificar.setOnClickListener(v -> {
+                if (actividadActual != null) {
+                    Intent intent = new Intent(DetalleActividadActivity.this, ModificarActividadActivity.class);
+                    intent.putExtra("actividadId", actividadId);
+                    startActivity(intent);
+                }
+            });
         }
 
         if (btnReagendar != null) {
-            btnReagendar.setOnClickListener(v ->
-                    AlertManager.showInfoToast(this, "Reagendar actividad — próximamente 📅"));
+            btnReagendar.setOnClickListener(v -> {
+                if (actividadActual != null) {
+                    Intent intent = new Intent(DetalleActividadActivity.this, ReagendarActividadActivity.class);
+                    intent.putExtra("actividadId", actividadId);
+                    startActivity(intent);
+                }
+            });
         }
 
         if (fabAdjuntar != null) {
-            fabAdjuntar.setOnClickListener(v ->
-                    AlertManager.showInfoSnackbar(AlertManager.getRootView(this),
-                            "Funcionalidad de adjuntar archivos aún no disponible 📎"));
+            fabAdjuntar.setOnClickListener(v -> {
+                if (actividadActual != null) {
+                    Intent intent = new Intent(DetalleActividadActivity.this, AdjuntarComunicacionActivity.class);
+                    intent.putExtra("actividadId", actividadId);
+                    startActivity(intent);
+                }
+            });
         }
 
+        // ✅ Actualizado: usar el método abrirCancelarActividad()
         if (btnCancelar != null) {
-            btnCancelar.setOnClickListener(v ->
-                    AlertManager.showDestructiveDialog(
-                            this,
-                            "Cancelar actividad",
-                            "¿Estás seguro que deseas cancelar esta actividad?",
-                            "Cancelar",
-                            new AlertManager.OnConfirmListener() {
-                                @Override
-                                public void onConfirm() {
-                                    finish();
-                                    AlertManager.showSuccessToast(DetalleActividadActivity.this,
-                                            "Actividad cancelada correctamente ✅");
-                                }
-
-                                @Override
-                                public void onCancel() {
-                                    AlertManager.showInfoToast(DetalleActividadActivity.this,
-                                            "Acción cancelada");
-                                }
-                            }));
+            btnCancelar.setOnClickListener(v -> abrirCancelarActividad());
         }
 
         // ==== Cargar datos desde Firestore ====
         loadActividad(actividadId);
+    }
+
+    // ✅ Nuevo método mejorado
+    private void abrirCancelarActividad() {
+        if (actividadActual != null) {
+            Intent intent = new Intent(this, CancelarActividadActivity.class);
+            intent.putExtra("actividadId", actividadId);
+            intent.putExtra("nombreActividad", actividadActual.getNombre());
+            cancelarActividadLauncher.launch(intent);
+        }
     }
 
     private void loadActividad(String id) {
@@ -152,39 +198,71 @@ public class DetalleActividadActivity extends AppCompatActivity {
             return;
         }
 
-        Actividad actividad = doc.toObject(Actividad.class);
-        if (actividad == null) {
+        actividadActual = doc.toObject(Actividad.class);
+        if (actividadActual == null) {
             AlertManager.showErrorToast(this, "Datos de actividad inválidos");
             finish();
             return;
         }
 
-        mostrarActividad(actividad);
+        mostrarActividad(actividadActual);
+        cargarNombresRelacionados(actividadActual);
+        cargarArchivosAdjuntos(); // ✅ NUEVO: Cargar archivos
+
         AlertManager.showSuccessSnackbar(AlertManager.getRootView(this),
                 "Actividad cargada correctamente ✅");
+    }
 
-        // Cargar oferente si aplica
-        if (actividad.getOferenteId() != null && !actividad.getOferenteId().isEmpty()) {
-            loadOferenteNombre(actividad.getOferenteId());
+    // ✅ NUEVO MÉTODO: Cargar archivos adjuntos
+    private void cargarArchivosAdjuntos() {
+        if (actividadId == null || actividadId.isEmpty()) return;
+
+        db.collection("actividades")
+                .document(actividadId)
+                .collection("comunicaciones")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    archivosList.clear();
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Map<String, Object> archivo = doc.getData();
+                        archivo.put("id", doc.getId()); // Agregar ID del documento
+                        archivosList.add(archivo);
+                    }
+
+                    // Actualizar UI
+                    actualizarUIArchivos();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar archivos adjuntos", e);
+                    actualizarUIArchivos();
+                });
+    }
+
+    // ✅ NUEVO MÉTODO: Actualizar UI de archivos
+    private void actualizarUIArchivos() {
+        if (rvArchivos != null && tvSinArchivos != null) {
+            if (archivosList.isEmpty()) {
+                rvArchivos.setVisibility(View.GONE);
+                tvSinArchivos.setVisibility(View.VISIBLE);
+            } else {
+                rvArchivos.setVisibility(View.VISIBLE);
+                tvSinArchivos.setVisibility(View.GONE);
+                archivosAdapter.setArchivosList(archivosList);
+            }
         }
     }
 
     private void mostrarActividad(Actividad a) {
-        // ===== HEADER =====
         if (tvNombre != null) {
             tvNombre.setText(a.getNombre() != null && !a.getNombre().isEmpty() ? a.getNombre() : "Sin nombre");
         }
 
         if (chipTipo != null) {
-            // ⭐ ACTUALIZADO: Usar tipoActividadNombre primero, luego ID
-            String tipoTexto = a.getTipoActividadNombre();
-            if (tipoTexto == null || tipoTexto.isEmpty()) {
-                tipoTexto = a.getTipoActividadId();
-            }
-            chipTipo.setText(tipoTexto != null && !tipoTexto.isEmpty() ? tipoTexto : "Sin tipo");
+            chipTipo.setText(a.getTipoActividadId() != null && !a.getTipoActividadId().isEmpty()
+                    ? a.getTipoActividadId() : "Sin tipo");
         }
 
-        // ===== INFO GENERAL =====
         if (tvPeriodicidad != null) {
             String p = a.getPeriodicidad();
             tvPeriodicidad.setText(p != null && !p.isEmpty() ? p : "Sin periodicidad");
@@ -195,16 +273,11 @@ public class DetalleActividadActivity extends AppCompatActivity {
         }
 
         if (tvLugar != null) {
-            // ⭐ ACTUALIZADO: Usar lugarNombre primero, luego ID
-            String lugarTexto = a.getLugarNombre();
-            if (lugarTexto == null || lugarTexto.isEmpty()) {
-                lugarTexto = a.getLugarId();
-            }
-            tvLugar.setText(lugarTexto != null && !lugarTexto.isEmpty() ? lugarTexto : "Sin lugar");
+            tvLugar.setText(a.getLugarId() != null && !a.getLugarId().isEmpty()
+                    ? a.getLugarId() : "Sin lugar");
         }
 
         if (tvFechaHora != null) {
-            // ⭐ ACTUALIZADO: Usar fechaInicio y horaInicio
             String fecha = a.getFechaInicio() != null ? a.getFechaInicio() : "";
             String hora = a.getHoraInicio() != null ? a.getHoraInicio() : "";
 
@@ -219,46 +292,90 @@ public class DetalleActividadActivity extends AppCompatActivity {
             tvFechaHora.setText(fh.isEmpty() ? "Sin fecha/hora" : fh);
         }
 
-        // ===== PARTICIPANTES =====
         if (tvOferentes != null) {
             tvOferentes.setText(a.getOferenteId() != null && !a.getOferenteId().isEmpty()
-                    ? a.getOferenteId() : "Sin oferente");
+                    ? "Cargando..." : "Sin oferente");
         }
 
         if (tvSocioComunitario != null) {
             tvSocioComunitario.setText(a.getSocioComunitarioId() != null && !a.getSocioComunitarioId().isEmpty()
-                    ? a.getSocioComunitarioId() : "Sin socio comunitario");
+                    ? "Cargando..." : "Sin socio comunitario");
         }
 
         if (tvBeneficiarios != null) {
-            String beneficiarios = a.getProyectoId();
-            tvBeneficiarios.setText(beneficiarios != null && !beneficiarios.isEmpty()
-                    ? beneficiarios : "No especificado");
-        }
-
-        // ===== ARCHIVOS =====
-        if (rvArchivos != null) {
-            List<String> adjuntos = a.getArchivosAdjuntos();
-            // Aquí iría tu adapter personalizado si ya lo implementaste
+            tvBeneficiarios.setText(a.getProyectoId() != null && !a.getProyectoId().isEmpty()
+                    ? "Cargando..." : "No especificado");
         }
     }
 
-    private void loadOferenteNombre(String oferenteId) {
-        db.collection("oferentes")
-                .document(oferenteId)
-                .get()
-                .addOnSuccessListener(d -> {
-                    if (d.exists()) {
-                        String nombre = d.getString("nombre");
-                        if (nombre != null && !nombre.isEmpty() && tvOferentes != null) {
+    private void cargarNombresRelacionados(Actividad actividad) {
+        if (actividad.getTipoActividadId() != null && !actividad.getTipoActividadId().isEmpty()) {
+            cargarNombreDesdeColeccion("tiposActividad", actividad.getTipoActividadId(),
+                    nombre -> {
+                        if (chipTipo != null && nombre != null) {
+                            chipTipo.setText(nombre);
+                        }
+                    });
+        }
+
+        if (actividad.getLugarId() != null && !actividad.getLugarId().isEmpty()) {
+            cargarNombreDesdeColeccion("lugares", actividad.getLugarId(),
+                    nombre -> {
+                        if (tvLugar != null && nombre != null) {
+                            tvLugar.setText(nombre);
+                        }
+                    });
+        }
+
+        if (actividad.getOferenteId() != null && !actividad.getOferenteId().isEmpty()) {
+            cargarNombreDesdeColeccion("oferentes", actividad.getOferenteId(),
+                    nombre -> {
+                        if (tvOferentes != null && nombre != null) {
                             tvOferentes.setText(nombre);
                         }
+                    });
+        }
+
+        if (actividad.getSocioComunitarioId() != null && !actividad.getSocioComunitarioId().isEmpty()) {
+            cargarNombreDesdeColeccion("sociosComunitarios", actividad.getSocioComunitarioId(),
+                    nombre -> {
+                        if (tvSocioComunitario != null && nombre != null) {
+                            tvSocioComunitario.setText(nombre);
+                        }
+                    });
+        }
+
+        if (actividad.getProyectoId() != null && !actividad.getProyectoId().isEmpty()) {
+            cargarNombreDesdeColeccion("proyectos", actividad.getProyectoId(),
+                    nombre -> {
+                        if (tvBeneficiarios != null && nombre != null) {
+                            tvBeneficiarios.setText(nombre);
+                        }
+                    });
+        }
+    }
+
+    private void cargarNombreDesdeColeccion(String coleccion, String documentoId, NombreCallback callback) {
+        db.collection(coleccion)
+                .document(documentoId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String nombre = documentSnapshot.getString("nombre");
+                        callback.onNombreCargado(nombre);
+                    } else {
+                        Log.w(TAG, "Documento no encontrado en " + coleccion + ": " + documentoId);
+                        callback.onNombreCargado(null);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.w(TAG, "No se pudo cargar nombre de oferente: " + e.getMessage());
-                    AlertManager.showWarningSnackbar(AlertManager.getRootView(this),
-                            "No se pudo cargar el oferente");
+                    Log.e(TAG, "Error al cargar documento de " + coleccion, e);
+                    callback.onNombreCargado(null);
                 });
+    }
+
+    // Interface para callback de carga de nombres
+    private interface NombreCallback {
+        void onNombreCargado(String nombre);
     }
 }

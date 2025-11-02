@@ -1,5 +1,6 @@
 package com.example.centrointegralalerce.data;
 
+import android.util.Log;
 import java.util.Map;
 
 public class UserSession {
@@ -19,6 +20,8 @@ public class UserSession {
     public void setRol(String rolId, Map<String, Boolean> permisos) {
         this.rolId = rolId;
         this.permisos = permisos;
+        Log.d("USER_SESSION", "✅ Rol asignado: " + rolId);
+        Log.d("USER_SESSION", "✅ Permisos cargados: " + permisos);
     }
 
     public String getRolId() {
@@ -26,6 +29,12 @@ public class UserSession {
     }
 
     public boolean puede(String permiso) {
-        return permisos != null && permisos.getOrDefault(permiso, false);
+        boolean tiene = permisos != null && permisos.getOrDefault(permiso, false);
+        Log.d("USER_SESSION", "🔎 Verificando permiso [" + permiso + "] → " + tiene);
+        return tiene;
+    }
+
+    public Map<String, Boolean> getPermisos() {
+        return permisos;
     }
 }

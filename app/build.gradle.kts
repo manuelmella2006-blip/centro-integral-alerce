@@ -56,7 +56,7 @@ dependencies {
 
     // 🔹 NUEVO: Firebase Cloud Messaging (notificaciones)
     implementation("com.google.firebase:firebase-messaging")
-
+    implementation("com.google.firebase:firebase-storage")
     // ============================================
     // 🔹 OTRAS LIBRERÍAS NECESARIAS
     // ============================================

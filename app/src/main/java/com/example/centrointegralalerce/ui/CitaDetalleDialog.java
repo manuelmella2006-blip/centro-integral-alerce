@@ -16,10 +16,11 @@ import com.example.centrointegralalerce.data.Cita;
 import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
-
+import android.util.Log;
 /**
  * Diálogo que muestra los detalles de una cita y permite marcarla como completada.
  */
@@ -27,9 +28,17 @@ public class CitaDetalleDialog extends DialogFragment {
 
     private final Cita cita;
     private Chip chipEstado;
+    private FirebaseFirestore db;
+    private TextView tvLugar;
 
     public CitaDetalleDialog(Cita cita) {
         this.cita = cita;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance();
     }
 
     @Nullable
@@ -42,7 +51,7 @@ public class CitaDetalleDialog extends DialogFragment {
 
         // Referencias a la UI
         TextView tvNombreActividad = view.findViewById(R.id.tv_nombre_actividad);
-        TextView tvLugar = view.findViewById(R.id.tv_lugar);
+        tvLugar = view.findViewById(R.id.tv_lugar); // Cambiado para ser accesible en todo el fragment
         TextView tvHora = view.findViewById(R.id.tv_hora);
         chipEstado = view.findViewById(R.id.chip_estado);
 
@@ -59,8 +68,7 @@ public class CitaDetalleDialog extends DialogFragment {
         tvNombreActividad.setText(!fechaTexto.isEmpty() ? fechaTexto : "Cita");
 
         // ---------- LUGAR ----------
-        String lugar = cita.getLugarId();
-        tvLugar.setText((lugar == null || lugar.isEmpty()) ? "Sin lugar" : lugar);
+        cargarNombreLugar(cita.getLugarId());
 
         // ---------- HORA ----------
         String hora = cita.getHora();
@@ -83,6 +91,48 @@ public class CitaDetalleDialog extends DialogFragment {
         btnMarcarCompletada.setOnClickListener(v -> confirmarMarcadoCompletada());
 
         return view;
+    }
+
+    /**
+     * Carga el nombre del lugar desde Firestore basado en el lugarId
+     */
+    private void cargarNombreLugar(String lugarId) {
+        if (lugarId == null || lugarId.isEmpty() || db == null || tvLugar == null) {
+            tvLugar.setText("Sin lugar");
+            return;
+        }
+
+        // Mostrar "Cargando..." mientras se obtiene el nombre
+        tvLugar.setText("Cargando...");
+
+        db.collection("lugares").document(lugarId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (getContext() == null || !documentSnapshot.exists()) {
+                        tvLugar.setText("Lugar no encontrado");
+                        return;
+                    }
+
+                    // Obtener el nombre del lugar - asumiendo que el campo se llama "nombre"
+                    String nombreLugar = documentSnapshot.getString("nombre");
+                    if (nombreLugar != null && !nombreLugar.isEmpty()) {
+                        tvLugar.setText(nombreLugar);
+                    } else {
+                        // Si no hay campo "nombre", intentar con otros campos comunes
+                        String direccion = documentSnapshot.getString("direccion");
+                        if (direccion != null && !direccion.isEmpty()) {
+                            tvLugar.setText(direccion);
+                        } else {
+                            tvLugar.setText("Lugar sin nombre");
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (getContext() != null) {
+                        tvLugar.setText("Error al cargar lugar");
+                        Log.e("CitaDetalleDialog", "Error al cargar lugar: " + e.getMessage());
+                    }
+                });
     }
 
     /**

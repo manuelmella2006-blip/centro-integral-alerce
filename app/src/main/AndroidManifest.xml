@@ -29,19 +29,39 @@
             android:name=".ui.AgregarActividadActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.LoginActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".ui.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.CrearLugarActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.AdjuntarComunicacionActivity"
+            android:parentActivityName=".ui.DetalleActividadActivity" />
+        <activity
+            android:name=".ui.ModificarActividadActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CentroIntegralAlerce" />
+        <activity
+            android:name=".ui.ReagendarActividadActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
+        <!-- 🔹 Nueva actividad: CancelarActividadActivity -->
+        <activity
+            android:name=".ui.CancelarActividadActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CentroIntegralAlerce" />
+
+        <!-- 🔹 Activity principal: LoginActivity -->
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- 🔹 Servicio de Firebase Cloud Messaging -->
         <service

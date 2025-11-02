@@ -21,7 +21,8 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Cita;
 import com.example.centrointegralalerce.data.CitaFirebase;
-import com.example.centrointegralalerce.utils.AlertManager; // ✅ Import AlertManager
+import com.example.centrointegralalerce.data.UserSession;
+import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,13 +36,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Fragment del calendario con AlertManager integrado
+ * Fragment del calendario con AlertManager integrado + control de permisos por rol (UserSession)
  */
 public class CalendarioFragment extends Fragment {
 
     private static final String TAG = "CalendarioFragment";
 
-    // Vistas principales
+    // Vistas
     private ViewPager2 viewPagerCalendar;
     private TextView tvCurrentWeek, tvCurrentYear, tvSubtitleMes;
     private MaterialButton btnPrevWeek, btnNextWeek, btnCreateFirstActivity;
@@ -59,7 +60,7 @@ public class CalendarioFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    // Activity Result para crear actividades
+    // Activity Result
     private final ActivityResultLauncher<Intent> crearActividadLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -83,6 +84,24 @@ public class CalendarioFragment extends Fragment {
             mAuth = FirebaseAuth.getInstance();
 
             initializeViews(view);
+
+            UserSession session = UserSession.getInstance();
+            boolean puedeCrear = session.puede("crear_actividades");
+            boolean puedeEliminar = session.puede("eliminar_actividades");
+
+            Log.d(TAG, "🟢 Rol actual: " + session.getRolId());
+            Log.d(TAG, "🟩 Permisos cargados: " + session.getPermisos());
+            Log.d(TAG, "🔍 puedeCrear = " + puedeCrear + " | puedeEliminar = " + puedeEliminar);
+
+            if (!puedeCrear) {
+                if (fabNewActivity != null) fabNewActivity.setVisibility(View.GONE);
+                if (btnCreateFirstActivity != null) btnCreateFirstActivity.setVisibility(View.GONE);
+                Log.w(TAG, "🚫 Usuario sin permiso para crear actividades");
+            }
+
+            if (!puedeEliminar) {
+                Log.w(TAG, "🚫 Usuario sin permiso para eliminar actividades");
+            }
 
             allCitas = new ArrayList<>();
             currentWeekStart = Calendar.getInstance();
@@ -134,9 +153,11 @@ public class CalendarioFragment extends Fragment {
 
     private void loadCitasFromFirebase() {
         if (db == null) {
-            AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
-                    "Error de configuración de Firebase");
-            setupViewPager();
+            if (isAdded() && getActivity() != null) {
+                AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
+                        "Error de configuración de Firebase");
+                setupViewPager();
+            }
             return;
         }
 
@@ -144,8 +165,14 @@ public class CalendarioFragment extends Fragment {
         allCitas.clear();
 
         db.collection("actividades")
+                .whereNotEqualTo("estado", "cancelada") // <-- NUEVO: solo actividades activas
                 .get()
                 .addOnSuccessListener(actividadesSnapshot -> {
+                    if (!isAdded() || getActivity() == null) {
+                        showLoading(false);
+                        return;
+                    }
+
                     if (actividadesSnapshot.isEmpty()) {
                         showLoading(false);
                         if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
@@ -157,62 +184,121 @@ public class CalendarioFragment extends Fragment {
 
                     final int totalActividades = actividadesSnapshot.size();
                     final int[] procesadas = {0};
+                    allCitas.clear();
 
                     for (QueryDocumentSnapshot actividadDoc : actividadesSnapshot) {
                         String actividadId = actividadDoc.getId();
+
                         String actividadNombre = actividadDoc.getString("nombre");
                         String tipoActividadId = actividadDoc.getString("tipoActividadId");
                         String estadoActividad = actividadDoc.getString("estado");
+                        String lugarId = actividadDoc.getString("lugarId");
+                        String fechaInicio = actividadDoc.getString("fechaInicio");
+                        String fechaTermino = actividadDoc.getString("fechaTermino");
+                        String horaInicio = actividadDoc.getString("horaInicio");
+                        String horaTermino = actividadDoc.getString("horaTermino");
+                        String periodicidad = actividadDoc.getString("periodicidad");
+                        String oferenteId = actividadDoc.getString("oferenteId");
+                        String proyectoId = actividadDoc.getString("proyectoId");
+                        String socioComunitarioId = actividadDoc.getString("socioComunitarioId");
+                        Long cupo = actividadDoc.getLong("cupo");
+                        Long diasAvisoPrevio = actividadDoc.getLong("diasAvisoPrevio");
 
                         db.collection("actividades").document(actividadId)
                                 .collection("citas")
                                 .get()
                                 .addOnSuccessListener(citasSnapshot -> {
-                                    citasSnapshot.forEach(citaDoc -> {
+                                    if (!isAdded() || getActivity() == null) {
+                                        return;
+                                    }
+
+                                    for (QueryDocumentSnapshot citaDoc : citasSnapshot) {
                                         try {
-                                            CitaFirebase cf = citaDoc.toObject(CitaFirebase.class);
-                                            if (cf == null) return;
+                                            String citaId = citaDoc.getId();
+                                            String estadoCita = citaDoc.getString("estado");
+                                            String fechaCita = citaDoc.getString("fecha");
+                                            String horaCita = citaDoc.getString("hora");
+
+                                            CitaFirebase cf = new CitaFirebase();
+                                            cf.setId(citaId);
+                                            cf.setEstado(estadoCita);
+                                            cf.setFechaString(fechaCita);
+                                            cf.setHora(horaCita);
 
                                             cf.setActividadId(actividadId);
                                             cf.setActividadNombre(actividadNombre);
                                             cf.setTipoActividadId(tipoActividadId);
                                             cf.setEstadoActividad(estadoActividad);
+                                            cf.setLugarId(lugarId);
+                                            cf.setFechaInicio(fechaInicio);
+                                            cf.setFechaTermino(fechaTermino);
+                                            cf.setHoraInicio(horaInicio);
+                                            cf.setHoraTermino(horaTermino);
+                                            cf.setPeriodicidad(periodicidad);
+                                            cf.setOferenteId(oferenteId);
+                                            cf.setProyectoId(proyectoId);
+                                            cf.setSocioComunitarioId(socioComunitarioId);
+                                            cf.setCupo(cupo != null ? cupo.intValue() : 0);
+                                            cf.setDiasAvisoPrevio(diasAvisoPrevio != null ? diasAvisoPrevio.intValue() : 0);
 
                                             Cita c = cf.toCita();
                                             if (c != null) {
                                                 allCitas.add(c);
+                                                Log.d(TAG, "✅ Cita agregada: " + c.getActividadNombre() + " - " + c.getFecha() + " " + c.getHora());
                                             }
                                         } catch (Exception ex) {
-                                            Log.e(TAG, "Error mapeando cita", ex);
+                                            Log.e(TAG, "❌ Error mapeando cita", ex);
                                         }
-                                    });
+                                    }
 
                                     procesadas[0]++;
+                                    Log.d(TAG, "📊 Procesadas " + procesadas[0] + "/" + totalActividades + " actividades");
+
                                     if (procesadas[0] == totalActividades) {
+                                        Log.d(TAG, "✅ Carga completada. Total citas: " + allCitas.size());
                                         finalizarCargaYActualizarUI();
                                     }
                                 })
                                 .addOnFailureListener(e -> {
+                                    if (!isAdded() || getActivity() == null) {
+                                        return;
+                                    }
+                                    Log.e(TAG, "❌ Error al cargar citas de actividad " + actividadId, e);
                                     procesadas[0]++;
                                     if (procesadas[0] == totalActividades) {
                                         finalizarCargaYActualizarUI();
                                     }
-                                    AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
-                                            "Error al cargar citas de algunas actividades");
                                 });
                     }
                 })
                 .addOnFailureListener(e -> {
+                    if (!isAdded() || getActivity() == null) {
+                        showLoading(false);
+                        return;
+                    }
+
                     showLoading(false);
                     if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                     setupViewPager();
                     AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
-                            "Error al obtener las actividades");
+                            "Error al obtener las actividades: " + e.getMessage());
+                    Log.e(TAG, "❌ Error en loadCitasFromFirebase", e);
                 });
     }
 
+
     private void finalizarCargaYActualizarUI() {
+        if (!isAdded() || getActivity() == null) {
+            showLoading(false);
+            if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+            return;
+        }
+
         setupViewPager();
+
+        // 🎯 DEBUG: Verificar datos de citas y calendario antes de actualizar la UI
+        debugCitasYCalendario();
+
         updateWeekLabel(currentWeekStart);
         updateMonthSubtitle(currentWeekStart);
         checkIfWeekHasCitas(currentWeekStart);
@@ -231,9 +317,15 @@ public class CalendarioFragment extends Fragment {
 
     private void setupViewPager() {
         try {
-            if (viewPagerCalendar == null) return;
+            if (!isAdded() || getActivity() == null || viewPagerCalendar == null) {
+                return;
+            }
 
-            pagerAdapter = new CalendarPagerAdapter(allCitas, getParentFragmentManager(), currentWeekStart);
+            // 🔹 Normalizar la semana al lunes antes de crear el adaptador
+            normalizeToMonday(currentWeekStart);
+
+            // 🔹 Inicializar correctamente el adaptador
+            pagerAdapter = new CalendarPagerAdapter(allCitas, getChildFragmentManager(), currentWeekStart);
             viewPagerCalendar.setAdapter(pagerAdapter);
             viewPagerCalendar.setCurrentItem(pagerAdapter.getMiddlePosition(), false);
 
@@ -241,6 +333,8 @@ public class CalendarioFragment extends Fragment {
                 @Override
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
+                    if (!isAdded() || getActivity() == null) return;
+
                     Calendar weekStart = pagerAdapter.getWeekForPosition(position);
                     currentWeekStart = weekStart;
                     updateWeekLabel(weekStart);
@@ -250,8 +344,11 @@ public class CalendarioFragment extends Fragment {
             });
 
         } catch (Exception e) {
-            AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
-                    "Error al configurar el calendario");
+            if (isAdded() && getActivity() != null) {
+                AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
+                        "Error al configurar el calendario");
+            }
+            Log.e(TAG, "❌ Error en setupViewPager", e);
         }
     }
 
@@ -310,7 +407,60 @@ public class CalendarioFragment extends Fragment {
         int daysFromMonday = (currentDayOfWeek == Calendar.SUNDAY) ? 6 : currentDayOfWeek - Calendar.MONDAY;
         cal.add(Calendar.DAY_OF_MONTH, -daysFromMonday);
     }
+    private void normalizeToMonday(Calendar cal) {
+        if (cal == null) return;
+        cal.setFirstDayOfWeek(Calendar.MONDAY);
+        int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+        int diff = (dayOfWeek == Calendar.SUNDAY) ? -6 : (Calendar.MONDAY - dayOfWeek);
+        cal.add(Calendar.DAY_OF_MONTH, diff);
+    }
+    private void debugCitasYCalendario() {
+        Log.d(TAG, "=== 🎯 DEBUG CITAS vs CALENDARIO ===");
 
+        if (currentWeekStart == null) {
+            Log.e(TAG, "❌ currentWeekStart es null");
+            return;
+        }
+
+        Calendar weekEnd = (Calendar) currentWeekStart.clone();
+        weekEnd.add(Calendar.DAY_OF_MONTH, 6);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE dd/MM/yyyy HH:mm", new Locale("es", "ES"));
+
+        Log.d(TAG, "📅 Semana mostrada: " + sdf.format(currentWeekStart.getTime()) +
+                " - " + sdf.format(weekEnd.getTime()));
+
+        Log.d(TAG, "📊 Total de citas cargadas: " + allCitas.size());
+
+        for (int i = 0; i < allCitas.size(); i++) {
+            Cita cita = allCitas.get(i);
+            if (cita != null && cita.getFecha() != null) {
+                String fechaCita = sdf.format(cita.getFecha());
+                String actividad = cita.getActividadNombre() != null ?
+                        cita.getActividadNombre() : "Sin nombre";
+                Log.d(TAG, String.format("Cita %d: %s | %s | %s",
+                        i, fechaCita, actividad, cita.getHora()));
+            }
+        }
+
+        // Verificar qué citas deberían mostrarse en esta semana
+        List<Cita> citasEstaSemana = new ArrayList<>();
+        for (Cita cita : allCitas) {
+            if (cita != null && cita.getFecha() != null) {
+                long fechaCita = cita.getFecha().getTime();
+                if (fechaCita >= currentWeekStart.getTimeInMillis() &&
+                        fechaCita <= weekEnd.getTimeInMillis()) {
+                    citasEstaSemana.add(cita);
+                }
+            }
+        }
+
+        Log.d(TAG, "🎯 CITAS QUE DEBERÍAN MOSTRARSE ESTA SEMANA: " + citasEstaSemana.size());
+        for (Cita cita : citasEstaSemana) {
+            String fechaCita = sdf.format(cita.getFecha());
+            Log.d(TAG, "👉 " + fechaCita + " - " + cita.getActividadNombre());
+        }
+    }
     private void updateWeekLabel(Calendar weekStart) {
         if (tvCurrentWeek == null || weekStart == null) return;
         try {
@@ -359,11 +509,37 @@ public class CalendarioFragment extends Fragment {
     }
 
     public void reloadCitas() {
+        Log.d(TAG, "🔄 Recargando citas manualmente...");
+
+        // Forzar destrucción del adapter y limpieza para evitar datos cacheados
+        if (pagerAdapter != null) {
+            pagerAdapter = null;
+        }
+
+        if (viewPagerCalendar != null) {
+            viewPagerCalendar.setAdapter(null);
+        }
+
+        if (allCitas != null) {
+            allCitas.clear();
+        } else {
+            allCitas = new ArrayList<>();
+        }
+
         loadCitasFromFirebase();
     }
+
 
     private void showLoading(boolean show) {
         if (progressBar != null)
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (viewPagerCalendar != null) {
+            viewPagerCalendar.setAdapter(null);
+        }
     }
 }

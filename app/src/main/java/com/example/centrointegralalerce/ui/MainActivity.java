@@ -1,6 +1,7 @@
 package com.example.centrointegralalerce.ui;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,16 +16,23 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.services.NotificationChannelManager;
 import com.example.centrointegralalerce.utils.FCMTokenManager;
 import com.example.centrointegralalerce.utils.BadgeManager;
 import com.example.centrointegralalerce.utils.AlertManager;
+import com.example.centrointegralalerce.utils.SharedPreferencesManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,24 +45,30 @@ public class MainActivity extends AppCompatActivity {
     private boolean esInvitado = false;
     private String rolUsuario = "usuario"; // por defecto
 
-    // 🔹 Gestor de tokens FCM
     private FCMTokenManager fcmTokenManager;
+    private SharedPreferencesManager prefsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ✅ Verificación rápida de sesión
+        prefsManager = new SharedPreferencesManager(this);
+        if (!prefsManager.isLoggedIn() || FirebaseAuth.getInstance().getCurrentUser() == null) {
+            redirectToLogin();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         View rootView = AlertManager.getRootView(this);
 
-        // Obtener datos del Login
         esInvitado = getIntent().getBooleanExtra("INVITADO", false);
         String rolId = getIntent().getStringExtra("ROL");
         if (rolId != null) {
             rolUsuario = rolId;
         }
 
-        // Mensaje según rol
         if (esInvitado) {
             AlertManager.showWarningSnackbar(rootView, "Modo invitado - Funcionalidad limitada");
         } else if ("admin".equals(rolUsuario)) {
@@ -63,50 +77,55 @@ public class MainActivity extends AppCompatActivity {
             AlertManager.showInfoSnackbar(rootView, "Bienvenido Usuario 👋");
         }
 
-        // Inicializar vistas
         toolbar = findViewById(R.id.toolbar);
         bottomNavigation = findViewById(R.id.bottomNavigation);
-
-        // Configurar toolbar
         setSupportActionBar(toolbar);
 
-        // 🔹 Inicializar sistema de notificaciones
         inicializarNotificaciones();
-
-        // 🔹 Actualizar badges al iniciar
-        actualizarBadges();
-
-        // 🔹 Cargar permisos del rol desde Firestore y abrir Calendario
-        if (savedInstanceState == null) {
-            cargarRolYPermisos(rolId);
-        }
-
-        // Configurar bottom navigation
+        cargarRolYPermisos(rolUsuario);
         setupBottomNavigation();
+        actualizarBadges();
     }
 
-    // ✅ Nuevo método: cargar permisos del rol desde Firestore
+    private void redirectToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     private void cargarRolYPermisos(String rolId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        if (rolId == null) {
-            Log.w(TAG, "⚠️ No se recibió rolId, cargando calendario por defecto");
-            loadFragment(new CalendarioFragment(), "Calendario");
-            bottomNavigation.setSelectedItemId(R.id.nav_calendar);
-            return;
-        }
-
-        db.collection("roles").document(rolId)
+        FirebaseFirestore.getInstance().collection("roles").document(rolId)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Map<String, Object> permisos = (Map<String, Object>) documentSnapshot.get("permisos");
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Map<String, Object> data = doc.getData();
+                        Map<String, Boolean> permisos = new java.util.HashMap<>();
 
-                        boolean puedeCrear = (boolean) permisos.getOrDefault("crear_actividades", false);
-                        boolean puedeEliminar = (boolean) permisos.getOrDefault("eliminar_actividades", false);
-                        boolean puedeVerTodas = (boolean) permisos.getOrDefault("ver_todas_actividades", true);
+                        if (data != null && data.containsKey("permisos")) {
+                            Object permisosObj = data.get("permisos");
+                            if (permisosObj instanceof Map) {
+                                Map<String, Object> permisosMap = (Map<String, Object>) permisosObj;
+                                for (String key : permisosMap.keySet()) {
+                                    Object value = permisosMap.get(key);
+                                    if (value instanceof Boolean) {
+                                        permisos.put(key, (Boolean) value);
+                                    }
+                                }
+                            }
+                        }
 
-                        // 🔥 Pasamos los permisos al fragment del calendario
+                        UserSession.getInstance().setRol(rolId, permisos);
+
+                        Log.d("USER_SESSION", "Rol: " + rolId + " → Permisos: " + permisos);
+                        android.widget.Toast.makeText(this,
+                                "Permiso crear_actividades: " +
+                                        UserSession.getInstance().puede("crear_actividades"),
+                                android.widget.Toast.LENGTH_LONG).show();
+
+                        boolean puedeCrear = permisos.getOrDefault("crear_actividades", false);
+                        boolean puedeEliminar = permisos.getOrDefault("eliminar_actividades", false);
+                        boolean puedeVerTodas = permisos.getOrDefault("ver_todas_actividades", true);
+
                         Bundle args = new Bundle();
                         args.putBoolean("puedeCrear", puedeCrear);
                         args.putBoolean("puedeEliminar", puedeEliminar);
@@ -121,29 +140,15 @@ public class MainActivity extends AppCompatActivity {
 
                         bottomNavigation.setSelectedItemId(R.id.nav_calendar);
 
-                        Log.d(TAG, "✅ Permisos cargados correctamente para rol: " + rolId);
                     } else {
-                        AlertManager.showErrorSnackbar(
-                                AlertManager.getRootView(this),
-                                "No se encontró el rol en Firestore."
-                        );
-                        // Cargar fragment por defecto
-                        loadFragment(new CalendarioFragment(), "Calendario");
-                        bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+                        Log.w("USER_SESSION", "⚠️ No se encontró el documento del rol en Firestore");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    AlertManager.showErrorSnackbar(
-                            AlertManager.getRootView(this),
-                            "Error al cargar rol: " + e.getMessage()
-                    );
-                    // Cargar fragment por defecto
-                    loadFragment(new CalendarioFragment(), "Calendario");
-                    bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+                    Log.e("USER_SESSION", "Error al cargar permisos", e);
                 });
     }
 
-    // 🔹 Inicializar sistema de notificaciones push
     private void inicializarNotificaciones() {
         Log.d(TAG, "🔔 Inicializando sistema de notificaciones");
 
@@ -245,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    // Opción 2: Corregido para la estructura con subcolección de citas bajo actividades
     private void actualizarBadges() {
         if (esInvitado) return;
 
@@ -258,40 +264,86 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        db.collection("citas")
-                .whereEqualTo("userId", userId)
-                .whereEqualTo("confirmada", false)
+        db.collection("actividades")
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    int count = querySnapshot.size();
-                    BadgeManager.updateBadge(bottomNavigation, R.id.nav_activities_list, count);
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error al contar actividades", e));
+                .addOnSuccessListener(actividadesSnapshot -> {
+                    final int totalActividades = actividadesSnapshot.size();
+                    final int[] procesadas = {0};
+                    final int[] totalCitasNoConfirmadas = {0};
+                    final int[] totalCitasHoy = {0};
 
-        Calendar hoy = Calendar.getInstance();
-        hoy.set(Calendar.HOUR_OF_DAY, 0);
-        hoy.set(Calendar.MINUTE, 0);
-        hoy.set(Calendar.SECOND, 0);
+                    Calendar hoy = Calendar.getInstance();
+                    hoy.set(Calendar.HOUR_OF_DAY, 0);
+                    hoy.set(Calendar.MINUTE, 0);
+                    hoy.set(Calendar.SECOND, 0);
+                    hoy.set(Calendar.MILLISECOND, 0);
 
-        Calendar finDia = (Calendar) hoy.clone();
-        finDia.set(Calendar.HOUR_OF_DAY, 23);
-        finDia.set(Calendar.MINUTE, 59);
-        finDia.set(Calendar.SECOND, 59);
+                    Calendar finDia = (Calendar) hoy.clone();
+                    finDia.set(Calendar.HOUR_OF_DAY, 23);
+                    finDia.set(Calendar.MINUTE, 59);
+                    finDia.set(Calendar.SECOND, 59);
+                    finDia.set(Calendar.MILLISECOND, 999);
 
-        db.collection("citas")
-                .whereEqualTo("userId", userId)
-                .whereGreaterThanOrEqualTo("fechaHora", new com.google.firebase.Timestamp(hoy.getTime()))
-                .whereLessThanOrEqualTo("fechaHora", new com.google.firebase.Timestamp(finDia.getTime()))
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    int count = querySnapshot.size();
-                    if (count > 0) {
-                        BadgeManager.showBadge(bottomNavigation, R.id.nav_calendar, count);
-                    } else {
+                    if (totalActividades == 0) {
+                        BadgeManager.updateBadge(bottomNavigation, R.id.nav_activities_list, 0);
                         BadgeManager.hideBadge(bottomNavigation, R.id.nav_calendar);
+                        return;
                     }
+
+                    for (QueryDocumentSnapshot actividadDoc : actividadesSnapshot) {
+                        String actividadId = actividadDoc.getId();
+
+                        db.collection("actividades").document(actividadId)
+                                .collection("citas")
+                                .get()
+                                .addOnSuccessListener(citasSnapshot -> {
+                                    for (QueryDocumentSnapshot citaDoc : citasSnapshot) {
+                                        String citaUserId = citaDoc.getString("userId");
+                                        if (userId.equals(citaUserId)) {
+                                            Boolean confirmada = citaDoc.getBoolean("confirmada");
+                                            if (confirmada != null && !confirmada) {
+                                                totalCitasNoConfirmadas[0]++;
+                                            }
+
+                                            String fechaCita = citaDoc.getString("fecha");
+                                            if (fechaCita != null) {
+                                                try {
+                                                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", new Locale("es", "ES"));
+                                                    Date fecha = sdf.parse(fechaCita);
+                                                    if (fecha != null &&
+                                                            fecha.getTime() >= hoy.getTimeInMillis() &&
+                                                            fecha.getTime() <= finDia.getTimeInMillis()) {
+                                                        totalCitasHoy[0]++;
+                                                    }
+                                                } catch (ParseException e) {
+                                                    Log.e(TAG, "Error parseando fecha: " + fechaCita, e);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    procesadas[0]++;
+
+                                    if (procesadas[0] == totalActividades) {
+                                        BadgeManager.updateBadge(bottomNavigation, R.id.nav_activities_list, totalCitasNoConfirmadas[0]);
+                                        if (totalCitasHoy[0] > 0) {
+                                            BadgeManager.showBadge(bottomNavigation, R.id.nav_calendar, totalCitasHoy[0]);
+                                        } else {
+                                            BadgeManager.hideBadge(bottomNavigation, R.id.nav_calendar);
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error al cargar citas de actividad " + actividadId, e);
+                                    procesadas[0]++;
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar actividades para badges", e);
                 });
     }
+
 
     private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
@@ -302,7 +354,18 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_calendar) {
-                selectedFragment = new CalendarioFragment();
+                boolean puedeCrear = UserSession.getInstance().puede("crear_actividades");
+                boolean puedeEliminar = UserSession.getInstance().puede("eliminar_actividades");
+                boolean puedeVerTodas = UserSession.getInstance().puede("ver_todas_actividades");
+
+                Bundle args = new Bundle();
+                args.putBoolean("puedeCrear", puedeCrear);
+                args.putBoolean("puedeEliminar", puedeEliminar);
+                args.putBoolean("puedeVerTodas", puedeVerTodas);
+
+                CalendarioFragment calendarioFragment = new CalendarioFragment();
+                calendarioFragment.setArguments(args);
+                selectedFragment = calendarioFragment;
                 title = "Calendario";
 
             } else if (itemId == R.id.nav_activities_list) {
@@ -313,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new MantenedoresFragment();
                 title = "Mantenedores";
 
-                if (!"admin".equals(rolUsuario)) {
+                if (!UserSession.getInstance().puede("gestionar_mantenedores")) {
                     AlertManager.showWarningSnackbar(rootView,
                             "⚠️ Solo los administradores pueden gestionar mantenedores");
                 }
@@ -322,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ConfiguracionFragment();
                 title = "Configuración";
 
-                if (!"admin".equals(rolUsuario)) {
+                if (!UserSession.getInstance().puede("gestionar_mantenedores")) {
                     AlertManager.showWarningSnackbar(rootView,
                             "⚠️ Configuración avanzada solo para administradores");
                 }
@@ -369,14 +432,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void cerrarSesion() {
         View rootView = AlertManager.getRootView(this);
-        Log.d(TAG, "Cerrando sesión y limpiando tokens FCM");
+        Log.d(TAG, "Cerrando sesión");
+
+        prefsManager.clearSession();
+        FirebaseAuth.getInstance().signOut();
 
         if (fcmTokenManager != null) {
             fcmTokenManager.eliminarToken();
         }
 
         AlertManager.showInfoSnackbar(rootView, "Sesión cerrada correctamente 👋");
-        finish();
+        redirectToLogin();
     }
 
     @Override

@@ -483,7 +483,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="100dp"
-                android:visibility="gone"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="16dp"
                 app:cardBackgroundColor="@color/blanco"
@@ -505,14 +504,27 @@
                         android:letterSpacing="0.1"
                         android:layout_marginBottom="16dp" />
 
+                    <!-- Mensaje cuando no hay archivos -->
+                    <TextView
+                        android:id="@+id/tv_sin_archivos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No hay archivos adjuntos"
+                        android:textAlignment="center"
+                        android:padding="16dp"
+                        android:visibility="gone"
+                        android:textColor="@color/gris_medio" />
+
                     <!-- RecyclerView para archivos -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv_archivos"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
+                        android:visibility="gone"
                         tools:itemCount="2"
-                        tools:listitem="@layout/item_archivo" />
+                        tools:listitem="@layout/item_archivo"
+                        tools:visibility="visible" />
 
                 </LinearLayout>
 

@@ -8,6 +8,10 @@ public class Cita {
     private String lugarId;
     private String estado;
 
+    // Información adicional de la actividad (nuevos campos)
+    private String actividadNombre;
+    private String tipoActividadId;
+
     public Cita() {}
 
     public Cita(Date fecha, String hora, String lugarId, String estado) {
@@ -48,5 +52,22 @@ public class Cita {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    // Nuevos getters y setters
+    public String getActividadNombre() {
+        return actividadNombre;
+    }
+
+    public void setActividadNombre(String actividadNombre) {
+        this.actividadNombre = actividadNombre;
+    }
+
+    public String getTipoActividadId() {
+        return tipoActividadId;
+    }
+
+    public void setTipoActividadId(String tipoActividadId) {
+        this.tipoActividadId = tipoActividadId;
     }
 }

@@ -2,29 +2,29 @@ package com.example.centrointegralalerce.ui;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
-
-// IMPORTA Cita desde el paquete correcto:
 import com.example.centrointegralalerce.data.Cita;
-// Si la clase está en data, cambia el import anterior.
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.Date;
 /**
  * Adaptador del calendario con sistema dinámico de filas
  * Solo muestra las horas donde hay citas programadas
@@ -71,7 +71,9 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         }
     }
 
-    private String safe(String s) { return s == null ? "" : s; }
+    private String safe(String s) {
+        return s == null ? "" : s;
+    }
 
     /**
      * Actualiza la lista de citas y refresca la vista
@@ -98,18 +100,21 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
             clearCells(holder);
 
+            // DEBUG: Marcar cada celda con su número de columna (solo primera fila)
+
             int citasEncontradas = 0;
             for (Cita cita : citas) {
                 if (cita == null) continue;
 
-                // Validación de hora
                 String horaCita = cita.getHora();
                 if (horaCita == null) continue;
 
-                // Comparación exacta de hora
                 if (horaCita.equals(horaActual)) {
                     citasEncontradas++;
                     agregarCitaACelda(holder, cita);
+
+                    // 🔥 NUEVO: RESALTAR VISUALMENTE EL ENCABEZADO CORRECTO
+                    resaltarEncabezadoDia(cita.getFecha());
                 }
             }
 
@@ -122,6 +127,26 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         }
     }
 
+    // 🔥 NUEVO MÉTODO: Resaltar el encabezado del día donde está la cita
+    private void resaltarEncabezadoDia(Date fechaCita) {
+        try {
+            if (fechaCita == null) return;
+
+            int diaSemanaIndex = calcularDiaSemanaIndex(fechaCita);
+            Log.d(TAG, "🎯 RESALTANDO encabezado para día: " + diaSemanaIndex);
+
+            // Necesitamos acceso a los encabezados - esto requiere modificar el constructor
+            // Por ahora, solo log para debug
+            Log.d(TAG, "⚠️ Cita en día " + diaSemanaIndex + " pero indicador visual puede estar en otro día");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error resaltando encabezado", e);
+        }
+    }
+
+    // Método para marcar visualmente cada columna con su número
+
+
     @Override
     public int getItemCount() {
         return horas.size();
@@ -129,63 +154,98 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
     private void clearCells(HourViewHolder holder) {
         try {
-            holder.cellLun.removeAllViews();
-            holder.cellMar.removeAllViews();
-            holder.cellMie.removeAllViews();
-            holder.cellJue.removeAllViews();
-            holder.cellVie.removeAllViews();
-            holder.cellSab.removeAllViews();
-            holder.cellDom.removeAllViews();
+            // Limpiar SOLO las vistas de cita, no los debug markers
+            clearCitasDeCeldas(holder.cellLun);
+            clearCitasDeCeldas(holder.cellMar);
+            clearCitasDeCeldas(holder.cellMie);
+            clearCitasDeCeldas(holder.cellJue);
+            clearCitasDeCeldas(holder.cellVie);
+            clearCitasDeCeldas(holder.cellSab);
+            clearCitasDeCeldas(holder.cellDom);
         } catch (Exception e) {
             Log.e(TAG, "Error al limpiar celdas: " + e.getMessage(), e);
         }
     }
+    private void clearCitasDeCeldas(LinearLayout celda) {
+        if (celda == null) return;
 
+        // Eliminar solo las vistas que no son debug markers (las que no tienen texto rojo)
+        for (int i = celda.getChildCount() - 1; i >= 0; i--) {
+            View child = celda.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView textView = (TextView) child;
+                // Mantener los debug markers (texto rojo pequeño)
+                if (textView.getCurrentTextColor() != Color.RED || textView.getTextSize() > 10f) {
+                    celda.removeViewAt(i);
+                }
+            } else {
+                // Eliminar cualquier otra vista (LinearLayout de citas, etc.)
+                celda.removeViewAt(i);
+            }
+        }
+    }
+
+    /**
+     * AGREGA LA CITA EN LA CELDA CORRECTA + DEBUG VISUAL DE COLUMNAS
+     */
     private void agregarCitaACelda(HourViewHolder holder, Cita cita) {
         try {
-            if (cita == null || cita.getFecha() == null) return;
+            if (cita == null || cita.getFecha() == null) {
+                Log.e(TAG, "❌ Cita o fecha es null");
+                return;
+            }
 
-            // Calcular día de la semana desde la fecha (0=lun ... 6=dom)
-            int diaSemana = calcularDiaSemanaIndex(cita.getFecha());
-            if (diaSemana < 0 || diaSemana > 6) return;
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(cita.getFecha());
+            int diaSemanaIndex = calcularDiaSemanaIndex(cita.getFecha());
 
-            // === Contenedor de la cita ===
+            Log.d(TAG, "🎯 AGREGANDO CITA - Índice: " + diaSemanaIndex + " para fecha: " + cita.getFecha());
+
+            if (diaSemanaIndex < 0 || diaSemanaIndex > 6) {
+                Log.e(TAG, "❌ Índice de día fuera de rango: " + diaSemanaIndex);
+                return;
+            }
+
+            // Crear vista de la cita
             LinearLayout layoutCita = new LinearLayout(context);
             layoutCita.setOrientation(LinearLayout.VERTICAL);
-            layoutCita.setGravity(android.view.Gravity.CENTER);
-            layoutCita.setPadding(16, 16, 16, 16);
+            layoutCita.setGravity(Gravity.CENTER);
+            layoutCita.setPadding(12, 8, 12, 8);
             layoutCita.setBackgroundResource(R.drawable.bg_cita_gradient);
-            layoutCita.setElevation(5f);
-            layoutCita.setClipToOutline(false);
+            layoutCita.setElevation(4f);
 
-            // === Texto principal (usa lugarId o fecha como fallback) ===
+            // Texto principal
             TextView tvTitulo = new TextView(context);
-            String titulo = (cita.getLugarId() != null && !cita.getLugarId().isEmpty())
-                    ? cita.getLugarId()
-                    : new SimpleDateFormat("dd MMM", new Locale("es", "ES"))
-                    .format(cita.getFecha());
+            String titulo = cita.getActividadNombre() != null ? cita.getActividadNombre() : "Actividad";
+            if (titulo.length() > 20) titulo = titulo.substring(0, 17) + "...";
+
             tvTitulo.setText(titulo);
-            tvTitulo.setTextSize(13f);
+            tvTitulo.setTextSize(10f);
             tvTitulo.setTextColor(Color.WHITE);
-            tvTitulo.setTypeface(null, android.graphics.Typeface.BOLD);
-            tvTitulo.setGravity(android.view.Gravity.CENTER);
-            tvTitulo.setShadowLayer(4f, 0f, 2f, Color.parseColor("#66000000"));
+            tvTitulo.setTypeface(null, Typeface.BOLD);
+            tvTitulo.setGravity(Gravity.CENTER);
+
+            // Texto de fecha para debug
+            TextView tvFecha = new TextView(context);
+            tvFecha.setText(cal.get(Calendar.DAY_OF_MONTH) + "/" + (cal.get(Calendar.MONTH) + 1));
+            tvFecha.setTextSize(8f);
+            tvFecha.setTextColor(Color.YELLOW);
+            tvFecha.setGravity(Gravity.CENTER);
+            tvFecha.setTypeface(null, Typeface.BOLD);
 
             layoutCita.addView(tvTitulo);
+            layoutCita.addView(tvFecha);
 
-            // === LayoutParams ===
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
             );
-            params.setMargins(4, 3, 4, 3);
+            params.setMargins(2, 2, 2, 2);
             layoutCita.setLayoutParams(params);
 
-            // === Color del degradado por estado ===
             int colorBase = getColorForEstado(cita.getEstado());
             layoutCita.getBackground().setTint(colorBase);
 
-            // === Click: abrir detalle ===
             layoutCita.setOnClickListener(v -> {
                 try {
                     CitaDetalleDialog dialog = new CitaDetalleDialog(cita);
@@ -195,57 +255,148 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
                 }
             });
 
-            // === Añadir a la celda del día ===
-            LinearLayout celdaDestino = obtenerCeldaPorDia(holder, diaSemana);
+            LinearLayout celdaDestino = obtenerCeldaPorDia(holder, diaSemanaIndex);
             if (celdaDestino != null) {
-                celdaDestino.removeAllViews(); // si deseas múltiples, quita esta línea
+                // NO limpiar aquí - ya se limpió en clearCells()
                 celdaDestino.addView(layoutCita);
+                Log.d(TAG, "✅ Cita agregada SOLO en columna: " + diaSemanaIndex);
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Error al agregar cita: " + e.getMessage(), e);
+            Log.e(TAG, "❌ Error al agregar cita: " + e.getMessage(), e);
         }
     }
 
-    // Calcula índice 0..6 a partir de java.util.Date, con lunes como primer día
-    private int calcularDiaSemanaIndex(java.util.Date fecha) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(fecha);
-        int dow = cal.get(Calendar.DAY_OF_WEEK); // 1=dom..7=sáb
-        // Convertir a 0=lun..6=dom
-        switch (dow) {
-            case Calendar.MONDAY: return 0;
-            case Calendar.TUESDAY: return 1;
-            case Calendar.WEDNESDAY: return 2;
-            case Calendar.THURSDAY: return 3;
-            case Calendar.FRIDAY: return 4;
-            case Calendar.SATURDAY: return 5;
-            case Calendar.SUNDAY: return 6;
-            default: return -1;
+    // Método para debug del orden de celdas
+    private void debugOrdenCeldas(HourViewHolder holder) {
+        try {
+            LinearLayout[] columnas = {
+                    holder.cellLun, holder.cellMar, holder.cellMie,
+                    holder.cellJue, holder.cellVie, holder.cellSab, holder.cellDom
+            };
+
+            String[] nombres = {"LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"};
+
+            Log.d(TAG, "=== 🧭 ORDEN DE CELDAS ===");
+            for (int i = 0; i < columnas.length; i++) {
+                boolean tieneCita = columnas[i].getChildCount() > 0;
+                Log.d(TAG, "Celda " + i + " (" + nombres[i] + "): " +
+                        (tieneCita ? "CON CITA" : "vacía"));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error en debugOrdenCeldas", e);
         }
     }
 
     /**
-     * Paleta de colores basada en estado
+     * DEBUG VISUAL: Marcar cada columna con su número para identificar el orden REAL
      */
+    private void debugColumnas(HourViewHolder holder) {
+        try {
+            LinearLayout[] columnas = {
+                    holder.cellLun, holder.cellMar, holder.cellMie,
+                    holder.cellJue, holder.cellVie, holder.cellSab, holder.cellDom
+            };
+
+            String[] nombres = {"LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"};
+
+            for (int i = 0; i < columnas.length; i++) {
+                if (columnas[i] != null) {
+                    TextView debugView = new TextView(context);
+                    debugView.setText("COL " + i + "\n" + nombres[i]);
+                    debugView.setTextSize(6f); // Más pequeño
+                    debugView.setTextColor(Color.RED);
+                    debugView.setTypeface(null, Typeface.BOLD);
+                    debugView.setGravity(Gravity.CENTER);
+                    debugView.setBackgroundColor(Color.parseColor("#10FF0000")); // Fondo semitransparente
+
+                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    params.gravity = Gravity.TOP;
+                    debugView.setLayoutParams(params);
+
+                    columnas[i].addView(debugView);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error en debugColumnas", e);
+        }
+    }
+
+    private int calcularDiaSemanaIndex(java.util.Date fecha) {
+        try {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(fecha);
+
+            // NO establecer firstDayOfWeek, usar la configuración por defecto
+            int dow = cal.get(Calendar.DAY_OF_WEEK);
+
+            // Calendar.DAY_OF_WEEK:
+            // 1=DOMINGO, 2=LUNES, 3=MARTES, 4=MIÉRCOLES, 5=JUEVES, 6=VIERNES, 7=SÁBADO
+            // Nuestro índice: 0=LUNES, 1=MARTES, 2=MIÉRCOLES, 3=JUEVES, 4=VIERNES, 5=SÁBADO, 6=DOMINGO
+
+            // Mapeo directo:
+            // Calendar LUNES(2) -> nuestro 0, MARTES(3)->1, MIÉRCOLES(4)->2, JUEVES(5)->3,
+            // VIERNES(6)->4, SÁBADO(7)->5, DOMINGO(1)->6
+
+            switch (dow) {
+                case Calendar.MONDAY:     // 2
+                    return 0;
+                case Calendar.TUESDAY:    // 3
+                    return 1;
+                case Calendar.WEDNESDAY:  // 4
+                    return 2;
+                case Calendar.THURSDAY:   // 5
+                    return 3;
+                case Calendar.FRIDAY:     // 6
+                    return 4;
+                case Calendar.SATURDAY:   // 7
+                    return 5;
+                case Calendar.SUNDAY:     // 1
+                    return 6;
+                default:
+                    return -1;
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error calculando día de semana para fecha: " + fecha, e);
+            return -1;
+        }
+    }
+
+    // Método auxiliar para debug
+    private String getDiaNombre(int dayOfWeek) {
+        switch (dayOfWeek) {
+            case Calendar.SUNDAY: return "DOMINGO";
+            case Calendar.MONDAY: return "LUNES";
+            case Calendar.TUESDAY: return "MARTES";
+            case Calendar.WEDNESDAY: return "MIÉRCOLES";
+            case Calendar.THURSDAY: return "JUEVES";
+            case Calendar.FRIDAY: return "VIERNES";
+            case Calendar.SATURDAY: return "SÁBADO";
+            default: return "DESCONOCIDO";
+        }
+    }
+
     private int getColorForEstado(String estado) {
-        int def = Color.parseColor("#2E7D32"); // Verde por defecto
+        int def = Color.parseColor("#2E7D32");
         if (estado == null || estado.trim().isEmpty()) return def;
         String e = estado.trim().toLowerCase(Locale.getDefault());
-
         switch (e) {
             case "activa":
             case "activo":
             case "confirmada":
-                return Color.parseColor("#2E7D32"); // verde
+                return Color.parseColor("#2E7D32");
             case "pendiente":
-                return Color.parseColor("#00796B"); // teal
+                return Color.parseColor("#00796B");
             case "inactiva":
             case "cancelada":
             case "cancelado":
-                return Color.parseColor("#E64A19"); // rojo/naranja
+                return Color.parseColor("#E64A19");
             case "reprogramada":
-                return Color.parseColor("#5E35B1"); // violeta
+                return Color.parseColor("#5E35B1");
             default:
                 return def;
         }

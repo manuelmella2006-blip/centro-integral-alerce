@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Adjuntar Comunicación" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardElevation="4dp"
+            app:cardCornerRadius="8dp"
+            android:layout_marginTop="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Selección de actividad -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/spActividad"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Seleccionar actividad"
+                        android:inputType="none" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Descripción opcional -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDescripcion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Descripción (opcional)"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"
+                        android:gravity="top" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Selección de archivo -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSeleccionarArchivo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Seleccionar archivo"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    app:icon="@drawable/ic_attach_file"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressIndicator"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="false"
+                    android:visibility="gone" />
+
+                <!-- Botón guardar -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGuardar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Guardar archivo"
+                    android:layout_marginTop="16dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</ScrollView>
