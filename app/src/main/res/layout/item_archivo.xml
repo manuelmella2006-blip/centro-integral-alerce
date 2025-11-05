@@ -2,46 +2,115 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginBottom="12dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/blanco">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <!-- Nombre del archivo -->
-        <TextView
-            android:id="@+id/tv_nombre_archivo"
-            android:layout_width="match_parent"
+        <!-- Ícono del archivo -->
+        <ImageView
+            android:id="@+id/iv_icono_archivo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_file"
+            android:padding="10dp"
+            android:background="@drawable/bg_icon_circle"
+            android:backgroundTint="@color/verde_claro"
+            app:tint="@color/verde_santo_tomas"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Contenedor de información del archivo -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:text="Nombre del archivo" />
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <!-- Descripción (opcional) -->
-        <TextView
-            android:id="@+id/tv_descripcion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginTop="4dp"
-            android:text="Descripción del archivo" />
+            <!-- Nombre del archivo -->
+            <TextView
+                android:id="@+id/tv_nombre_archivo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Documento_Importante.pdf"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/gris_oscuro"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="Informe_Actividad_2024.pdf" />
 
-        <!-- Botón para abrir -->
+            <!-- Descripción (opcional) -->
+            <TextView
+                android:id="@+id/tv_descripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Descripción del archivo adjunto"
+                android:textSize="13sp"
+                android:textColor="@color/gris_medio"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:visibility="visible"
+                tools:text="Informe detallado de la actividad" />
+
+            <!-- Información adicional (fecha, tamaño) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="@color/gris_medio"
+                    android:layout_marginEnd="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_fecha_subida"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hace 2 días"
+                    android:textSize="11sp"
+                    android:textColor="@color/gris_medio"
+                    tools:text="15/10/2024" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Botón descargar/abrir -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_descargar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Abrir archivo"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            app:icon="@drawable/ic_file_download" />
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:text="Abrir"
+            android:textSize="13sp"
+            android:textAllCaps="false"
+            android:textColor="@color/verde_santo_tomas"
+            app:icon="@drawable/ic_download"
+            app:iconGravity="textStart"
+            app:iconSize="20dp"
+            app:iconTint="@color/verde_santo_tomas"
+            app:strokeColor="@color/verde_santo_tomas"
+            app:strokeWidth="1dp"
+            app:cornerRadius="10dp" />
 
     </LinearLayout>
 
