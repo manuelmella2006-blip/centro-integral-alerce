@@ -11,12 +11,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.centrointegralalerce.R;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class RecoverPasswordActivity extends AppCompatActivity {
 
-    private EditText etEmailRecover;
-    private Button btnSendRecovery;
+    private TextInputEditText etEmailRecover;
+    private MaterialButton btnSendRecovery;
+    private MaterialButton btnVolverLogin;
     private FirebaseAuth mAuth;
 
     @Override
@@ -24,12 +28,26 @@ public class RecoverPasswordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recover_password);
 
+        // Configurar toolbar con botón de retroceso
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
+
+        // Referencias UI
         etEmailRecover = findViewById(R.id.etEmailRecover);
         btnSendRecovery = findViewById(R.id.btnSendRecovery);
+        btnVolverLogin = findViewById(R.id.btnVolverLogin);
 
         mAuth = FirebaseAuth.getInstance();
 
+        // Listener para enviar email
         btnSendRecovery.setOnClickListener(this::sendRecoveryEmail);
+
+        // Listener para volver al login
+        if (btnVolverLogin != null) {
+            btnVolverLogin.setOnClickListener(v -> finish());
+        }
     }
 
     private void sendRecoveryEmail(View v) {
@@ -40,12 +58,30 @@ public class RecoverPasswordActivity extends AppCompatActivity {
             return;
         }
 
+        // Validación básica de formato email
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Por favor ingresa un correo válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Deshabilitar botón mientras procesa
+        btnSendRecovery.setEnabled(false);
+        btnSendRecovery.setText("Enviando...");
+
         mAuth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
+            // Rehabilitar botón
+            btnSendRecovery.setEnabled(true);
+            btnSendRecovery.setText("Enviar Email de Recuperación");
+
             if(task.isSuccessful()) {
-                Toast.makeText(this, "Email de recuperación enviado", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "✅ Email de recuperación enviado. Revisa tu bandeja de entrada.",
+                        Toast.LENGTH_LONG).show();
                 finish(); // Regresa al login
             } else {
-                Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                String errorMsg = task.getException() != null
+                        ? task.getException().getMessage()
+                        : "Error desconocido";
+                Toast.makeText(this, "❌ Error: " + errorMsg, Toast.LENGTH_LONG).show();
             }
         });
     }

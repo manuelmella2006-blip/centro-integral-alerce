@@ -13,7 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.centrointegralalerce.R;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ArchivosAdapter extends RecyclerView.Adapter<ArchivosAdapter.ArchivoViewHolder> {
@@ -51,12 +54,14 @@ public class ArchivosAdapter extends RecyclerView.Adapter<ArchivosAdapter.Archiv
     static class ArchivoViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvNombreArchivo;
         private final TextView tvDescripcion;
+        private final TextView tvFechaSubida;
         private final MaterialButton btnDescargar;
 
         public ArchivoViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombreArchivo = itemView.findViewById(R.id.tv_nombre_archivo);
             tvDescripcion = itemView.findViewById(R.id.tv_descripcion);
+            tvFechaSubida = itemView.findViewById(R.id.tv_fecha_subida);
             btnDescargar = itemView.findViewById(R.id.btn_descargar);
         }
 
@@ -72,6 +77,18 @@ public class ArchivosAdapter extends RecyclerView.Adapter<ArchivosAdapter.Archiv
                 tvDescripcion.setVisibility(View.VISIBLE);
             } else {
                 tvDescripcion.setVisibility(View.GONE);
+            }
+
+            // 🔥 NUEVO: Mostrar fecha de subida
+            Long timestamp = (Long) archivo.get("fechaSubida");
+            if (timestamp != null && tvFechaSubida != null) {
+                String fechaFormateada = formatearFecha(timestamp);
+                tvFechaSubida.setText(fechaFormateada);
+                tvFechaSubida.setVisibility(View.VISIBLE);
+            } else {
+                if (tvFechaSubida != null) {
+                    tvFechaSubida.setVisibility(View.GONE);
+                }
             }
 
             // Botón para abrir el archivo
@@ -92,6 +109,27 @@ public class ArchivosAdapter extends RecyclerView.Adapter<ArchivosAdapter.Archiv
                     }
                 }
             });
+        }
+
+        // 🔥 NUEVO: Método helper para formatear fechas de forma inteligente
+        private String formatearFecha(long timestamp) {
+            long diferencia = System.currentTimeMillis() - timestamp;
+            long dias = diferencia / (1000 * 60 * 60 * 24);
+
+            if (dias == 0) {
+                return "Hoy";
+            } else if (dias == 1) {
+                return "Ayer";
+            } else if (dias < 7) {
+                return "Hace " + dias + " días";
+            } else if (dias < 30) {
+                long semanas = dias / 7;
+                return "Hace " + semanas + (semanas == 1 ? " semana" : " semanas");
+            } else {
+                // Para fechas más antiguas, mostrar fecha completa
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                return sdf.format(new Date(timestamp));
+            }
         }
     }
 }
