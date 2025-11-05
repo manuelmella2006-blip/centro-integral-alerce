@@ -1,98 +1,259 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/gris_claro">
 
-    <LinearLayout
+    <!-- AppBar con Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@color/verde_santo_tomas"
+        android:theme="@style/ThemeOverlay.Material3.Dark">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:title="Adjuntar Comunicación" />
+            android:background="@color/verde_santo_tomas"
+            app:title="Adjuntar Comunicación"
+            app:titleTextColor="@color/blanco"
+            app:navigationIcon="@drawable/ic_chevron_left"
+            app:navigationIconTint="@color/blanco" />
 
-        <com.google.android.material.card.MaterialCardView
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Contenido Scrolleable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardElevation="4dp"
-            app:cardCornerRadius="8dp"
-            android:layout_marginTop="16dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <LinearLayout
+            <!-- Header Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginBottom="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/verde_santo_tomas">
 
-                <!-- Selección de actividad -->
-                <com.google.android.material.textfield.TextInputLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:hintEnabled="false"
-                    android:layout_marginBottom="16dp">
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spActividad"
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_attach_file"
+                        android:padding="8dp"
+                        android:background="@drawable/bg_icon_circle"
+                        android:backgroundTint="@color/verde_secundario"
+                        app:tint="@color/blanco" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Adjuntar Archivo"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/blanco" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sube documentación relacionada"
+                            android:textSize="13sp"
+                            android:textColor="@color/verde_claro"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Principal del Formulario -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Sección: Selección de Actividad -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ACTIVIDAD"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Selección de actividad -->
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
                         android:hint="Seleccionar actividad"
-                        android:inputType="none" />
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:startIconDrawable="@drawable/ic_file"
+                        app:startIconTint="@color/verde_santo_tomas"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spActividad"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
 
-                <!-- Descripción opcional -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:hintEnabled="false"
-                    android:layout_marginBottom="16dp">
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etDescripcion"
+                    <!-- Sección: Descripción Opcional -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DESCRIPCIÓN (OPCIONAL)"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Descripción opcional -->
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Descripción (opcional)"
-                        android:inputType="textMultiLine"
-                        android:minLines="3"
-                        android:gravity="top" />
+                        android:layout_marginBottom="24dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:helperText="Agrega notas o contexto del archivo"
+                        app:helperTextTextColor="@color/gris_medio"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDescripcion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Descripción del archivo"
+                            android:inputType="textMultiLine|textCapSentences"
+                            android:minLines="3"
+                            android:maxLines="5"
+                            android:gravity="top|start"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro" />
 
-                <!-- Selección de archivo -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSeleccionarArchivo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Seleccionar archivo"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    app:icon="@drawable/ic_attach_file"
-                    android:layout_marginBottom="8dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/progressIndicator"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="false"
-                    android:visibility="gone" />
+                    <!-- Sección: Selección de Archivo -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ARCHIVO"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
 
-                <!-- Botón guardar -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGuardar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Guardar archivo"
-                    android:layout_marginTop="16dp" />
+                    <!-- Botón Seleccionar Archivo -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSeleccionarArchivo"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Seleccionar archivo"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_attach_file"
+                        app:iconGravity="textStart"
+                        app:iconSize="24dp"
+                        app:cornerRadius="12dp"
+                        app:strokeColor="@color/verde_santo_tomas"
+                        app:strokeWidth="2dp"
+                        android:textColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_marginBottom="8dp" />
 
-            </LinearLayout>
+                    <!-- ProgressBar -->
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/progressIndicator"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="false"
+                        android:visibility="gone"
+                        app:indicatorColor="@color/verde_santo_tomas"
+                        app:trackColor="@color/verde_claro"
+                        app:trackCornerRadius="4dp"
+                        app:trackThickness="8dp" />
 
-        </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
 
-    </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-</ScrollView>
+            <!-- Botón Guardar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Guardar Archivo"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconSize="24dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/verde_santo_tomas"
+                android:elevation="4dp"
+                style="@style/Widget.Material3.Button" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

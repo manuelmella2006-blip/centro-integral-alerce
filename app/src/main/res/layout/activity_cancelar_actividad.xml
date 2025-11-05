@@ -1,77 +1,258 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".ui.CancelarActividadActivity">
+    android:background="@color/gris_claro">
 
-    <LinearLayout
+    <!-- AppBar con Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@color/rojo_error"
+        android:theme="@style/ThemeOverlay.Material3.Dark">
 
-        <!-- Toolbar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:navigationIcon="@drawable/ic_arrow_back"
+            android:background="@color/rojo_error"
             app:title="Cancelar Actividad"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@color/blanco"
+            app:navigationIcon="@drawable/ic_chevron_left"
+            app:navigationIconTint="@color/blanco" />
 
-        <!-- Spinner para seleccionar actividad -->
-        <com.google.android.material.textfield.TextInputLayout
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Contenido Scrolleable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:hintEnabled="false"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/spActividad"
+            <!-- Header Card de Advertencia -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Seleccionar actividad"
-                android:inputType="none" />
+                android:layout_marginBottom="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/rojo_error">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
 
-        <!-- Campo para motivo de cancelación -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilMotivo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:hintEnabled="true"
-            app:placeholderText="Ingrese el motivo de la cancelación"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_warning"
+                        android:padding="8dp"
+                        android:background="@drawable/bg_icon_circle"
+                        android:backgroundTint="#C62828"
+                        app:tint="@color/blanco" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etMotivo"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cancelar Actividad"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/blanco" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Esta acción no se puede deshacer"
+                            android:textSize="13sp"
+                            android:textColor="#FFCDD2"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Principal del Formulario -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:gravity="top"
-                android:inputType="textMultiLine"
-                android:lines="4"
-                android:maxLines="5"
-                android:scrollbars="vertical" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-        <!-- Botón para cancelar actividad -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancelarActividad"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Cancelar Actividad"
-            app:icon="@drawable/ic_cancel"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:backgroundTint="@color/error_color" />
+                    <!-- Sección: Selección de Actividad -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ACTIVIDAD A CANCELAR"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/rojo_error"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
 
-    </LinearLayout>
+                    <!-- Selección de actividad -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:hint="Seleccionar actividad"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:startIconDrawable="@drawable/ic_file"
+                        app:startIconTint="@color/rojo_error"
+                        app:boxStrokeColor="@color/rojo_error"
+                        app:hintTextColor="@color/rojo_error"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-</ScrollView>
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spActividad"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Sección: Motivo de Cancelación -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MOTIVO DE CANCELACIÓN"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/rojo_error"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Motivo de cancelación -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilMotivo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:helperText="Explica por qué se cancela la actividad"
+                        app:helperTextTextColor="@color/gris_medio"
+                        app:boxStrokeColor="@color/rojo_error"
+                        app:hintTextColor="@color/rojo_error"
+                        app:counterEnabled="true"
+                        app:counterMaxLength="500"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etMotivo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Motivo de la cancelación"
+                            android:inputType="textMultiLine|textCapSentences"
+                            android:minLines="4"
+                            android:maxLines="6"
+                            android:maxLength="500"
+                            android:gravity="top|start"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card de Información -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="#FFF3E0">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_warning"
+                        app:tint="@color/amarillo_advertencia" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:text="Al cancelar, todas las citas asociadas también serán canceladas"
+                        android:textSize="14sp"
+                        android:textColor="@color/gris_oscuro"
+                        android:lineSpacingExtra="2dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Botón Cancelar Actividad -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelarActividad"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Cancelar Actividad"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_cancel"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconSize="24dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/rojo_error"
+                android:elevation="4dp"
+                style="@style/Widget.Material3.Button" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
