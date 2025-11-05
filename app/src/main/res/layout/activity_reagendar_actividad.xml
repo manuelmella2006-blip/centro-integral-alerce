@@ -1,140 +1,323 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/gris_claro">
 
-    <LinearLayout
+    <!-- AppBar con Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@color/amarillo_advertencia"
+        android:theme="@style/ThemeOverlay.Material3.Dark">
 
-        <!-- Actividad a reagendar -->
-        <com.google.android.material.textview.MaterialTextView
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Actividad a reagendar:"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/amarillo_advertencia"
+            app:title="Reagendar Actividad"
+            app:titleTextColor="@color/blanco"
+            app:navigationIcon="@drawable/ic_chevron_left"
+            app:navigationIconTint="@color/blanco" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardElevation="2dp"
-            app:cardCornerRadius="8dp"
-            android:layout_marginBottom="16dp">
+    </com.google.android.material.appbar.AppBarLayout>
 
-            <TextView
-                android:id="@+id/tv_actividad_nombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:text="Cargando..."
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textStyle="bold" />
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Motivo del cambio -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:boxCornerRadiusTopStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusBottomEnd="8dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_motivo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Motivo del cambio de fecha"
-                android:inputType="textMultiLine"
-                android:minLines="3"
-                android:gravity="top" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Nueva fecha y hora de INICIO -->
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nueva fecha y hora de inicio:"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:layout_marginBottom="8dp" />
+    <!-- Contenido Scrolleable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <Button
-                android:id="@+id/btn_nueva_fecha_inicio"
-                android:layout_width="0dp"
+            <!-- Header Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Fecha inicio"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                android:layout_marginBottom="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/amarillo_advertencia">
 
-            <Button
-                android:id="@+id/btn_nueva_hora_inicio"
-                android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_calendar"
+                        android:padding="8dp"
+                        android:background="@drawable/bg_icon_circle"
+                        android:backgroundTint="@color/amarillo_oscuro"
+                        app:tint="@color/blanco" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Reagendar Actividad"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/blanco" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Modifica la fecha y hora de la actividad"
+                            android:textSize="13sp"
+                            android:textColor="@color/blanco"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Actividad Actual -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Hora inicio"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ACTIVIDAD A REAGENDAR"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/amarillo_advertencia"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:id="@+id/tv_actividad_nombre"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Cargando..."
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gris_oscuro"
+                        android:padding="12dp"
+                        android:background="@color/gris_claro" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Formulario -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Motivo del Cambio -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MOTIVO DEL CAMBIO"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/amarillo_advertencia"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:helperText="Explica el motivo del reagendamiento"
+                        app:helperTextTextColor="@color/gris_medio"
+                        app:boxStrokeColor="@color/amarillo_advertencia"
+                        app:hintTextColor="@color/amarillo_advertencia"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_motivo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Motivo del cambio de fecha"
+                            android:inputType="textMultiLine|textCapSentences"
+                            android:minLines="3"
+                            android:maxLines="5"
+                            android:gravity="top|start"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Nueva Fecha de Inicio -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NUEVA FECHA Y HORA DE INICIO"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/amarillo_advertencia"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="24dp"
+                        android:weightSum="2">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_nueva_fecha_inicio"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:text="Fecha inicio"
+                            android:textSize="14sp"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_calendar"
+                            app:iconGravity="textStart"
+                            app:strokeColor="@color/amarillo_advertencia"
+                            app:strokeWidth="2dp"
+                            android:textColor="@color/amarillo_advertencia"
+                            app:cornerRadius="12dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_nueva_hora_inicio"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="Hora inicio"
+                            android:textSize="14sp"
+                            android:textAllCaps="false"
+                            app:icon="@android:drawable/ic_menu_recent_history"
+                            app:iconGravity="textStart"
+                            app:strokeColor="@color/amarillo_advertencia"
+                            app:strokeWidth="2dp"
+                            android:textColor="@color/amarillo_advertencia"
+                            app:cornerRadius="12dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    </LinearLayout>
+
+                    <!-- Nueva Fecha de Término -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NUEVA FECHA Y HORA DE TÉRMINO"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/amarillo_advertencia"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_nueva_fecha_termino"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:text="Fecha término"
+                            android:textSize="14sp"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_calendar"
+                            app:iconGravity="textStart"
+                            app:strokeColor="@color/amarillo_advertencia"
+                            app:strokeWidth="2dp"
+                            android:textColor="@color/amarillo_advertencia"
+                            app:cornerRadius="12dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_nueva_hora_termino"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="Hora término"
+                            android:textSize="14sp"
+                            android:textAllCaps="false"
+                            app:icon="@android:drawable/ic_menu_recent_history"
+                            app:iconGravity="textStart"
+                            app:strokeColor="@color/amarillo_advertencia"
+                            app:strokeWidth="2dp"
+                            android:textColor="@color/amarillo_advertencia"
+                            app:cornerRadius="12dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Botón Guardar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_guardar_nueva_fecha"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Guardar Nueva Fecha"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconSize="24dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/amarillo_advertencia"
+                android:textColor="@color/gris_oscuro"
+                android:elevation="4dp"
+                style="@style/Widget.Material3.Button" />
 
         </LinearLayout>
 
-        <!-- Nueva fecha y hora de TÉRMINO -->
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nueva fecha y hora de término:"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:layout_marginBottom="8dp" />
+    </androidx.core.widget.NestedScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <Button
-                android:id="@+id/btn_nueva_fecha_termino"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Fecha término"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
-
-            <Button
-                android:id="@+id/btn_nueva_hora_termino"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Hora término"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
-
-        </LinearLayout>
-
-        <!-- Botón guardar -->
-        <Button
-            android:id="@+id/btn_guardar_nueva_fecha"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Guardar nueva fecha"
-            style="@style/Widget.Material3.Button"
-            android:layout_marginTop="16dp" />
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
