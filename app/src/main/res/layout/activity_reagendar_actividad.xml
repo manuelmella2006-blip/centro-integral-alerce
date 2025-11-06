@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/gris_claro">
 
-    <!-- AppBar con Toolbar -->
+    <!-- AppBar con Toolbar AMARILLO -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Header Card -->
+            <!-- Header Card AMARILLO -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -306,13 +306,13 @@
                 android:text="Guardar Nueva Fecha"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:icon="@drawable/ic_check"
+                app:icon="@android:drawable/ic_menu_save"
                 app:iconGravity="textStart"
                 app:iconPadding="12dp"
                 app:iconSize="24dp"
                 app:cornerRadius="12dp"
                 app:backgroundTint="@color/amarillo_advertencia"
-                android:textColor="@color/gris_oscuro"
+                android:textColor="@color/blanco"
                 android:elevation="4dp"
                 style="@style/Widget.Material3.Button" />
 

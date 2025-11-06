@@ -16,12 +16,11 @@ import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
 import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.example.centrointegralalerce.firebase.FirestoreRepository;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -41,7 +40,7 @@ public class ModificarActividadActivity extends AppCompatActivity {
     private Button btnFechaInicio, btnHoraInicio, btnFechaTermino, btnHoraTermino;
 
     // Acciones finales
-    private Button btnGuardarCambios, btnCancelarActividad, btnReagendarActividad;
+    private Button btnGuardarCambios, btnVolverAtras, btnReagendarActividad;
 
     private LinearLayout llDiasSemana;
     private CheckBox cbLunes, cbMartes, cbMiercoles, cbJueves, cbViernes, cbSabado, cbDomingo;
@@ -67,12 +66,21 @@ public class ModificarActividadActivity extends AppCompatActivity {
     private String actividadId;
     private Actividad actividadActual;
 
+    // 🔥 NUEVO: Variable para detectar si hubo cambios
+    private boolean hayCambiosSinGuardar = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_modificar_actividad);
 
         db = FirebaseFirestore.getInstance();
+
+        // 🔥 NUEVO: Configurar toolbar con botón de retroceso
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> handleBackPress());
+        }
 
         // ==== Obtener ID de la actividad ====
         actividadId = getIntent().getStringExtra("actividadId");
@@ -97,7 +105,7 @@ public class ModificarActividadActivity extends AppCompatActivity {
         btnFechaTermino = findViewById(R.id.btnFechaTermino);
         btnHoraTermino = findViewById(R.id.btnHoraTermino);
         btnGuardarCambios = findViewById(R.id.btnGuardarCambios);
-        btnCancelarActividad = findViewById(R.id.btnCancelarActividad);
+        btnVolverAtras = findViewById(R.id.btnVolverAtras);
         btnReagendarActividad = findViewById(R.id.btnReagendarActividad);
         llDiasSemana = findViewById(R.id.llDiasSemana);
         cbLunes = findViewById(R.id.cbLunes);
@@ -125,36 +133,15 @@ public class ModificarActividadActivity extends AppCompatActivity {
         // Cargar datos de la actividad
         cargarActividad(actividadId);
 
+        // 🔥 NUEVO: Detectar cambios en los campos
+        setupChangeDetection();
+
         btnGuardarCambios.setOnClickListener(v -> guardarCambios());
 
-        btnCancelarActividad.setOnClickListener(v -> {
-            // ✅ Si existe una actividad cargada, abre CancelarActividadActivity
-            if (actividadActual != null) {
-                Intent intent = new Intent(ModificarActividadActivity.this, CancelarActividadActivity.class);
-                intent.putExtra("actividadId", actividadId);
-                intent.putExtra("nombreActividad", actividadActual.getNombre());
-                startActivity(intent);
-            } else {
-                // Si no hay actividad cargada, muestra el diálogo de confirmación tradicional
-                AlertManager.showDestructiveDialog(
-                        this,
-                        "Cancelar modificación",
-                        "¿Seguro que quieres descartar los cambios? Se perderán las modificaciones no guardadas.",
-                        "Sí, salir",
-                        new AlertManager.OnConfirmListener() {
-                            @Override
-                            public void onConfirm() {
-                                finish();
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                AlertManager.showInfoToast(ModificarActividadActivity.this, "Continuas editando la actividad");
-                            }
-                        }
-                );
-            }
-        });
+        // 🔥 NUEVO: Botón "Volver" con validación de cambios
+        if (btnVolverAtras != null) {
+            btnVolverAtras.setOnClickListener(v -> handleBackPress());
+        }
 
         btnReagendarActividad.setOnClickListener(v -> {
             if (actividadActual != null) {
@@ -163,7 +150,58 @@ public class ModificarActividadActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
 
+    // 🔥 NUEVO: Configurar detección de cambios
+    private void setupChangeDetection() {
+        // TextWatcher para detectar cambios en los campos de texto
+        android.text.TextWatcher textWatcher = new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                hayCambiosSinGuardar = true;
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        };
+
+        etNombreActividad.addTextChangedListener(textWatcher);
+        etCupo.addTextChangedListener(textWatcher);
+        etDiasAvisoPrevio.addTextChangedListener(textWatcher);
+    }
+
+    // 🔥 NUEVO: Manejar botón de retroceso con validación
+    private void handleBackPress() {
+        if (hayCambiosSinGuardar) {
+            AlertManager.showDestructiveDialog(
+                    this,
+                    "Cambios sin guardar",
+                    "Tienes modificaciones sin guardar. ¿Estás seguro que deseas salir?",
+                    "Sí, salir",
+                    new AlertManager.OnConfirmListener() {
+                        @Override
+                        public void onConfirm() {
+                            finish();
+                        }
+
+                        @Override
+                        public void onCancel() {
+                            AlertManager.showInfoToast(ModificarActividadActivity.this, "Continúa editando");
+                        }
+                    }
+            );
+        } else {
+            finish();
+        }
+    }
+
+    // 🔥 NUEVO: Override del botón físico de retroceso
+    @Override
+    public void onBackPressed() {
+        handleBackPress();
     }
 
     private void setupEmptyAdapters() {
@@ -197,6 +235,7 @@ public class ModificarActividadActivity extends AppCompatActivity {
             llDiasSemana.setVisibility(
                     periodicidad.equalsIgnoreCase("Periódica") ? View.VISIBLE : View.GONE
             );
+            hayCambiosSinGuardar = true; // Detectar cambio
         });
     }
 
@@ -289,6 +328,9 @@ public class ModificarActividadActivity extends AppCompatActivity {
         seleccionarEnDropdown(spSocioComunitario, sociosList, socioIds, actividadActual.getSocioComunitarioId());
         seleccionarEnDropdown(spProyecto, proyectosList, proyectoIds, actividadActual.getProyectoId());
         seleccionarEnDropdown(spLugar, lugaresList, lugarIds, actividadActual.getLugarId());
+
+        // Resetear flag después de cargar datos iniciales
+        hayCambiosSinGuardar = false;
     }
 
     private void seleccionarEnDropdown(MaterialAutoCompleteTextView dropdown, List<String> nombres, List<String> ids, String idBuscado) {
@@ -312,6 +354,7 @@ public class ModificarActividadActivity extends AppCompatActivity {
         new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             String fecha = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year);
             target.setText(fecha);
+            hayCambiosSinGuardar = true; // Detectar cambio
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
@@ -320,6 +363,7 @@ public class ModificarActividadActivity extends AppCompatActivity {
         new TimePickerDialog(this, (view, hour, minute) -> {
             String hora = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
             target.setText(hora);
+            hayCambiosSinGuardar = true; // Detectar cambio
         }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();
     }
 
@@ -374,11 +418,12 @@ public class ModificarActividadActivity extends AppCompatActivity {
                 .document(actividadId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Actividad actualizada correctamente", Toast.LENGTH_SHORT).show();
+                    hayCambiosSinGuardar = false; // Resetear flag
+                    Toast.makeText(this, "✅ Actividad actualizada correctamente", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al actualizar: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "❌ Error al actualizar: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 

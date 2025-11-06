@@ -1,693 +1,719 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gris_claro"
-    android:fillViewport="true">
+    android:background="@color/gris_claro">
 
-    <LinearLayout
+    <!-- AppBar VERDE con Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="80dp">
+        android:background="@color/verde_santo_tomas"
+        android:theme="@style/ThemeOverlay.Material3.Dark">
 
-        <!-- Header Card -->
-        <com.google.android.material.card.MaterialCardView
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/verde_santo_tomas"
+            app:title="Modificar Actividad"
+            app:titleTextColor="@color/blanco"
+            app:navigationIcon="@drawable/ic_chevron_left"
+            app:navigationIconTint="@color/blanco" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Contenido Scrolleable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardElevation="4dp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="@color/amarillo_advertencia">
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:paddingBottom="100dp">
 
-            <LinearLayout
+            <!-- Header Card VERDE -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="20dp"
-                android:gravity="center_vertical">
+                android:layout_marginBottom="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/verde_santo_tomas">
 
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_settings"
-                    android:padding="8dp"
-                    android:background="@drawable/bg_icon_circle"
-                    android:backgroundTint="@color/amarillo_oscuro"
-                    app:tint="@color/blanco" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="16dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Modificar Actividad"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/blanco" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Edite los datos que necesite cambiar"
-                        android:textSize="13sp"
-                        android:textColor="@color/amarillo_claro"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Card Principal del Formulario -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardElevation="2dp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="@color/blanco">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <!-- Sección: Información Básica -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="INFORMACIÓN BÁSICA"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/verde_santo_tomas"
-                    android:letterSpacing="0.1"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Campo Nombre Actividad -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:startIconDrawable="@drawable/ic_file"
-                    app:startIconTint="@color/verde_santo_tomas"
-                    app:helperText="Nombre descriptivo de la actividad"
-                    app:helperTextTextColor="@color/gris_medio"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etNombreActividad"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Nombre de la actividad"
-                        android:inputType="textCapSentences"
-                        android:maxLines="2"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Tipo de Actividad -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Tipo de Actividad"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spTipoActividad"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Periodicidad -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Periodicidad"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spPeriodicidad"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Row: Cupo y Días Aviso -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="16dp"
-                    android:weightSum="2">
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        app:boxBackgroundMode="outline"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
-                        app:helperText="Capacidad"
-                        app:helperTextTextColor="@color/gris_medio"
-                        app:boxStrokeColor="@color/verde_santo_tomas"
-                        app:hintTextColor="@color/verde_santo_tomas"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etCupo"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Cupo"
-                            android:inputType="number"
-                            android:maxLines="1"
-                            android:textSize="16sp"
-                            android:textColor="@color/gris_oscuro" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        app:boxBackgroundMode="outline"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
-                        app:helperText="Días previos"
-                        app:helperTextTextColor="@color/gris_medio"
-                        app:boxStrokeColor="@color/verde_santo_tomas"
-                        app:hintTextColor="@color/verde_santo_tomas"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etDiasAvisoPrevio"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Días aviso"
-                            android:inputType="number"
-                            android:maxLines="1"
-                            android:textSize="16sp"
-                            android:textColor="@color/gris_oscuro" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
-
-                <!-- Sección: Participantes -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="PARTICIPANTES Y COLABORADORES"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/verde_santo_tomas"
-                    android:letterSpacing="0.1"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Oferente -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Oferente"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spOferente"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Socio Comunitario -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Socio Comunitario"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView                        android:id="@+id/spSocioComunitario"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Proyecto -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Proyecto (Opcional)"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView                        android:id="@+id/spProyecto"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Sección: Ubicación y Horarios -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="UBICACIÓN Y HORARIOS"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/verde_santo_tomas"
-                    android:letterSpacing="0.1"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Lugar -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:hint="Lugar"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/verde_santo_tomas"
-                    app:hintTextColor="@color/verde_santo_tomas"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView                        android:id="@+id/spLugar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:textSize="16sp"
-                        android:textColor="@color/gris_oscuro"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- ====== BLOQUE INICIO ====== -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Inicio"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/gris_oscuro"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- contenedor para simular borde gris -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/gris_borde"
-                    android:padding="1dp"
-                    android:layout_marginBottom="20dp">
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="12dp"
-                        app:cardBackgroundColor="@color/blanco"
-                        app:cardElevation="0dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:padding="12dp"
-                            android:gravity="center_vertical"
-                            android:weightSum="2">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnFechaInicio"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:text="Fecha inicio"
-                                android:textAllCaps="false"
-                                android:textColor="@color/verde_santo_tomas"
-                                app:icon="@drawable/ic_calendar"
-                                app:iconGravity="textStart"
-                                app:iconTint="@color/verde_santo_tomas" />
-
-                            <Space
-                                android:layout_width="12dp"
-                                android:layout_height="0dp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnHoraInicio"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:text="Hora inicio"
-                                android:textAllCaps="false"
-                                android:textColor="@color/verde_santo_tomas"
-                                app:icon="@android:drawable/ic_menu_recent_history"
-                                app:iconGravity="textStart"
-                                app:iconTint="@color/verde_santo_tomas" />
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-                </LinearLayout>
-                <!-- ====== FIN BLOQUE INICIO ====== -->
-
-                <!-- ====== BLOQUE TÉRMINO ====== -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Término"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/gris_oscuro"
-                    android:layout_marginBottom="8dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/gris_borde"
-                    android:padding="1dp"
-                    android:layout_marginBottom="24dp">
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="12dp"
-                        app:cardBackgroundColor="@color/blanco"
-                        app:cardElevation="0dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:padding="12dp"
-                            android:gravity="center_vertical"
-                            android:weightSum="2">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnFechaTermino"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:text="Fecha término"
-                                android:textAllCaps="false"
-                                android:textColor="@color/verde_santo_tomas"
-                                app:icon="@drawable/ic_calendar"
-                                app:iconGravity="textStart"
-                                app:iconTint="@color/verde_santo_tomas" />
-
-                            <Space
-                                android:layout_width="12dp"
-                                android:layout_height="0dp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnHoraTermino"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:text="Hora término"
-                                android:textAllCaps="false"
-                                android:textColor="@color/verde_santo_tomas"
-                                app:icon="@android:drawable/ic_menu_recent_history"
-                                app:iconGravity="textStart"
-                                app:iconTint="@color/verde_santo_tomas" />
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-                </LinearLayout>
-                <!-- ====== FIN BLOQUE TÉRMINO ====== -->
-
-                <!-- Días de la Semana (para periódicas) -->
-                <LinearLayout
-                    android:id="@+id/llDiasSemana"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="24dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Días de repetición"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/gris_oscuro"
-                        android:layout_marginBottom="12dp" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_settings"
+                        android:padding="8dp"
+                        android:background="@drawable/bg_icon_circle"
+                        android:backgroundTint="@color/verde_secundario"
+                        app:tint="@color/blanco" />
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center"
-                        android:weightSum="7">
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
 
-                        <CheckBox
-                            android:id="@+id/cbLunes"
-                            android:layout_width="0dp"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Lun"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
+                            android:text="Modificar Actividad"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/blanco" />
 
-                        <CheckBox
-                            android:id="@+id/cbMartes"
-                            android:layout_width="0dp"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Mar"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
-
-                        <CheckBox
-                            android:id="@+id/cbMiercoles"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Mié"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
-
-                        <CheckBox
-                            android:id="@+id/cbJueves"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Jue"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
-
-                        <CheckBox
-                            android:id="@+id/cbViernes"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Vie"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
-
-                        <CheckBox
-                            android:id="@+id/cbSabado"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Sáb"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
-
-                        <CheckBox
-                            android:id="@+id/cbDomingo"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Dom"
-                            android:textSize="12sp"
-                            android:textColor="@color/gris_oscuro"
-                            android:buttonTint="@color/verde_santo_tomas" />
+                            android:text="Edita los datos que necesites cambiar"
+                            android:textSize="13sp"
+                            android:textColor="@color/verde_claro"
+                            android:layout_marginTop="4dp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card Principal del Formulario -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- 🔥 Sección VERDE: Información Básica -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="INFORMACIÓN BÁSICA"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Campo Nombre Actividad -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:startIconDrawable="@drawable/ic_file"
+                        app:startIconTint="@color/verde_santo_tomas"
+                        app:helperText="Nombre descriptivo de la actividad"
+                        app:helperTextTextColor="@color/gris_medio"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombreActividad"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Nombre de la actividad"
+                            android:inputType="textCapSentences"
+                            android:maxLines="2"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Tipo de Actividad -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Tipo de Actividad"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spTipoActividad"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Periodicidad -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Periodicidad"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spPeriodicidad"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Row: Cupo y Días Aviso -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp"
+                        android:weightSum="2">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            app:boxBackgroundMode="outline"
+                            app:boxCornerRadiusTopStart="12dp"
+                            app:boxCornerRadiusTopEnd="12dp"
+                            app:boxCornerRadiusBottomStart="12dp"
+                            app:boxCornerRadiusBottomEnd="12dp"
+                            app:helperText="Capacidad"
+                            app:helperTextTextColor="@color/gris_medio"
+                            app:boxStrokeColor="@color/verde_santo_tomas"
+                            app:hintTextColor="@color/verde_santo_tomas"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etCupo"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Cupo"
+                                android:inputType="number"
+                                android:maxLines="1"
+                                android:textSize="16sp"
+                                android:textColor="@color/gris_oscuro" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            app:boxBackgroundMode="outline"
+                            app:boxCornerRadiusTopStart="12dp"
+                            app:boxCornerRadiusTopEnd="12dp"
+                            app:boxCornerRadiusBottomStart="12dp"
+                            app:boxCornerRadiusBottomEnd="12dp"
+                            app:helperText="Días previos"
+                            app:helperTextTextColor="@color/gris_medio"
+                            app:boxStrokeColor="@color/verde_santo_tomas"
+                            app:hintTextColor="@color/verde_santo_tomas"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etDiasAvisoPrevio"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Días aviso"
+                                android:inputType="number"
+                                android:maxLines="1"
+                                android:textSize="16sp"
+                                android:textColor="@color/gris_oscuro" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+
+                    <!-- 🔥 Sección VERDE: Participantes -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PARTICIPANTES Y COLABORADORES"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Oferente -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Oferente"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spOferente"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Socio Comunitario -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Socio Comunitario"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spSocioComunitario"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Proyecto -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Proyecto (Opcional)"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spProyecto"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- 🔥 Sección VERDE: Ubicación -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="UBICACIÓN Y HORARIOS"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/verde_santo_tomas"
+                        android:letterSpacing="0.1"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Lugar -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:hint="Lugar"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/verde_santo_tomas"
+                        app:hintTextColor="@color/verde_santo_tomas"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spLugar"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:textSize="16sp"
+                            android:textColor="@color/gris_oscuro"
+                            android:paddingTop="14dp"
+                            android:paddingBottom="14dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Bloques de fecha/hora (igual que agregar) -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Inicio"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gris_oscuro"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/gris_borde"
+                        android:padding="1dp"
+                        android:layout_marginBottom="20dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardCornerRadius="12dp"
+                            app:cardBackgroundColor="@color/blanco"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:padding="12dp"
+                                android:gravity="center_vertical"
+                                android:weightSum="2">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnFechaInicio"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="56dp"
+                                    android:layout_weight="1"
+                                    android:text="Fecha inicio"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/verde_santo_tomas"
+                                    app:icon="@drawable/ic_calendar"
+                                    app:iconGravity="textStart"
+                                    app:iconTint="@color/verde_santo_tomas" />
+
+                                <Space
+                                    android:layout_width="12dp"
+                                    android:layout_height="0dp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnHoraInicio"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="56dp"
+                                    android:layout_weight="1"
+                                    android:text="Hora inicio"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/verde_santo_tomas"
+                                    app:icon="@android:drawable/ic_menu_recent_history"
+                                    app:iconGravity="textStart"
+                                    app:iconTint="@color/verde_santo_tomas" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Término"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gris_oscuro"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/gris_borde"
+                        android:padding="1dp"
+                        android:layout_marginBottom="24dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardCornerRadius="12dp"
+                            app:cardBackgroundColor="@color/blanco"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:padding="12dp"
+                                android:gravity="center_vertical"
+                                android:weightSum="2">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnFechaTermino"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="56dp"
+                                    android:layout_weight="1"
+                                    android:text="Fecha término"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/verde_santo_tomas"
+                                    app:icon="@drawable/ic_calendar"
+                                    app:iconGravity="textStart"
+                                    app:iconTint="@color/verde_santo_tomas" />
+
+                                <Space
+                                    android:layout_width="12dp"
+                                    android:layout_height="0dp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnHoraTermino"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="56dp"
+                                    android:layout_weight="1"
+                                    android:text="Hora término"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/verde_santo_tomas"
+                                    app:icon="@android:drawable/ic_menu_recent_history"
+                                    app:iconGravity="textStart"
+                                    app:iconTint="@color/verde_santo_tomas" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+
+                    <!-- Días de la Semana -->
+                    <LinearLayout
+                        android:id="@+id/llDiasSemana"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="24dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Días de repetición"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gris_oscuro"
+                            android:layout_marginBottom="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:weightSum="7">
+
+                            <CheckBox
+                                android:id="@+id/cbLunes"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Lun"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                            <CheckBox
+                                android:id="@+id/cbMartes"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mar"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                            <CheckBox
+                                android:id="@+id/cbMiercoles"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mié"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                            <CheckBox
+                                android:id="@+id/cbJueves"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Jue"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                            <CheckBox
+                                android:id="@+id/cbViernes"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Vie"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                            <CheckBox
+                                android:id="@+id/cbSabado"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Sáb"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                            <CheckBox
+                                android:id="@+id/cbDomingo"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Dom"
+                                android:textSize="12sp"
+                                android:textColor="@color/gris_oscuro"
+                                android:buttonTint="@color/verde_santo_tomas" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 🔥 NUEVO: ACCIONES FINALES: Volver / Reagendar / Guardar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVolverAtras"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="Volver"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:icon="@drawable/ic_chevron_left"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/gris_medio"
+                    app:strokeWidth="2dp"
+                    android:textColor="@color/gris_medio" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReagendarActividad"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="4dp"
+                    android:text="Reagendar"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:icon="@drawable/ic_calendar"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:cornerRadius="12dp"
+                    app:backgroundTint="@color/amarillo_advertencia"
+                    android:textColor="@color/gris_oscuro"
+                    android:elevation="4dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGuardarCambios"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="Guardar"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:icon="@android:drawable/ic_menu_save"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:cornerRadius="12dp"
+                    app:backgroundTint="@color/verde_santo_tomas"
+                    android:elevation="4dp" />
+
             </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ACCIONES FINALES: Cancelar / Reagendar / Guardar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="3">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancelarActividad"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:text="Cancelar"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:icon="@android:drawable/ic_menu_close_clear_cancel"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:cornerRadius="12dp"
-                app:backgroundTint="@color/rojo_error"
-                android:elevation="4dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnReagendarActividad"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginHorizontal="4dp"
-                android:text="Reagendar"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:icon="@drawable/ic_calendar"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:cornerRadius="12dp"
-                app:backgroundTint="@color/amarillo_advertencia"
-                android:elevation="4dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGuardarCambios"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="Guardar"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:icon="@android:drawable/ic_menu_save"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:cornerRadius="12dp"
-                app:backgroundTint="@color/verde_santo_tomas"
-                android:elevation="4dp" />
 
         </LinearLayout>
 
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
