@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/gris_claro">
 
-    <!-- AppBar con Toolbar -->
+    <!-- AppBar ROJO con Toolbar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Header Card de Advertencia -->
+            <!-- Header Card de Advertencia ROJO -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/ic_warning"
+                        android:src="@android:drawable/ic_dialog_alert"
                         android:padding="8dp"
                         android:background="@drawable/bg_icon_circle"
                         android:backgroundTint="#C62828"
@@ -217,7 +217,7 @@
                     <ImageView
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@drawable/ic_warning"
+                        android:src="@android:drawable/ic_dialog_alert"
                         app:tint="@color/amarillo_advertencia" />
 
                     <TextView
@@ -242,7 +242,7 @@
                 android:text="Cancelar Actividad"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:icon="@drawable/ic_cancel"
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
                 app:iconGravity="textStart"
                 app:iconPadding="12dp"
                 app:iconSize="24dp"

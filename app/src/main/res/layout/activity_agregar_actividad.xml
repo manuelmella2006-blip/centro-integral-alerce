@@ -16,7 +16,7 @@
         android:paddingTop="16dp"
         android:paddingBottom="80dp">
 
-        <!-- Header Card -->
+        <!-- Header Card VERDE -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -390,7 +390,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- ====== BLOQUE INICIO ====== -->
+                <!-- BLOQUE INICIO -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -400,7 +400,6 @@
                     android:textColor="@color/gris_oscuro"
                     android:layout_marginBottom="8dp" />
 
-                <!-- contenedor para simular borde gris -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -457,9 +456,8 @@
 
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
-                <!-- ====== FIN BLOQUE INICIO ====== -->
 
-                <!-- ====== BLOQUE TÉRMINO ====== -->
+                <!-- BLOQUE TÉRMINO -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -525,7 +523,6 @@
 
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
-                <!-- ====== FIN BLOQUE TÉRMINO ====== -->
 
                 <!-- Días de la Semana (para periódicas) -->
                 <LinearLayout
@@ -631,7 +628,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ACCIONES FINALES: Cancelar / Guardar -->
+        <!-- ACCIONES FINALES: Volver / Guardar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -640,20 +637,21 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelarActividad"
-                style="@style/Widget.Material3.Button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:text="Cancelar"
+                android:text="Volver"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:icon="@drawable/ic_chevron_left"
                 app:iconGravity="textStart"
                 app:iconPadding="12dp"
                 app:cornerRadius="12dp"
-                app:backgroundTint="@color/rojo_error"
-                android:elevation="4dp" />
+                app:strokeColor="@color/gris_medio"
+                app:strokeWidth="2dp"
+                android:textColor="@color/gris_medio" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardarActividad"

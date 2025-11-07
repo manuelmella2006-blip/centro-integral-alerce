@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/gris_claro">
 
-    <!-- AppBar con Toolbar -->
+    <!-- AppBar VERDE con Toolbar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
@@ -38,7 +38,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:paddingBottom="100dp">
 
             <!-- Card Header con nombre y tipo -->
             <com.google.android.material.card.MaterialCardView
@@ -482,7 +483,7 @@
                 android:id="@+id/card_archivos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="100dp"
+                android:layout_marginBottom="16dp"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="16dp"
                 app:cardBackgroundColor="@color/blanco"
@@ -585,6 +586,7 @@
             app:iconGravity="textStart"
             app:cornerRadius="12dp"
             app:backgroundTint="@color/amarillo_advertencia"
+            android:textColor="@color/gris_oscuro"
             style="@style/Widget.Material3.Button" />
 
     </LinearLayout>
