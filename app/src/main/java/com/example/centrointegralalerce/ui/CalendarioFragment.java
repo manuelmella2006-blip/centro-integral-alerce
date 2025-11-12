@@ -3,6 +3,7 @@ package com.example.centrointegralalerce.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,9 +36,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Fragment del calendario con AlertManager integrado + control de permisos por rol (UserSession)
- */
 public class CalendarioFragment extends Fragment {
 
     private static final String TAG = "CalendarioFragment";
@@ -85,23 +83,8 @@ public class CalendarioFragment extends Fragment {
 
             initializeViews(view);
 
-            UserSession session = UserSession.getInstance();
-            boolean puedeCrear = session.puede("crear_actividades");
-            boolean puedeEliminar = session.puede("eliminar_actividades");
-
-            Log.d(TAG, "🟢 Rol actual: " + session.getRolId());
-            Log.d(TAG, "🟩 Permisos cargados: " + session.getPermisos());
-            Log.d(TAG, "🔍 puedeCrear = " + puedeCrear + " | puedeEliminar = " + puedeEliminar);
-
-            if (!puedeCrear) {
-                if (fabNewActivity != null) fabNewActivity.setVisibility(View.GONE);
-                if (btnCreateFirstActivity != null) btnCreateFirstActivity.setVisibility(View.GONE);
-                Log.w(TAG, "🚫 Usuario sin permiso para crear actividades");
-            }
-
-            if (!puedeEliminar) {
-                Log.w(TAG, "🚫 Usuario sin permiso para eliminar actividades");
-            }
+            // ✅ Control de permisos reactivo
+            verificarPermisosCreacion();
 
             allCitas = new ArrayList<>();
             currentWeekStart = Calendar.getInstance();
@@ -117,6 +100,34 @@ public class CalendarioFragment extends Fragment {
         }
 
         return view;
+    }
+
+    // ✅ MÉTODO NUEVO: CONTROL REACTIVO DE CREACIÓN DE ACTIVIDADES
+    private void verificarPermisosCreacion() {
+        UserSession session = UserSession.getInstance();
+
+        if (!session.permisosCargados()) {
+            Log.w(TAG, "⚠️ Permisos no cargados, ocultando botones temporalmente");
+
+            if (fabNewActivity != null) fabNewActivity.setVisibility(View.GONE);
+            if (btnCreateFirstActivity != null) btnCreateFirstActivity.setVisibility(View.GONE);
+
+            // 🔁 Reintentar automáticamente después de 1 segundo
+            new Handler().postDelayed(this::verificarPermisosCreacion, 1000);
+            return;
+        }
+
+        boolean puedeCrear = session.puede("crear_actividades");
+
+        if (fabNewActivity != null) {
+            fabNewActivity.setVisibility(puedeCrear ? View.VISIBLE : View.GONE);
+        }
+
+        if (btnCreateFirstActivity != null) {
+            btnCreateFirstActivity.setVisibility(puedeCrear ? View.VISIBLE : View.GONE);
+        }
+
+        Log.d(TAG, "🎯 Botones de creación - Visible: " + puedeCrear);
     }
 
     private void initializeViews(View view) {

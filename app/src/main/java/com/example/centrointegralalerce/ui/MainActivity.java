@@ -93,60 +93,135 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
+    // ✅ MÉTODO ACTUALIZADO - Cargar rol y permisos desde Firestore
+    // ✅ MÉTODO CORREGIDO - Cargar rol y permisos desde Firestore
+    // ✅ MÉTODO FINAL - Cargar rol y permisos desde Firestore con logs de verificación
+    // Reemplazar el método cargarRolYPermisos con esta versión mejorada
     private void cargarRolYPermisos(String rolId) {
+        Log.d("MAIN_DEBUG", "🔍 Verificando estado de UserSession...");
+
+        // ✅ VERIFICACIÓN EN 3 NIVELES
+        if (UserSession.getInstance().permisosCargados()) {
+            Log.d("MAIN_DEBUG", "✅ Nivel 1: Permisos YA cargados en UserSession");
+            cargarFragmentoInicial();
+            return;
+        }
+
+        // ✅ Si no hay permisos pero sí rol, intentar carga rápida
+        if (UserSession.getInstance().getRolId() != null && !UserSession.getInstance().getRolId().isEmpty()) {
+            Log.d("MAIN_DEBUG", "🔄 Nivel 2: Rol presente pero permisos faltantes, recargando...");
+            cargarPermisosDesdeFirestore(UserSession.getInstance().getRolId());
+            return;
+        }
+
+        // ✅ Último recurso: cargar desde cero
+        Log.w("MAIN_DEBUG", "⚠️ Nivel 3: Sin datos de sesión, cargando desde Firestore...");
+        cargarPermisosDesdeFirestore(rolId);
+    }
+    // ✅ Solo se usa si UserSession no tiene permisos cargados
+    private void cargarPermisosDesdeFirestore(String rolId) {
         FirebaseFirestore.getInstance().collection("roles").document(rolId)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
+                    if (doc.exists() && doc.getData() != null) {
                         Map<String, Object> data = doc.getData();
                         Map<String, Boolean> permisos = new java.util.HashMap<>();
 
-                        if (data != null && data.containsKey("permisos")) {
-                            Object permisosObj = data.get("permisos");
-                            if (permisosObj instanceof Map) {
-                                Map<String, Object> permisosMap = (Map<String, Object>) permisosObj;
-                                for (String key : permisosMap.keySet()) {
-                                    Object value = permisosMap.get(key);
-                                    if (value instanceof Boolean) {
-                                        permisos.put(key, (Boolean) value);
-                                    }
+                        Object permisosObj = data.get("permisos");
+                        if (permisosObj instanceof Map) {
+                            for (Map.Entry<String, Object> entry : ((Map<String, Object>) permisosObj).entrySet()) {
+                                if (entry.getValue() instanceof Boolean) {
+                                    permisos.put(entry.getKey(), (Boolean) entry.getValue());
                                 }
                             }
                         }
 
                         UserSession.getInstance().setRol(rolId, permisos);
-
-                        Log.d("USER_SESSION", "Rol: " + rolId + " → Permisos: " + permisos);
-                        android.widget.Toast.makeText(this,
-                                "Permiso crear_actividades: " +
-                                        UserSession.getInstance().puede("crear_actividades"),
-                                android.widget.Toast.LENGTH_LONG).show();
-
-                        boolean puedeCrear = permisos.getOrDefault("crear_actividades", false);
-                        boolean puedeEliminar = permisos.getOrDefault("eliminar_actividades", false);
-                        boolean puedeVerTodas = permisos.getOrDefault("ver_todas_actividades", true);
-
-                        Bundle args = new Bundle();
-                        args.putBoolean("puedeCrear", puedeCrear);
-                        args.putBoolean("puedeEliminar", puedeEliminar);
-                        args.putBoolean("puedeVerTodas", puedeVerTodas);
-
-                        CalendarioFragment fragment = new CalendarioFragment();
-                        fragment.setArguments(args);
-
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.fragmentContainer, fragment)
-                                .commit();
-
-                        bottomNavigation.setSelectedItemId(R.id.nav_calendar);
-
+                        Log.d("MAIN_DEBUG", "✅ Permisos cargados manualmente desde Firestore");
                     } else {
-                        Log.w("USER_SESSION", "⚠️ No se encontró el documento del rol en Firestore");
+                        Log.w("MAIN_DEBUG", "⚠️ Rol no encontrado en Firestore");
                     }
+                    cargarFragmentoInicial();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("USER_SESSION", "Error al cargar permisos", e);
+                    Log.e("MAIN_DEBUG", "❌ Error al cargar permisos desde Firestore", e);
+                    cargarFragmentoInicial();
                 });
+    }
+    // ✅ NUEVO MÉTODO: Cargar fragmento inicial usando UserSession
+    private void cargarFragmentoInicial() {
+        boolean puedeCrear = UserSession.getInstance().puedeCrearActividades();
+        boolean puedeEliminar = UserSession.getInstance().puedeEliminarActividades();
+        boolean puedeVerTodas = UserSession.getInstance().puedeVerTodasActividades();
+
+        Bundle args = new Bundle();
+        args.putBoolean("puedeCrear", puedeCrear);
+        args.putBoolean("puedeEliminar", puedeEliminar);
+        args.putBoolean("puedeVerTodas", puedeVerTodas);
+
+        CalendarioFragment fragment = new CalendarioFragment();
+        fragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commit();
+
+        bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+
+        Log.d("MAIN_DEBUG", "🎯 Fragmento inicial cargado con permisos:");
+        Log.d("MAIN_DEBUG", " - Crear: " + puedeCrear);
+        Log.d("MAIN_DEBUG", " - Eliminar: " + puedeEliminar);
+        Log.d("MAIN_DEBUG", " - Ver todas: " + puedeVerTodas);
+    }
+
+
+    // ✅ MÉTODO NUEVO: Permisos por defecto si hay error
+    private void cargarPermisosPorDefecto(String rolId) {
+        Map<String, Boolean> permisosPorDefecto = new java.util.HashMap<>();
+
+        if ("admin".equals(rolId)) {
+            permisosPorDefecto.put("crear_usuarios", true);
+            permisosPorDefecto.put("gestionar_usuarios", true);
+            permisosPorDefecto.put("gestionar_mantenedores", true);
+            permisosPorDefecto.put("crear_actividades", true);
+            permisosPorDefecto.put("eliminar_actividades", true);
+            permisosPorDefecto.put("ver_todas_actividades", true);
+        } else {
+            permisosPorDefecto.put("crear_usuarios", false);
+            permisosPorDefecto.put("gestionar_usuarios", false);
+            permisosPorDefecto.put("gestionar_mantenedores", false);
+            permisosPorDefecto.put("crear_actividades", true);
+            permisosPorDefecto.put("eliminar_actividades", false);
+            permisosPorDefecto.put("ver_todas_actividades", true);
+        }
+
+        UserSession.getInstance().setRol(rolId, permisosPorDefecto);
+        cargarFragmentoInicialConPermisos(permisosPorDefecto);
+    }
+
+    // ✅ NUEVO MÉTODO: Mostrar el fragmento inicial con permisos listos
+    private void cargarFragmentoInicialConPermisos(Map<String, Boolean> permisos) {
+        boolean puedeCrear = permisos.getOrDefault("crear_actividades", false);
+        boolean puedeEliminar = permisos.getOrDefault("eliminar_actividades", false);
+        boolean puedeVerTodas = permisos.getOrDefault("ver_todas_actividades", true);
+
+        Bundle args = new Bundle();
+        args.putBoolean("puedeCrear", puedeCrear);
+        args.putBoolean("puedeEliminar", puedeEliminar);
+        args.putBoolean("puedeVerTodas", puedeVerTodas);
+
+        CalendarioFragment fragment = new CalendarioFragment();
+        fragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commit();
+
+        bottomNavigation.setSelectedItemId(R.id.nav_calendar);
+
+        // ✅ LOG adicional de verificación
+        Log.d("MAIN_ACTIVITY", "Permisos cargados - gestionar_usuarios: " +
+                UserSession.getInstance().puede("gestionar_usuarios"));
     }
 
     private void inicializarNotificaciones() {
@@ -250,7 +325,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // Opción 2: Corregido para la estructura con subcolección de citas bajo actividades
     private void actualizarBadges() {
         if (esInvitado) return;
 
@@ -343,7 +417,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.e(TAG, "Error al cargar actividades para badges", e);
                 });
     }
-
 
     private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {

@@ -2,17 +2,19 @@ package com.example.centrointegralalerce.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -56,13 +58,19 @@ public class ConfiguracionFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // ✅ Al volver al fragmento, verificamos si los permisos siguen siendo válidos
+        verificarYMostrarOpciones();
+    }
+
     private void cargarInfoUsuario() {
         if (auth.getCurrentUser() == null) {
             tvUserName.setText("Usuario no autenticado");
             tvUserEmail.setText("Sin correo");
             chipUserRole.setText("Invitado");
-            itemGestionarUsuarios.setVisibility(View.GONE);
-            itemMantenedores.setVisibility(View.GONE);
+            ocultarOpcionesAdmin();
             AlertManager.showWarningToast(requireContext(), "Debes iniciar sesión");
             return;
         }
@@ -79,30 +87,30 @@ public class ConfiguracionFragment extends Fragment {
 
                         tvUserName.setText(nombre != null ? nombre : "Usuario");
 
-                        // ⭐ SIMPLIFICADO: Mostrar directamente el rolId
                         if (rolId != null && !rolId.isEmpty()) {
                             chipUserRole.setText(rolId);
-                            chipUserRole.setChipBackgroundColorResource(android.R.color.holo_green_light);
 
-                            // Verificar si es admin (sin consultar otra colección)
-                            boolean esAdmin = "Administrador".equalsIgnoreCase(rolId) ||
-                                    "admin".equalsIgnoreCase(rolId);
+                            // Cambiar color según el rol
+                            if ("admin".equalsIgnoreCase(rolId)) {
+                                chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
+                            } else {
+                                chipUserRole.setChipBackgroundColorResource(android.R.color.holo_green_light);
+                            }
 
-                            itemGestionarUsuarios.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
-                            itemMantenedores.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
+                            // ✅ Verificar permisos
+                            verificarYMostrarOpciones();
+
                         } else {
                             chipUserRole.setText("Sin rol asignado");
                             chipUserRole.setChipBackgroundColorResource(android.R.color.darker_gray);
-                            itemGestionarUsuarios.setVisibility(View.GONE);
-                            itemMantenedores.setVisibility(View.GONE);
+                            ocultarOpcionesAdmin();
                             AlertManager.showWarningToast(requireContext(), "No tienes un rol asignado");
                         }
                     } else {
                         tvUserName.setText("Usuario no encontrado");
                         chipUserRole.setText("Sin rol");
                         chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
-                        itemGestionarUsuarios.setVisibility(View.GONE);
-                        itemMantenedores.setVisibility(View.GONE);
+                        ocultarOpcionesAdmin();
                         AlertManager.showWarningSnackbar(
                                 AlertManager.getRootViewSafe(this),
                                 "Usuario no registrado en Firestore"
@@ -113,8 +121,7 @@ public class ConfiguracionFragment extends Fragment {
                     tvUserName.setText("Error al cargar");
                     chipUserRole.setText("Error al cargar rol");
                     chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
-                    itemGestionarUsuarios.setVisibility(View.GONE);
-                    itemMantenedores.setVisibility(View.GONE);
+                    ocultarOpcionesAdmin();
                     AlertManager.showErrorSnackbar(
                             AlertManager.getRootViewSafe(this),
                             "Error: " + e.getMessage()
@@ -122,24 +129,79 @@ public class ConfiguracionFragment extends Fragment {
                 });
     }
 
+    // ✅ NUEVA VERSIÓN REACTIVA
+    private void verificarYMostrarOpciones() {
+        if (!isAdded() || getActivity() == null) return;
+
+        // Ocultar primero todo
+        ocultarOpcionesAdmin();
+
+        // ✅ VERIFICACIÓN CON REINTENTOS
+        if (!UserSession.getInstance().permisosCargados()) {
+            Log.w("CONFIGURACION", "⚠️ Permisos no cargados, reintentando en 1 segundo...");
+
+            new Handler().postDelayed(() -> {
+                if (isAdded() && getActivity() != null) {
+                    verificarYMostrarOpciones(); // Reintento
+                }
+            }, 1000);
+            return;
+        }
+
+        // ✅ MOSTRAR OPCIONES SEGÚN PERMISOS
+        boolean puedeMantenedores = UserSession.getInstance().puede("gestionar_mantenedores");
+        boolean puedeUsuarios = UserSession.getInstance().puede("gestionar_usuarios");
+
+        if (puedeMantenedores) {
+            itemMantenedores.setVisibility(View.VISIBLE);
+            Log.d("CONFIGURACION", "✅ Mostrando Mantenedores - Con permiso");
+        }
+
+        if (puedeUsuarios) {
+            itemGestionarUsuarios.setVisibility(View.VISIBLE);
+            Log.d("CONFIGURACION", "✅ Mostrando Gestión Usuarios - Con permiso");
+        }
+
+        Log.d("CONFIGURACION", "🎯 UI Actualizada - Mantenedores: " + puedeMantenedores +
+                ", Usuarios: " + puedeUsuarios);
+    }
+
+    private void ocultarOpcionesAdmin() {
+        itemMantenedores.setVisibility(View.GONE);
+        itemGestionarUsuarios.setVisibility(View.GONE);
+    }
+
     private void setupListeners() {
-        // Navegar a Mantenedores
         itemMantenedores.setOnClickListener(v -> {
-            MainActivity mainActivity = (MainActivity) getActivity();
-            if (mainActivity != null) {
-                mainActivity.navigateToMantenedores();
-                AlertManager.showInfoSnackbar(
-                        AlertManager.getRootViewSafe(this),
-                        "Abriendo Mantenedores..."
-                );
+            if (UserSession.getInstance().puede("gestionar_mantenedores")) {
+                MainActivity mainActivity = (MainActivity) getActivity();
+                if (mainActivity != null) {
+                    mainActivity.navigateToMantenedores();
+                    AlertManager.showInfoSnackbar(
+                            AlertManager.getRootViewSafe(this),
+                            "Abriendo Mantenedores..."
+                    );
+                } else {
+                    AlertManager.showErrorToast(requireContext(), "Error al abrir Mantenedores");
+                }
             } else {
-                AlertManager.showErrorToast(requireContext(), "Error al abrir Mantenedores");
+                AlertManager.showWarningSnackbar(
+                        AlertManager.getRootViewSafe(this),
+                        "❌ No tienes permisos para gestionar mantenedores"
+                );
             }
         });
 
         itemGestionarUsuarios.setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), RegisterActivity.class));
-            AlertManager.showInfoToast(requireContext(), "Abriendo gestión de usuarios...");
+            if (UserSession.getInstance().puede("gestionar_usuarios")) {
+                startActivity(new Intent(requireContext(), RegisterActivity.class));
+                AlertManager.showInfoToast(requireContext(), "Abriendo gestión de usuarios...");
+            } else {
+                AlertManager.showWarningSnackbar(
+                        AlertManager.getRootViewSafe(this),
+                        "❌ No tienes permisos para gestionar usuarios"
+                );
+            }
         });
 
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) ->

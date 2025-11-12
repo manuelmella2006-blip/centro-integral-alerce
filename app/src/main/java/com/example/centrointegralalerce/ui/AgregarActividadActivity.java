@@ -3,6 +3,7 @@ package com.example.centrointegralalerce.ui;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -16,12 +17,10 @@ import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.centrointegralalerce.firebase.FirestoreRepository;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -98,16 +97,29 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cbSabado = findViewById(R.id.cbSabado);
         cbDomingo = findViewById(R.id.cbDomingo);
 
-        // ✅ Recomendación de integración con UserSession
-        // Verificamos si el usuario tiene permiso para crear actividades
-        if (!UserSession.getInstance().puede("crear_actividades")) {
-            btnGuardarActividad.setEnabled(false);
-            btnGuardarActividad.setVisibility(View.GONE);
-            Toast.makeText(this, "No tienes permiso para crear actividades", Toast.LENGTH_LONG).show();
-            finish(); // O podrías dejar la pantalla deshabilitada en lugar de cerrar
+        // ✅ VERIFICACIÓN MEJORADA DE SESIÓN Y PERMISOS
+        UserSession session = UserSession.getInstance();
+
+        if (!session.permisosCargados()) {
+            Log.w("AGREGAR_ACTIVIDAD", "⚠️ Permisos no cargados en UserSession");
+            Toast.makeText(this, "Error: Permisos no cargados. Intenta nuevamente.", Toast.LENGTH_LONG).show();
+            finish();
             return;
         }
 
+        if (!session.puede("crear_actividades")) {
+            Log.w("AGREGAR_ACTIVIDAD", "❌ Usuario sin permiso para crear actividades. Rol: " + session.getRolId());
+            btnGuardarActividad.setEnabled(false);
+            btnGuardarActividad.setVisibility(View.GONE);
+            Toast.makeText(this, "No tienes permiso para crear actividades", Toast.LENGTH_LONG).show();
+            // Opcional: cerrar la pantalla directamente
+            // finish();
+            return;
+        }
+
+        Log.d("AGREGAR_ACTIVIDAD", "✅ Usuario tiene permiso para crear actividades. Rol: " + session.getRolId());
+
+        // --- RESTO DEL FLUJO NORMAL ---
         setupEmptyAdapters();
         cargarPeriodicidad();
         cargarSpinnersDesdeFirebase();
@@ -250,7 +262,6 @@ public class AgregarActividadActivity extends AppCompatActivity {
         String proyectoId = getSelectedId(spProyecto, proyectosList, proyectoIds);
         String lugarId = getSelectedId(spLugar, lugaresList, lugarIds);
 
-        // 1️⃣ Datos de la actividad
         Map<String, Object> actividad = new HashMap<>();
         actividad.put("nombre", nombre);
         actividad.put("tipoActividadId", tipoActividadId);
@@ -267,10 +278,8 @@ public class AgregarActividadActivity extends AppCompatActivity {
         actividad.put("fechaTermino", fechaTermino);
         actividad.put("horaTermino", horaTermino);
 
-        // 2️⃣ Generar lista de citas
         List<Map<String, Object>> citas = generarCitas(periodicidadTxt, fechaInicio, fechaTermino, horaInicio);
 
-        // 3️⃣ Guardar con batch
         FirestoreRepository repo = new FirestoreRepository();
         repo.guardarActividadConCitas(actividad, citas)
                 .addOnSuccessListener(aVoid -> {

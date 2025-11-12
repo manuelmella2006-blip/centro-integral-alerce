@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.data.UserSession;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputEditText;
@@ -21,7 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import android.util.Log;
 public class RegisterActivity extends AppCompatActivity {
 
     private TextInputEditText etNombre, etEmail, etPassword, etConfirmPassword;
@@ -36,6 +37,13 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        // ✅ VERIFICAR PERMISOS CORREGIDO - Solo admin puede crear usuarios
+        if (!UserSession.getInstance().puede("crear_usuarios")) {
+            Toast.makeText(this, "❌ No tienes permisos para crear usuarios", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         // Inicializar Firebase
         auth = FirebaseAuth.getInstance();
@@ -52,11 +60,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Configurar listeners
         btnRegistrar.setOnClickListener(v -> registrarUsuario());
-        tvVolverLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        tvVolverLogin.setOnClickListener(v -> finish());
     }
 
     private void registrarUsuario() {
@@ -66,46 +70,22 @@ public class RegisterActivity extends AppCompatActivity {
         String confirmPassword = etConfirmPassword.getText().toString().trim();
         String rol = spinnerRol.getSelectedItem().toString();
 
-        // Validaciones
-        if (nombre.isEmpty()) {
-            etNombre.setError("Ingresa tu nombre completo");
-            etNombre.requestFocus();
-            return;
-        }
-
-        if (nombre.length() < 3) {
+        // ✅ Validaciones (mantener las que ya tienes)
+        if (nombre.isEmpty() || nombre.length() < 3) {
             etNombre.setError("El nombre debe tener al menos 3 caracteres");
             etNombre.requestFocus();
             return;
         }
 
-        if (email.isEmpty()) {
-            etEmail.setError("Ingresa tu correo electrónico");
-            etEmail.requestFocus();
-            return;
-        }
-
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Ingresa un correo válido");
             etEmail.requestFocus();
             return;
         }
 
-        if (password.isEmpty()) {
-            etPassword.setError("Ingresa una contraseña");
-            etPassword.requestFocus();
-            return;
-        }
-
-        if (password.length() < 6) {
+        if (password.isEmpty() || password.length() < 6) {
             etPassword.setError("La contraseña debe tener al menos 6 caracteres");
             etPassword.requestFocus();
-            return;
-        }
-
-        if (confirmPassword.isEmpty()) {
-            etConfirmPassword.setError("Confirma tu contraseña");
-            etConfirmPassword.requestFocus();
             return;
         }
 
@@ -121,83 +101,84 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        // ✅ CORRECCIÓN: Mapear correctamente los roles a los IDs que existen en Firestore
+        String rolId;
+        if (rol.equalsIgnoreCase("admin") || rol.equalsIgnoreCase("administrador")) {
+            rolId = "admin";
+        } else {
+            rolId = "usuario";  // ← Cambiar de "usuario normal" a "usuario"
+        }
+
+        Log.d("REGISTER", "🎯 Guardando rolId: " + rolId + " (seleccionado: " + rol + ")");
+
         // Deshabilitar botón durante el registro
         btnRegistrar.setEnabled(false);
         btnRegistrar.setText("Registrando...");
 
         // Crear usuario en Firebase Authentication
         auth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        String userId = auth.getCurrentUser().getUid();
+                .addOnSuccessListener(authResult -> {
+                    String userId = auth.getCurrentUser().getUid();
 
-                        // Guardar datos adicionales en Firestore
-                        Map<String, Object> datosUsuario = new HashMap<>();
-                        datosUsuario.put("nombre", nombre);
-                        datosUsuario.put("email", email);
-                        datosUsuario.put("rolId", rol);
-                        datosUsuario.put("fechaRegistro", com.google.firebase.firestore.FieldValue.serverTimestamp());
+                    // Guardar datos adicionales en Firestore
+                    Map<String, Object> datosUsuario = new HashMap<>();
+                    datosUsuario.put("nombre", nombre);
+                    datosUsuario.put("email", email);
+                    datosUsuario.put("rolId", rolId); // ← Aquí se guarda el ID correcto
+                    datosUsuario.put("activo", true);
+                    datosUsuario.put("fechaCreacion", com.google.firebase.firestore.FieldValue.serverTimestamp());
+                    datosUsuario.put("ultimaActualizacion", System.currentTimeMillis());
 
-                        db.collection("usuarios").document(userId)
+                    db.collection("usuarios").document(userId)
+                            .set(datosUsuario)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(RegisterActivity.this,
+                                        "¡Usuario " + nombre + " registrado correctamente!",
+                                        Toast.LENGTH_SHORT).show();
 
-                                .set(datosUsuario)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(RegisterActivity.this,
-                                            "¡Usuario registrado correctamente!",
-                                            Toast.LENGTH_SHORT).show();
+                                // Limpiar formulario
+                                etNombre.setText("");
+                                etEmail.setText("");
+                                etPassword.setText("");
+                                etConfirmPassword.setText("");
+                                spinnerRol.setSelection(0);
 
-                                    // Volver al login
-                                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                    intent.putExtra("EMAIL_REGISTRADO", email);
-                                    startActivity(intent);
-                                    finish();
-                                })
-                                .addOnFailureListener(e -> {
-                                    btnRegistrar.setEnabled(true);
-                                    btnRegistrar.setText("Registrar Usuario");
-                                    Toast.makeText(RegisterActivity.this,
-                                            "Error al guardar datos: " + e.getMessage(),
-                                            Toast.LENGTH_SHORT).show();
-                                });
-                    }
+                                btnRegistrar.setEnabled(true);
+                                btnRegistrar.setText("Registrar Usuario");
+                            })
+                            .addOnFailureListener(e -> {
+                                btnRegistrar.setEnabled(true);
+                                btnRegistrar.setText("Registrar Usuario");
+                                Toast.makeText(RegisterActivity.this,
+                                        "Error al guardar datos: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            });
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        btnRegistrar.setEnabled(true);
-                        btnRegistrar.setText("Registrar Usuario");
+                .addOnFailureListener(e -> {
+                    btnRegistrar.setEnabled(true);
+                    btnRegistrar.setText("Registrar Usuario");
 
-                        String errorMessage = e.getMessage();
-                        if (errorMessage != null) {
-                            if (errorMessage.contains("email address is already in use")) {
-                                Toast.makeText(RegisterActivity.this,
-                                        "Este correo ya está registrado",
-                                        Toast.LENGTH_LONG).show();
-                                etEmail.setError("Email ya registrado");
-                            } else if (errorMessage.contains("network error")) {
-                                Toast.makeText(RegisterActivity.this,
-                                        "Error de conexión. Verifica tu internet",
-                                        Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(RegisterActivity.this,
-                                        "Error: " + errorMessage,
-                                        Toast.LENGTH_LONG).show();
-                            }
+                    String errorMessage = e.getMessage();
+                    if (errorMessage != null) {
+                        if (errorMessage.contains("email address is already in use")) {
+                            Toast.makeText(RegisterActivity.this,
+                                    "Este correo ya está registrado",
+                                    Toast.LENGTH_LONG).show();
+                            etEmail.setError("Email ya registrado");
+                        } else if (errorMessage.contains("network error")) {
+                            Toast.makeText(RegisterActivity.this,
+                                    "Error de conexión. Verifica tu internet",
+                                    Toast.LENGTH_LONG).show();
                         } else {
                             Toast.makeText(RegisterActivity.this,
-                                    "Error desconocido al registrar",
-                                    Toast.LENGTH_SHORT).show();
+                                    "Error: " + errorMessage,
+                                    Toast.LENGTH_LONG).show();
                         }
+                    } else {
+                        Toast.makeText(RegisterActivity.this,
+                                "Error desconocido al registrar",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    @Override
-    public void onBackPressed() {
-        // Volver al login al presionar back
-        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
     }
 }

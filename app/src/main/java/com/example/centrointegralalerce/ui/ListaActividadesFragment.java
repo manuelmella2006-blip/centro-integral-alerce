@@ -3,6 +3,7 @@ package com.example.centrointegralalerce.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
+import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -44,19 +46,17 @@ public class ListaActividadesFragment extends Fragment {
     private LinearLayout layoutEmptyList;
     private ProgressBar progressBar;
 
-    // Listas de datos
     private List<Actividad> actividadesList;
     private List<Actividad> filteredActividadesList;
     private ActividadesListAdapter adapter;
 
-    // IDs paralelos
     private List<String> actividadIds;
     private List<String> filteredActividadIds;
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    // Launcher para crear nueva actividad
+    // Launchers
     private final ActivityResultLauncher<Intent> crearActividadLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -67,7 +67,6 @@ public class ListaActividadesFragment extends Fragment {
                     }
             );
 
-    // Launcher para cancelar actividad y recargar lista al volver
     private final ActivityResultLauncher<Intent> cancelarActividadLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -110,7 +109,7 @@ public class ListaActividadesFragment extends Fragment {
         setupRecyclerView();
         setupListeners();
         loadActivitiesFromFirebase();
-        checkUserRole();
+        checkUserRole(); // ✅ ahora usa UserSession
 
         return view;
     }
@@ -119,14 +118,12 @@ public class ListaActividadesFragment extends Fragment {
         rvActivitiesList.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvActivitiesList.setAdapter(adapter);
 
-        // Click en una actividad -> ir al detalle con su ID real
         adapter.setOnItemClickListener(actividad -> {
             int pos = filteredActividadesList.indexOf(actividad);
             if (pos >= 0 && pos < filteredActividadIds.size()) {
                 String actividadId = filteredActividadIds.get(pos);
                 Intent intent = new Intent(requireContext(), DetalleActividadActivity.class);
                 intent.putExtra("actividadId", actividadId);
-                // 🔥 CAMBIO: usar launcher para refrescar al volver
                 cancelarActividadLauncher.launch(intent);
             } else {
                 AlertManager.showWarningToast(requireContext(), "No se pudo obtener el ID de la actividad ❗");
@@ -135,7 +132,6 @@ public class ListaActividadesFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Buscar al presionar el action del teclado
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             String query = etSearch.getText() != null
                     ? etSearch.getText().toString().trim()
@@ -144,10 +140,8 @@ public class ListaActividadesFragment extends Fragment {
             return true;
         });
 
-        // Chips -> filtros
         chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> filterActivitiesByType());
 
-        // FAB crear nueva actividad
         fabNewActivityList.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), AgregarActividadActivity.class);
             crearActividadLauncher.launch(intent);
@@ -244,7 +238,6 @@ public class ListaActividadesFragment extends Fragment {
     private void filterActivitiesByType() {
         filteredActividadesList.clear();
         filteredActividadIds.clear();
-
         filteredActividadesList.addAll(actividadesList);
         filteredActividadIds.addAll(actividadIds);
 
@@ -265,38 +258,22 @@ public class ListaActividadesFragment extends Fragment {
         }
     }
 
+    // ============================================================
+    // ✅ NUEVA VERSIÓN USANDO USERSESSION
+    // ============================================================
     private void checkUserRole() {
-        if (auth.getCurrentUser() == null) {
-            fabNewActivityList.setVisibility(View.GONE);
+        UserSession session = UserSession.getInstance();
+
+        if (!session.permisosCargados()) {
+            Log.w("LISTA_ACTIVIDADES", "⚠️ Permisos no cargados, reintentando...");
+            new Handler().postDelayed(this::checkUserRole, 1000);
             return;
         }
 
-        String uid = auth.getCurrentUser().getUid();
+        boolean puedeCrear = session.puede("crear_actividades");
+        fabNewActivityList.setVisibility(puedeCrear ? View.VISIBLE : View.GONE);
 
-        db.collection("usuarios")
-                .document(uid)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String rolId = documentSnapshot.getString("rolId");
-                        boolean esAdmin = "admin".equalsIgnoreCase(rolId)
-                                || "administrador".equalsIgnoreCase(rolId);
-
-                        fabNewActivityList.setVisibility(esAdmin ? View.VISIBLE : View.GONE);
-                        Log.d(TAG, "Rol del usuario: " + rolId + " - FAB visible: " + esAdmin);
-                    } else {
-                        fabNewActivityList.setVisibility(View.GONE);
-                        Log.w(TAG, "Usuario no encontrado en Firestore para UID: " + uid);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al verificar rol: " + e.getMessage(), e);
-                    fabNewActivityList.setVisibility(View.GONE);
-                    AlertManager.showErrorSnackbar(
-                            AlertManager.getRootView(requireActivity()),
-                            "Error al verificar permisos del usuario"
-                    );
-                });
+        Log.d("LISTA_ACTIVIDADES", "🎯 FAB visible: " + puedeCrear + " - Rol: " + session.getRolId());
     }
 
     private String safe(String s) {

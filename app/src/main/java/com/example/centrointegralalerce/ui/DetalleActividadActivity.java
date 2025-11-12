@@ -3,6 +3,7 @@ package com.example.centrointegralalerce.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
 import com.example.centrointegralalerce.utils.AlertManager;
+import com.example.centrointegralalerce.data.UserSession;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -110,7 +112,7 @@ public class DetalleActividadActivity extends AppCompatActivity {
         fabAdjuntar     = findViewById(R.id.fab_adjuntar);
 
         // ==== Nuevo: Configurar RecyclerView para archivos ====
-        tvSinArchivos = findViewById(R.id.tv_sin_archivos); // Necesitarás agregar este TextView en tu layout
+        tvSinArchivos = findViewById(R.id.tv_sin_archivos);
 
         if (rvArchivos != null) {
             archivosAdapter = new ArchivosAdapter(archivosList);
@@ -159,16 +161,55 @@ public class DetalleActividadActivity extends AppCompatActivity {
             });
         }
 
-        // ✅ Actualizado: usar el método abrirCancelarActividad()
         if (btnCancelar != null) {
             btnCancelar.setOnClickListener(v -> abrirCancelarActividad());
         }
+
+        // ✅ NUEVO: Verificar permisos al iniciar
+        verificarPermisos();
 
         // ==== Cargar datos desde Firestore ====
         loadActividad(actividadId);
     }
 
-    // ✅ Nuevo método mejorado
+    // ✅ NUEVO MÉTODO DE CONTROL DE PERMISOS
+    private void verificarPermisos() {
+        UserSession session = UserSession.getInstance();
+
+        if (!session.permisosCargados()) {
+            Log.w("DETALLE_ACTIVIDAD", "⚠️ Permisos no cargados, reintentando...");
+            new Handler().postDelayed(this::verificarPermisos, 1000);
+            return;
+        }
+
+        // Controlar visibilidad de botones según permisos
+        if (btnModificar != null) {
+            boolean puedeModificar = session.puede("modificar_actividades");
+            btnModificar.setVisibility(puedeModificar ? View.VISIBLE : View.GONE);
+        }
+
+        if (btnCancelar != null) {
+            boolean puedeCancelar = session.puede("cancelar_actividades");
+            btnCancelar.setVisibility(puedeCancelar ? View.VISIBLE : View.GONE);
+        }
+
+        if (btnReagendar != null) {
+            boolean puedeReagendar = session.puede("reagendar_actividades");
+            btnReagendar.setVisibility(puedeReagendar ? View.VISIBLE : View.GONE);
+        }
+
+        if (fabAdjuntar != null) {
+            boolean puedeAdjuntar = session.puede("adjuntar_comunicaciones");
+            fabAdjuntar.setVisibility(puedeAdjuntar ? View.VISIBLE : View.GONE);
+        }
+
+        Log.d("DETALLE_ACTIVIDAD", "🎯 Permisos - Modificar: " + session.puede("modificar_actividades") +
+                ", Cancelar: " + session.puede("cancelar_actividades") +
+                ", Reagendar: " + session.puede("reagendar_actividades") +
+                ", Adjuntar: " + session.puede("adjuntar_comunicaciones"));
+    }
+
+    // ✅ Método existente intacto
     private void abrirCancelarActividad() {
         if (actividadActual != null) {
             Intent intent = new Intent(this, CancelarActividadActivity.class);

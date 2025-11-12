@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
+import android.util.Log;
 public class ModificarActividadActivity extends AppCompatActivity {
 
     // Text inputs simples
@@ -117,13 +117,26 @@ public class ModificarActividadActivity extends AppCompatActivity {
         cbDomingo = findViewById(R.id.cbDomingo);
 
         // ✅ Verificar permisos
-        if (!UserSession.getInstance().puede("modificar_actividades")) {
-            btnGuardarCambios.setEnabled(false);
-            btnGuardarCambios.setVisibility(View.GONE);
-            Toast.makeText(this, "No tienes permiso para modificar actividades", Toast.LENGTH_LONG).show();
+        // ✅ VERIFICACIÓN MEJORADA DE PERMISOS
+        UserSession session = UserSession.getInstance();
+
+        if (!session.permisosCargados()) {
+            Log.w("MODIFICAR_ACTIVIDAD", "⚠️ Permisos no cargados en UserSession");
+            Toast.makeText(this, "Error: Permisos no cargados. Intenta nuevamente.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
+
+        if (!session.puede("modificar_actividades")) {
+            Log.w("MODIFICAR_ACTIVIDAD", "❌ Usuario sin permiso para modificar actividades. Rol: " + session.getRolId());
+            btnGuardarCambios.setEnabled(false);
+            btnGuardarCambios.setVisibility(View.GONE);
+            Toast.makeText(this, "No tienes permiso para modificar actividades", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Log.d("MODIFICAR_ACTIVIDAD", "✅ Usuario tiene permiso para modificar actividades. Rol: " + session.getRolId());
+
 
         setupEmptyAdapters();
         cargarPeriodicidad();
