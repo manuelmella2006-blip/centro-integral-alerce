@@ -22,7 +22,9 @@
 
         <!-- 🔹 Activities existentes -->
         <activity android:name=".ui.mantenedores.TiposActividadActivity" />
-
+        <activity
+            android:name=".ui.mantenedores.OferentesActivity"
+            android:exported="false" />
         <activity android:name=".ui.RecoverPasswordActivity" />
         <activity android:name=".ui.RegisterActivity" />
         <activity android:name=".ui.DetalleActividadActivity"
