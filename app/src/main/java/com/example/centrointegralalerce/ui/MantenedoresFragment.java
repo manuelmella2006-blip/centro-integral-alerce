@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.centrointegralalerce.ui.mantenedores.TiposActividadActivity;
+
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.ui.CrearLugarActivity;
@@ -105,10 +107,11 @@ public class MantenedoresFragment extends Fragment {
 
         // Card Tipos de Actividad
         cardTiposActividad.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "🏷️ Tipos de Actividad - Próximamente disponible",
-                    Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(requireContext(), TiposActividadActivity.class);
+            startActivity(intent);
         });
+
+
 
         // Card Oferentes
         cardOferentes.setOnClickListener(v -> {
