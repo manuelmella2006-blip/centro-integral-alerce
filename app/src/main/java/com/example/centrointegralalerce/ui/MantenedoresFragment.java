@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.centrointegralalerce.ui.mantenedores.TiposActividadActivity;
 import com.example.centrointegralalerce.ui.mantenedores.OferentesActivity;
+import com.example.centrointegralalerce.ui.mantenedores.SociosComunitariosActivity;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.UserSession;
@@ -113,7 +114,6 @@ public class MantenedoresFragment extends Fragment {
         });
 
 
-
         // Card Oferentes
         cardOferentes.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), OferentesActivity.class);
@@ -122,9 +122,8 @@ public class MantenedoresFragment extends Fragment {
 
         // Card Socios Comunitarios
         cardSociosComunitarios.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "🏢 Socios Comunitarios - Próximamente disponible",
-                    Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), SociosComunitariosActivity.class);
+            startActivity(intent);
         });
 
         // Card Proyectos
