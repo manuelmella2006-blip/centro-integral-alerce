@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.centrointegralalerce.ui.mantenedores.ProyectosActivity;
 import com.example.centrointegralalerce.ui.mantenedores.TiposActividadActivity;
 import com.example.centrointegralalerce.ui.mantenedores.OferentesActivity;
 import com.example.centrointegralalerce.ui.mantenedores.SociosComunitariosActivity;
@@ -128,9 +129,8 @@ public class MantenedoresFragment extends Fragment {
 
         // Card Proyectos
         cardProyectos.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "📁 Proyectos - Próximamente disponible",
-                    Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), ProyectosActivity.class);
+            startActivity(intent);
         });
     }
 }

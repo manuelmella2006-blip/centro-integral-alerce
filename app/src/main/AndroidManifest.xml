@@ -28,6 +28,9 @@
         <activity
             android:name=".ui.mantenedores.SociosComunitariosActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.mantenedores.ProyectosActivity"
+            android:exported="false" />
         <activity android:name=".ui.RecoverPasswordActivity" />
         <activity android:name=".ui.RegisterActivity" />
         <activity android:name=".ui.DetalleActividadActivity"
