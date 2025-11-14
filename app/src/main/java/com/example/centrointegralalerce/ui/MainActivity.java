@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -83,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         inicializarNotificaciones();
         cargarRolYPermisos(rolUsuario);
-        setupBottomNavigation();
+        setupBottomNavigation(); // ✅ Ahora se llama después de cargar permisos
         actualizarBadges();
     }
 
@@ -94,9 +96,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ✅ MÉTODO ACTUALIZADO - Cargar rol y permisos desde Firestore
-    // ✅ MÉTODO CORREGIDO - Cargar rol y permisos desde Firestore
-    // ✅ MÉTODO FINAL - Cargar rol y permisos desde Firestore con logs de verificación
-    // Reemplazar el método cargarRolYPermisos con esta versión mejorada
     private void cargarRolYPermisos(String rolId) {
         Log.d("MAIN_DEBUG", "🔍 Verificando estado de UserSession...");
 
@@ -104,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         if (UserSession.getInstance().permisosCargados()) {
             Log.d("MAIN_DEBUG", "✅ Nivel 1: Permisos YA cargados en UserSession");
             cargarFragmentoInicial();
+            actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú después de cargar permisos
             return;
         }
 
@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         Log.w("MAIN_DEBUG", "⚠️ Nivel 3: Sin datos de sesión, cargando desde Firestore...");
         cargarPermisosDesdeFirestore(rolId);
     }
+
     // ✅ Solo se usa si UserSession no tiene permisos cargados
     private void cargarPermisosDesdeFirestore(String rolId) {
         FirebaseFirestore.getInstance().collection("roles").document(rolId)
@@ -142,12 +143,38 @@ public class MainActivity extends AppCompatActivity {
                         Log.w("MAIN_DEBUG", "⚠️ Rol no encontrado en Firestore");
                     }
                     cargarFragmentoInicial();
+                    actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú después de cargar permisos
                 })
                 .addOnFailureListener(e -> {
                     Log.e("MAIN_DEBUG", "❌ Error al cargar permisos desde Firestore", e);
                     cargarFragmentoInicial();
+                    actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú incluso en error
                 });
     }
+
+    // ✅ NUEVO MÉTODO: Actualizar visibilidad del menú según permisos
+    private void actualizarMenuNavigation() {
+        if (bottomNavigation == null) return;
+
+        Menu menu = bottomNavigation.getMenu();
+        MenuItem mantenedoresItem = menu.findItem(R.id.nav_mantenedores);
+
+        if (mantenedoresItem != null) {
+            boolean puedeMantenedores = UserSession.getInstance().puede("gestionar_mantenedores");
+            mantenedoresItem.setVisible(puedeMantenedores);
+
+            Log.d("MAIN_DEBUG", "🎯 Menu Navigation - Mantenedores visible: " + puedeMantenedores +
+                    " | Rol: " + UserSession.getInstance().getRolId());
+        }
+
+        // ✅ También puedes ocultar otros items del menú según permisos si es necesario
+        // MenuItem configuracionItem = menu.findItem(R.id.nav_settings);
+        // if (configuracionItem != null) {
+        //     boolean puedeConfiguracion = UserSession.getInstance().puede("gestionar_configuracion");
+        //     configuracionItem.setVisible(puedeConfiguracion);
+        // }
+    }
+
     // ✅ NUEVO MÉTODO: Cargar fragmento inicial usando UserSession
     private void cargarFragmentoInicial() {
         boolean puedeCrear = UserSession.getInstance().puedeCrearActividades();
@@ -174,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MAIN_DEBUG", " - Ver todas: " + puedeVerTodas);
     }
 
-
     // ✅ MÉTODO NUEVO: Permisos por defecto si hay error
     private void cargarPermisosPorDefecto(String rolId) {
         Map<String, Boolean> permisosPorDefecto = new java.util.HashMap<>();
@@ -197,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
         UserSession.getInstance().setRol(rolId, permisosPorDefecto);
         cargarFragmentoInicialConPermisos(permisosPorDefecto);
+        actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú con permisos por defecto
     }
 
     // ✅ NUEVO MÉTODO: Mostrar el fragmento inicial con permisos listos
@@ -397,7 +424,6 @@ public class MainActivity extends AppCompatActivity {
                                     }
 
                                     procesadas[0]++;
-
                                     if (procesadas[0] == totalActividades) {
                                         BadgeManager.updateBadge(bottomNavigation, R.id.nav_activities_list, totalCitasNoConfirmadas[0]);
                                         if (totalCitasHoy[0] > 0) {
@@ -419,6 +445,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
+        // ✅ NUEVO: Actualizar menú antes de configurar listeners
+        actualizarMenuNavigation();
+
         bottomNavigation.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             String title = "";
@@ -452,6 +481,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!UserSession.getInstance().puede("gestionar_mantenedores")) {
                     AlertManager.showWarningSnackbar(rootView,
                             "⚠️ Solo los administradores pueden gestionar mantenedores");
+                    return false; // ✅ Evitar que se seleccione el item sin permisos
                 }
 
             } else if (itemId == R.id.nav_settings) {
@@ -522,6 +552,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         actualizarBadges();
+        // ✅ NUEVO: Actualizar menú al volver a la actividad por si cambiaron los permisos
+        actualizarMenuNavigation();
     }
 
     @Override

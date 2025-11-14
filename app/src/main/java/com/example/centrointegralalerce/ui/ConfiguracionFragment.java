@@ -32,6 +32,13 @@ public class ConfiguracionFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    // ✅ MAPEO LOCAL DE NOMBRES DE ROLES
+    private static final java.util.Map<String, String> NOMBRES_ROLES = new java.util.HashMap<String, String>() {{
+        put("admin", "Administrador");
+        put("usuario", "Usuario Normal");
+        put("invitado", "Invitado");
+    }};
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -52,32 +59,49 @@ public class ConfiguracionFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // ✅ PRIMERO: Cargar datos inmediatos desde UserSession
+        cargarDatosInmediatos();
+
+        // ✅ LUEGO: Actualizar con datos frescos de Firestore
         cargarInfoUsuario();
+
         setupListeners();
 
         return view;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        // ✅ Al volver al fragmento, verificamos si los permisos siguen siendo válidos
-        verificarYMostrarOpciones();
+    // ✅ NUEVO MÉTODO: Cargar datos al instante desde UserSession
+    private void cargarDatosInmediatos() {
+        if (auth.getCurrentUser() == null) {
+            mostrarDatosPorDefecto();
+            return;
+        }
+
+        String email = auth.getCurrentUser().getEmail();
+        tvUserEmail.setText(email != null ? email : "Sin correo");
+
+        // ✅ Usar UserSession para mostrar datos inmediatos
+        String rolId = UserSession.getInstance().getRolId();
+
+        if (rolId != null && !rolId.isEmpty()) {
+            mostrarNombreRolInmediato(rolId);
+            verificarYMostrarOpciones(); // Mostrar/ocultar opciones inmediatamente
+        } else {
+            // Si UserSession no tiene rol, intentar cargar desde Firestore después
+            chipUserRole.setText("Cargando...");
+        }
+
+        // Nombre del usuario podríamos obtenerlo de SharedPreferences si lo guardamos
+        tvUserName.setText("Cargando...");
     }
 
     private void cargarInfoUsuario() {
         if (auth.getCurrentUser() == null) {
-            tvUserName.setText("Usuario no autenticado");
-            tvUserEmail.setText("Sin correo");
-            chipUserRole.setText("Invitado");
-            ocultarOpcionesAdmin();
-            AlertManager.showWarningToast(requireContext(), "Debes iniciar sesión");
+            mostrarDatosPorDefecto();
             return;
         }
 
         String uid = auth.getCurrentUser().getUid();
-        String email = auth.getCurrentUser().getEmail();
-        tvUserEmail.setText(email != null ? email : "Sin correo");
 
         db.collection("usuarios").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -85,32 +109,25 @@ public class ConfiguracionFragment extends Fragment {
                         String nombre = documentSnapshot.getString("nombre");
                         String rolId = documentSnapshot.getString("rolId");
 
-                        tvUserName.setText(nombre != null ? nombre : "Usuario");
-
-                        if (rolId != null && !rolId.isEmpty()) {
-                            chipUserRole.setText(rolId);
-
-                            // Cambiar color según el rol
-                            if ("admin".equalsIgnoreCase(rolId)) {
-                                chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
-                            } else {
-                                chipUserRole.setChipBackgroundColorResource(android.R.color.holo_green_light);
-                            }
-
-                            // ✅ Verificar permisos
-                            verificarYMostrarOpciones();
-
+                        // ✅ Actualizar nombre si está disponible
+                        if (nombre != null && !nombre.isEmpty()) {
+                            tvUserName.setText(nombre);
                         } else {
-                            chipUserRole.setText("Sin rol asignado");
-                            chipUserRole.setChipBackgroundColorResource(android.R.color.darker_gray);
-                            ocultarOpcionesAdmin();
-                            AlertManager.showWarningToast(requireContext(), "No tienes un rol asignado");
+                            tvUserName.setText("Usuario");
                         }
+
+                        // ✅ Actualizar rol si es diferente al de UserSession
+                        if (rolId != null && !rolId.isEmpty()) {
+                            String rolActual = UserSession.getInstance().getRolId();
+                            if (!rolId.equals(rolActual)) {
+                                mostrarNombreRolInmediato(rolId);
+                                // También actualizar UserSession si cambió el rol
+                                UserSession.getInstance().setRol(rolId, UserSession.getInstance().getPermisos());
+                            }
+                        }
+
                     } else {
-                        tvUserName.setText("Usuario no encontrado");
-                        chipUserRole.setText("Sin rol");
-                        chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
-                        ocultarOpcionesAdmin();
+                        mostrarDatosPorDefecto();
                         AlertManager.showWarningSnackbar(
                                 AlertManager.getRootViewSafe(this),
                                 "Usuario no registrado en Firestore"
@@ -118,48 +135,67 @@ public class ConfiguracionFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    tvUserName.setText("Error al cargar");
-                    chipUserRole.setText("Error al cargar rol");
-                    chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
-                    ocultarOpcionesAdmin();
-                    AlertManager.showErrorSnackbar(
-                            AlertManager.getRootViewSafe(this),
-                            "Error: " + e.getMessage()
-                    );
+                    Log.e("CONFIGURACION", "Error al cargar datos de Firestore: " + e.getMessage());
+                    // No mostramos error para no molestar al usuario, ya tenemos datos de UserSession
                 });
     }
 
-    // ✅ NUEVA VERSIÓN REACTIVA
+    private void mostrarDatosPorDefecto() {
+        tvUserName.setText("Usuario no autenticado");
+        tvUserEmail.setText("Sin correo");
+        chipUserRole.setText("Invitado");
+        ocultarOpcionesAdmin();
+    }
+
+    // ✅ MÉTODO RÁPIDO: Sin consulta a Firestore
+    private void mostrarNombreRolInmediato(String rolId) {
+        String nombreDisplay = NOMBRES_ROLES.get(rolId.toLowerCase());
+
+        if (nombreDisplay != null) {
+            chipUserRole.setText(nombreDisplay);
+        } else {
+            chipUserRole.setText(capitalize(rolId));
+        }
+
+        // Aplicar color según el rol
+        if ("admin".equalsIgnoreCase(rolId)) {
+            chipUserRole.setChipBackgroundColorResource(android.R.color.holo_red_light);
+        } else {
+            chipUserRole.setChipBackgroundColorResource(android.R.color.holo_green_light);
+        }
+    }
+
+    private String capitalize(String text) {
+        if (text == null || text.isEmpty()) return text;
+        return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+    }
+
+    // ✅ VERSIÓN REACTIVA
     private void verificarYMostrarOpciones() {
         if (!isAdded() || getActivity() == null) return;
 
-        // Ocultar primero todo
         ocultarOpcionesAdmin();
 
-        // ✅ VERIFICACIÓN CON REINTENTOS
         if (!UserSession.getInstance().permisosCargados()) {
-            Log.w("CONFIGURACION", "⚠️ Permisos no cargados, reintentando en 1 segundo...");
+            Log.w("CONFIGURACION", "⚠️ Permisos no cargados, reintentando...");
 
             new Handler().postDelayed(() -> {
                 if (isAdded() && getActivity() != null) {
-                    verificarYMostrarOpciones(); // Reintento
+                    verificarYMostrarOpciones();
                 }
-            }, 1000);
+            }, 500); // Reducido a 500ms
             return;
         }
 
-        // ✅ MOSTRAR OPCIONES SEGÚN PERMISOS
         boolean puedeMantenedores = UserSession.getInstance().puede("gestionar_mantenedores");
         boolean puedeUsuarios = UserSession.getInstance().puede("gestionar_usuarios");
 
         if (puedeMantenedores) {
             itemMantenedores.setVisibility(View.VISIBLE);
-            Log.d("CONFIGURACION", "✅ Mostrando Mantenedores - Con permiso");
         }
 
         if (puedeUsuarios) {
             itemGestionarUsuarios.setVisibility(View.VISIBLE);
-            Log.d("CONFIGURACION", "✅ Mostrando Gestión Usuarios - Con permiso");
         }
 
         Log.d("CONFIGURACION", "🎯 UI Actualizada - Mantenedores: " + puedeMantenedores +
@@ -177,10 +213,6 @@ public class ConfiguracionFragment extends Fragment {
                 MainActivity mainActivity = (MainActivity) getActivity();
                 if (mainActivity != null) {
                     mainActivity.navigateToMantenedores();
-                    AlertManager.showInfoSnackbar(
-                            AlertManager.getRootViewSafe(this),
-                            "Abriendo Mantenedores..."
-                    );
                 } else {
                     AlertManager.showErrorToast(requireContext(), "Error al abrir Mantenedores");
                 }
@@ -195,7 +227,6 @@ public class ConfiguracionFragment extends Fragment {
         itemGestionarUsuarios.setOnClickListener(v -> {
             if (UserSession.getInstance().puede("gestionar_usuarios")) {
                 startActivity(new Intent(requireContext(), RegisterActivity.class));
-                AlertManager.showInfoToast(requireContext(), "Abriendo gestión de usuarios...");
             } else {
                 AlertManager.showWarningSnackbar(
                         AlertManager.getRootViewSafe(this),

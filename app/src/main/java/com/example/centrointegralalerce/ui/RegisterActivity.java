@@ -68,7 +68,7 @@ public class RegisterActivity extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
-        String rol = spinnerRol.getSelectedItem().toString();
+        String rolSeleccionado = spinnerRol.getSelectedItem().toString();
 
         // ✅ Validaciones (mantener las que ya tienes)
         if (nombre.isEmpty() || nombre.length() < 3) {
@@ -96,42 +96,53 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (rol.equals("Seleccionar rol") || rol.isEmpty()) {
+        if (rolSeleccionado.equals("Seleccionar rol") || rolSeleccionado.isEmpty()) {
             Toast.makeText(this, "Selecciona un rol de usuario", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // ✅ CORRECCIÓN: Mapear correctamente los roles a los IDs que existen en Firestore
+        // ✅ NUEVO: Mapear nombres de roles a IDs de Firestore
         String rolId;
-        if (rol.equalsIgnoreCase("admin") || rol.equalsIgnoreCase("administrador")) {
+        String nombreRolFirestore;
+
+        if (rolSeleccionado.equalsIgnoreCase("Administrador")) {
             rolId = "admin";
+            nombreRolFirestore = "Administrador"; // Nombre nuevo en Firestore
         } else {
-            rolId = "usuario";  // ← Cambiar de "usuario normal" a "usuario"
+            rolId = "usuario";
+            nombreRolFirestore = "Usuario Normal"; // Nombre nuevo en Firestore
         }
 
-        Log.d("REGISTER", "🎯 Guardando rolId: " + rolId + " (seleccionado: " + rol + ")");
+        Log.d("REGISTER", "🎯 Guardando - Rol seleccionado: " + rolSeleccionado +
+                " | RolId: " + rolId + " | Nombre en Firestore: " + nombreRolFirestore);
 
         // Deshabilitar botón durante el registro
         btnRegistrar.setEnabled(false);
         btnRegistrar.setText("Registrando...");
 
-        // Crear usuario en Firebase Authentication
+        // ✅ NUEVO: Crear usuario en Firebase Authentication
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    String userId = auth.getCurrentUser().getUid();
+                    // ✅ IMPORTANTE: Usar el UID de Authentication como document ID en Firestore
+                    String userId = authResult.getUser().getUid();
+                    Log.d("REGISTER", "✅ Usuario creado en Authentication - UID: " + userId);
 
-                    // Guardar datos adicionales en Firestore
+                    // ✅ NUEVO: Guardar datos en Firestore usando el UID de Authentication
                     Map<String, Object> datosUsuario = new HashMap<>();
                     datosUsuario.put("nombre", nombre);
                     datosUsuario.put("email", email);
-                    datosUsuario.put("rolId", rolId); // ← Aquí se guarda el ID correcto
+                    datosUsuario.put("rolId", rolId);
+                    datosUsuario.put("nombreRol", nombreRolFirestore); // Nuevo campo para mostrar nombre amigable
                     datosUsuario.put("activo", true);
                     datosUsuario.put("fechaCreacion", com.google.firebase.firestore.FieldValue.serverTimestamp());
                     datosUsuario.put("ultimaActualizacion", System.currentTimeMillis());
 
+                    // ✅ USAR EL UID COMO DOCUMENT ID
                     db.collection("usuarios").document(userId)
                             .set(datosUsuario)
                             .addOnSuccessListener(aVoid -> {
+                                Log.d("REGISTER", "✅ Datos guardados en Firestore con UID: " + userId);
+
                                 Toast.makeText(RegisterActivity.this,
                                         "¡Usuario " + nombre + " registrado correctamente!",
                                         Toast.LENGTH_SHORT).show();
@@ -147,6 +158,11 @@ public class RegisterActivity extends AppCompatActivity {
                                 btnRegistrar.setText("Registrar Usuario");
                             })
                             .addOnFailureListener(e -> {
+                                Log.e("REGISTER", "❌ Error al guardar en Firestore: " + e.getMessage());
+
+                                // ✅ IMPORTANTE: Si falla Firestore, eliminar el usuario de Authentication
+                                authResult.getUser().delete();
+
                                 btnRegistrar.setEnabled(true);
                                 btnRegistrar.setText("Registrar Usuario");
                                 Toast.makeText(RegisterActivity.this,
@@ -159,6 +175,8 @@ public class RegisterActivity extends AppCompatActivity {
                     btnRegistrar.setText("Registrar Usuario");
 
                     String errorMessage = e.getMessage();
+                    Log.e("REGISTER", "❌ Error en Authentication: " + errorMessage);
+
                     if (errorMessage != null) {
                         if (errorMessage.contains("email address is already in use")) {
                             Toast.makeText(RegisterActivity.this,
