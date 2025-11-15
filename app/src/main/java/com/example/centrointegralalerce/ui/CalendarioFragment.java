@@ -1,7 +1,10 @@
 package com.example.centrointegralalerce.ui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -15,6 +18,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
@@ -24,6 +29,7 @@ import com.example.centrointegralalerce.data.Cita;
 import com.example.centrointegralalerce.data.CitaFirebase;
 import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
+import com.example.centrointegralalerce.utils.NotificationScheduler;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,6 +45,7 @@ import java.util.Locale;
 public class CalendarioFragment extends Fragment {
 
     private static final String TAG = "CalendarioFragment";
+    private static final int NOTIFICATION_PERMISSION_CODE = 100;
 
     // Vistas
     private ViewPager2 viewPagerCalendar;
@@ -57,6 +64,9 @@ public class CalendarioFragment extends Fragment {
     // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+
+    // 🔔 Notificaciones
+    private NotificationScheduler notificationScheduler;
 
     // Activity Result
     private final ActivityResultLauncher<Intent> crearActividadLauncher =
@@ -81,7 +91,13 @@ public class CalendarioFragment extends Fragment {
             db = FirebaseFirestore.getInstance();
             mAuth = FirebaseAuth.getInstance();
 
+            // 🔔 Inicializar el scheduler de notificaciones
+            notificationScheduler = new NotificationScheduler(requireContext());
+
             initializeViews(view);
+
+            // 🔔 Verificar permisos de notificación (Android 13+)
+            checkNotificationPermission();
 
             // ✅ Control de permisos reactivo
             verificarPermisosCreacion();
@@ -102,7 +118,149 @@ public class CalendarioFragment extends Fragment {
         return view;
     }
 
-    // ✅ MÉTODO NUEVO: CONTROL REACTIVO DE CREACIÓN DE ACTIVIDADES
+    // ===========================================
+    // 🔔 MÉTODOS DE NOTIFICACIONES
+    // ===========================================
+
+    /**
+     * Verifica y solicita permiso de notificaciones (Android 13+)
+     */
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+
+                Log.d(TAG, "📱 Solicitando permiso de notificaciones");
+                ActivityCompat.requestPermissions(requireActivity(),
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE);
+            } else {
+                Log.d(TAG, "✅ Permiso de notificaciones ya concedido");
+            }
+        }
+    }
+
+    /**
+     * Programa notificaciones para todas las citas cargadas
+     */
+    private void programarNotificacionesParaCitas() {
+        if (notificationScheduler == null || allCitas == null || allCitas.isEmpty()) {
+            Log.d(TAG, "⚠️ No hay citas para programar notificaciones");
+            return;
+        }
+
+        if (!ConfiguracionFragment.areNotificationsEnabled(requireContext())) {
+            Log.d(TAG, "🔕 Notificaciones deshabilitadas por el usuario");
+            return;
+        }
+
+        int programadas = 0;
+        Calendar ahora = Calendar.getInstance();
+
+        for (Cita cita : allCitas) {
+            if (cita != null && cita.getFecha() != null) {
+                Calendar citaCal = Calendar.getInstance();
+                citaCal.setTime(cita.getFecha());
+
+                // Solo programar para citas futuras
+                if (citaCal.after(ahora)) {
+                    try {
+                        notificationScheduler.scheduleNotification(cita);
+                        programadas++;
+                        Log.d(TAG, "🔔 Notificación programada: " + cita.getActividadNombre());
+                    } catch (Exception e) {
+                        Log.e(TAG, "❌ Error programando notificación para: " + cita.getActividadNombre(), e);
+                    }
+                }
+            }
+        }
+
+        if (programadas > 0) {
+            Log.d(TAG, "✅ Total notificaciones programadas: " + programadas);
+        }
+    }
+
+    /**
+     * Reprogramar todas las notificaciones (llamar cuando cambien las configuraciones)
+     */
+    public void reprogramarTodasLasNotificaciones() {
+        if (notificationScheduler == null) {
+            Log.w(TAG, "⚠️ NotificationScheduler no inicializado");
+            return;
+        }
+
+        Log.d(TAG, "🔄 Reprogramando todas las notificaciones...");
+
+        // Obtener solo citas futuras
+        List<Cita> citasFuturas = obtenerCitasFuturas();
+
+        if (citasFuturas.isEmpty()) {
+            Log.d(TAG, "ℹ️ No hay citas futuras para reprogramar");
+            AlertManager.showInfoToast(requireContext(), "No hay citas futuras");
+            return;
+        }
+
+        // Reprogramar
+        notificationScheduler.rescheduleAllNotifications(citasFuturas);
+
+        AlertManager.showSuccessToast(requireContext(),
+                "🔔 " + citasFuturas.size() + " notificaciones actualizadas");
+
+        Log.d(TAG, "✅ Reprogramación completada: " + citasFuturas.size() + " citas");
+    }
+
+    /**
+     * Obtiene todas las citas futuras de la lista actual
+     */
+    private List<Cita> obtenerCitasFuturas() {
+        List<Cita> citasFuturas = new ArrayList<>();
+        Calendar ahora = Calendar.getInstance();
+
+        if (allCitas != null) {
+            for (Cita cita : allCitas) {
+                if (cita != null && cita.getFecha() != null) {
+                    Calendar citaCal = Calendar.getInstance();
+                    citaCal.setTime(cita.getFecha());
+
+                    if (citaCal.after(ahora)) {
+                        citasFuturas.add(cita);
+                    }
+                }
+            }
+        }
+
+        return citasFuturas;
+    }
+
+    /**
+     * Manejar resultado de permisos
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "✅ Permiso de notificaciones concedido");
+                AlertManager.showSuccessToast(requireContext(), "Notificaciones activadas");
+
+                // Programar notificaciones si ya hay citas cargadas
+                if (allCitas != null && !allCitas.isEmpty()) {
+                    programarNotificacionesParaCitas();
+                }
+            } else {
+                Log.d(TAG, "❌ Permiso de notificaciones denegado");
+                AlertManager.showWarningSnackbar(AlertManager.getRootView(requireActivity()),
+                        "Las notificaciones están desactivadas. Puedes activarlas en Configuración.");
+            }
+        }
+    }
+
+    // ===========================================
+    // MÉTODOS EXISTENTES (sin cambios significativos)
+    // ===========================================
+
     private void verificarPermisosCreacion() {
         UserSession session = UserSession.getInstance();
 
@@ -112,7 +270,6 @@ public class CalendarioFragment extends Fragment {
             if (fabNewActivity != null) fabNewActivity.setVisibility(View.GONE);
             if (btnCreateFirstActivity != null) btnCreateFirstActivity.setVisibility(View.GONE);
 
-            // 🔁 Reintentar automáticamente después de 1 segundo
             new Handler().postDelayed(this::verificarPermisosCreacion, 1000);
             return;
         }
@@ -176,7 +333,7 @@ public class CalendarioFragment extends Fragment {
         allCitas.clear();
 
         db.collection("actividades")
-                .whereNotEqualTo("estado", "cancelada") // <-- NUEVO: solo actividades activas
+                .whereNotEqualTo("estado", "cancelada")
                 .get()
                 .addOnSuccessListener(actividadesSnapshot -> {
                     if (!isAdded() || getActivity() == null) {
@@ -297,7 +454,6 @@ public class CalendarioFragment extends Fragment {
                 });
     }
 
-
     private void finalizarCargaYActualizarUI() {
         if (!isAdded() || getActivity() == null) {
             showLoading(false);
@@ -306,16 +462,16 @@ public class CalendarioFragment extends Fragment {
         }
 
         setupViewPager();
-
-        // 🎯 DEBUG: Verificar datos de citas y calendario antes de actualizar la UI
         debugCitasYCalendario();
-
         updateWeekLabel(currentWeekStart);
         updateMonthSubtitle(currentWeekStart);
         checkIfWeekHasCitas(currentWeekStart);
         showLoading(false);
 
         if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+
+        // 🔔 Programar notificaciones después de cargar las citas
+        programarNotificacionesParaCitas();
 
         if (allCitas.isEmpty()) {
             AlertManager.showInfoSnackbar(AlertManager.getRootView(requireActivity()),
@@ -332,10 +488,8 @@ public class CalendarioFragment extends Fragment {
                 return;
             }
 
-            // 🔹 Normalizar la semana al lunes antes de crear el adaptador
             normalizeToMonday(currentWeekStart);
 
-            // 🔹 Inicializar correctamente el adaptador
             pagerAdapter = new CalendarPagerAdapter(allCitas, getChildFragmentManager(), currentWeekStart);
             viewPagerCalendar.setAdapter(pagerAdapter);
             viewPagerCalendar.setCurrentItem(pagerAdapter.getMiddlePosition(), false);
@@ -418,6 +572,7 @@ public class CalendarioFragment extends Fragment {
         int daysFromMonday = (currentDayOfWeek == Calendar.SUNDAY) ? 6 : currentDayOfWeek - Calendar.MONDAY;
         cal.add(Calendar.DAY_OF_MONTH, -daysFromMonday);
     }
+
     private void normalizeToMonday(Calendar cal) {
         if (cal == null) return;
         cal.setFirstDayOfWeek(Calendar.MONDAY);
@@ -425,6 +580,7 @@ public class CalendarioFragment extends Fragment {
         int diff = (dayOfWeek == Calendar.SUNDAY) ? -6 : (Calendar.MONDAY - dayOfWeek);
         cal.add(Calendar.DAY_OF_MONTH, diff);
     }
+
     private void debugCitasYCalendario() {
         Log.d(TAG, "=== 🎯 DEBUG CITAS vs CALENDARIO ===");
 
@@ -454,7 +610,6 @@ public class CalendarioFragment extends Fragment {
             }
         }
 
-        // Verificar qué citas deberían mostrarse en esta semana
         List<Cita> citasEstaSemana = new ArrayList<>();
         for (Cita cita : allCitas) {
             if (cita != null && cita.getFecha() != null) {
@@ -472,6 +627,7 @@ public class CalendarioFragment extends Fragment {
             Log.d(TAG, "👉 " + fechaCita + " - " + cita.getActividadNombre());
         }
     }
+
     private void updateWeekLabel(Calendar weekStart) {
         if (tvCurrentWeek == null || weekStart == null) return;
         try {
@@ -519,38 +675,25 @@ public class CalendarioFragment extends Fragment {
         layoutEmptyCalendar.setVisibility(hasCitas ? View.GONE : View.VISIBLE);
     }
 
-    public void reloadCitas() {
-        Log.d(TAG, "🔄 Recargando citas manualmente...");
-
-        // Forzar destrucción del adapter y limpieza para evitar datos cacheados
-        if (pagerAdapter != null) {
-            pagerAdapter = null;
-        }
-
-        if (viewPagerCalendar != null) {
-            viewPagerCalendar.setAdapter(null);
-        }
-
-        if (allCitas != null) {
-            allCitas.clear();
-        } else {
-            allCitas = new ArrayList<>();
-        }
-
-        loadCitasFromFirebase();
-    }
-
-
     private void showLoading(boolean show) {
         if (progressBar != null)
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
+    public void reloadCitas() {
+        if (pagerAdapter != null)
+            pagerAdapter = null;
+        if (viewPagerCalendar != null)
+            viewPagerCalendar.setAdapter(null);
+        if (allCitas != null)
+            allCitas.clear();
+
+        loadCitasFromFirebase();
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (viewPagerCalendar != null) {
-            viewPagerCalendar.setAdapter(null);
-        }
+        if (viewPagerCalendar != null) viewPagerCalendar.setAdapter(null);
     }
 }

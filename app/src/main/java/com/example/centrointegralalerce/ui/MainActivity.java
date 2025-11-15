@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
     private Toolbar toolbar;
     private boolean esInvitado = false;
-    private String rolUsuario = "usuario"; // por defecto
+    private String rolUsuario = "usuario";
 
     private FCMTokenManager fcmTokenManager;
     private SharedPreferencesManager prefsManager;
@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ✅ Verificación rápida de sesión
         prefsManager = new SharedPreferencesManager(this);
         if (!prefsManager.isLoggedIn() || FirebaseAuth.getInstance().getCurrentUser() == null) {
             redirectToLogin();
@@ -85,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         inicializarNotificaciones();
         cargarRolYPermisos(rolUsuario);
-        setupBottomNavigation(); // ✅ Ahora se llama después de cargar permisos
+        setupBottomNavigation();
         actualizarBadges();
     }
 
@@ -95,31 +94,26 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    // ✅ MÉTODO ACTUALIZADO - Cargar rol y permisos desde Firestore
     private void cargarRolYPermisos(String rolId) {
         Log.d("MAIN_DEBUG", "🔍 Verificando estado de UserSession...");
 
-        // ✅ VERIFICACIÓN EN 3 NIVELES
         if (UserSession.getInstance().permisosCargados()) {
             Log.d("MAIN_DEBUG", "✅ Nivel 1: Permisos YA cargados en UserSession");
             cargarFragmentoInicial();
-            actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú después de cargar permisos
+            actualizarMenuNavigation();
             return;
         }
 
-        // ✅ Si no hay permisos pero sí rol, intentar carga rápida
         if (UserSession.getInstance().getRolId() != null && !UserSession.getInstance().getRolId().isEmpty()) {
             Log.d("MAIN_DEBUG", "🔄 Nivel 2: Rol presente pero permisos faltantes, recargando...");
             cargarPermisosDesdeFirestore(UserSession.getInstance().getRolId());
             return;
         }
 
-        // ✅ Último recurso: cargar desde cero
         Log.w("MAIN_DEBUG", "⚠️ Nivel 3: Sin datos de sesión, cargando desde Firestore...");
         cargarPermisosDesdeFirestore(rolId);
     }
 
-    // ✅ Solo se usa si UserSession no tiene permisos cargados
     private void cargarPermisosDesdeFirestore(String rolId) {
         FirebaseFirestore.getInstance().collection("roles").document(rolId)
                 .get()
@@ -143,16 +137,15 @@ public class MainActivity extends AppCompatActivity {
                         Log.w("MAIN_DEBUG", "⚠️ Rol no encontrado en Firestore");
                     }
                     cargarFragmentoInicial();
-                    actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú después de cargar permisos
+                    actualizarMenuNavigation();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("MAIN_DEBUG", "❌ Error al cargar permisos desde Firestore", e);
                     cargarFragmentoInicial();
-                    actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú incluso en error
+                    actualizarMenuNavigation();
                 });
     }
 
-    // ✅ NUEVO MÉTODO: Actualizar visibilidad del menú según permisos
     private void actualizarMenuNavigation() {
         if (bottomNavigation == null) return;
 
@@ -166,16 +159,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MAIN_DEBUG", "🎯 Menu Navigation - Mantenedores visible: " + puedeMantenedores +
                     " | Rol: " + UserSession.getInstance().getRolId());
         }
-
-        // ✅ También puedes ocultar otros items del menú según permisos si es necesario
-        // MenuItem configuracionItem = menu.findItem(R.id.nav_settings);
-        // if (configuracionItem != null) {
-        //     boolean puedeConfiguracion = UserSession.getInstance().puede("gestionar_configuracion");
-        //     configuracionItem.setVisible(puedeConfiguracion);
-        // }
     }
 
-    // ✅ NUEVO MÉTODO: Cargar fragmento inicial usando UserSession
+    // ✅ ACTUALIZADO: Ahora usa tag para el CalendarioFragment
     private void cargarFragmentoInicial() {
         boolean puedeCrear = UserSession.getInstance().puedeCrearActividades();
         boolean puedeEliminar = UserSession.getInstance().puedeEliminarActividades();
@@ -190,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         fragment.setArguments(args);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
+                .replace(R.id.fragmentContainer, fragment, "CalendarioFragment")  // ✅ TAG AGREGADO
                 .commit();
 
         bottomNavigation.setSelectedItemId(R.id.nav_calendar);
@@ -201,7 +187,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MAIN_DEBUG", " - Ver todas: " + puedeVerTodas);
     }
 
-    // ✅ MÉTODO NUEVO: Permisos por defecto si hay error
     private void cargarPermisosPorDefecto(String rolId) {
         Map<String, Boolean> permisosPorDefecto = new java.util.HashMap<>();
 
@@ -223,10 +208,10 @@ public class MainActivity extends AppCompatActivity {
 
         UserSession.getInstance().setRol(rolId, permisosPorDefecto);
         cargarFragmentoInicialConPermisos(permisosPorDefecto);
-        actualizarMenuNavigation(); // ✅ NUEVO: Actualizar menú con permisos por defecto
+        actualizarMenuNavigation();
     }
 
-    // ✅ NUEVO MÉTODO: Mostrar el fragmento inicial con permisos listos
+    // ✅ ACTUALIZADO: Ahora usa tag para el CalendarioFragment
     private void cargarFragmentoInicialConPermisos(Map<String, Boolean> permisos) {
         boolean puedeCrear = permisos.getOrDefault("crear_actividades", false);
         boolean puedeEliminar = permisos.getOrDefault("eliminar_actividades", false);
@@ -241,12 +226,11 @@ public class MainActivity extends AppCompatActivity {
         fragment.setArguments(args);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
+                .replace(R.id.fragmentContainer, fragment, "CalendarioFragment")  // ✅ TAG AGREGADO
                 .commit();
 
         bottomNavigation.setSelectedItemId(R.id.nav_calendar);
 
-        // ✅ LOG adicional de verificación
         Log.d("MAIN_ACTIVITY", "Permisos cargados - gestionar_usuarios: " +
                 UserSession.getInstance().puede("gestionar_usuarios"));
     }
@@ -280,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         PERMISSION_REQUEST_NOTIFICATION);
             } else {
-                AlertManager.showInfoSnackbar(rootView, "✅ Permiso de notificaciones ya concedido");
+                Log.d(TAG, "✅ Permiso de notificaciones ya concedido");
             }
         } else {
             Log.d(TAG, "✅ Android < 13: No requiere permiso explícito");
@@ -444,12 +428,13 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    // ✅ ACTUALIZADO: Ahora usa tags para todos los fragments
     private void setupBottomNavigation() {
-        // ✅ NUEVO: Actualizar menú antes de configurar listeners
         actualizarMenuNavigation();
 
         bottomNavigation.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
+            String fragmentTag = null;  // ✅ NUEVO
             String title = "";
             View rootView = AlertManager.getRootView(this);
 
@@ -468,24 +453,28 @@ public class MainActivity extends AppCompatActivity {
                 CalendarioFragment calendarioFragment = new CalendarioFragment();
                 calendarioFragment.setArguments(args);
                 selectedFragment = calendarioFragment;
+                fragmentTag = "CalendarioFragment";  // ✅ IMPORTANTE
                 title = "Calendario";
 
             } else if (itemId == R.id.nav_activities_list) {
                 selectedFragment = new ListaActividadesFragment();
+                fragmentTag = "ListaActividadesFragment";  // ✅ NUEVO
                 title = "Actividades";
 
             } else if (itemId == R.id.nav_mantenedores) {
                 selectedFragment = new MantenedoresFragment();
+                fragmentTag = "MantenedoresFragment";  // ✅ NUEVO
                 title = "Mantenedores";
 
                 if (!UserSession.getInstance().puede("gestionar_mantenedores")) {
                     AlertManager.showWarningSnackbar(rootView,
                             "⚠️ Solo los administradores pueden gestionar mantenedores");
-                    return false; // ✅ Evitar que se seleccione el item sin permisos
+                    return false;
                 }
 
             } else if (itemId == R.id.nav_settings) {
                 selectedFragment = new ConfiguracionFragment();
+                fragmentTag = "ConfiguracionFragment";  // ✅ NUEVO
                 title = "Configuración";
 
                 if (!UserSession.getInstance().puede("gestionar_mantenedores")) {
@@ -495,13 +484,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (selectedFragment != null) {
-                loadFragment(selectedFragment, title);
+                loadFragment(selectedFragment, title, fragmentTag);  // ✅ ACTUALIZADO
             }
             return true;
         });
     }
 
-    private void loadFragment(Fragment fragment, String title) {
+    // ✅ ACTUALIZADO: Ahora acepta el parámetro tag
+    private void loadFragment(Fragment fragment, String title, String tag) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .setCustomAnimations(
@@ -510,14 +500,17 @@ public class MainActivity extends AppCompatActivity {
                         android.R.anim.fade_in,
                         android.R.anim.fade_out
                 )
-                .replace(R.id.fragmentContainer, fragment)
+                .replace(R.id.fragmentContainer, fragment, tag)  // ✅ TAG AGREGADO
                 .commit();
 
         if (toolbar != null) toolbar.setTitle(title);
+
+        Log.d(TAG, "🔄 Fragment cargado: " + title + " con tag: " + tag);
     }
 
+    // ✅ ACTUALIZADO: Ahora usa tag
     public void navigateToMantenedores() {
-        loadFragment(new MantenedoresFragment(), "Mantenedores");
+        loadFragment(new MantenedoresFragment(), "Mantenedores", "MantenedoresFragment");
         bottomNavigation.setSelectedItemId(R.id.nav_mantenedores);
     }
 
@@ -552,7 +545,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         actualizarBadges();
-        // ✅ NUEVO: Actualizar menú al volver a la actividad por si cambiaron los permisos
         actualizarMenuNavigation();
     }
 
