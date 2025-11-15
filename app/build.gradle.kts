@@ -49,14 +49,16 @@ dependencies {
     // ============================================
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
 
-    // Servicios Firebase
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
-
-    // 🔹 NUEVO: Firebase Cloud Messaging (notificaciones)
-    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-storage")
+
+    // 🔹 NOTIFICACIONES PUSH (FCM)
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("androidx.work:work-runtime:2.8.1")
+    implementation("com.google.android.material:material:1.9.0")
+
     // ============================================
     // 🔹 OTRAS LIBRERÍAS NECESARIAS
     // ============================================
@@ -66,4 +68,9 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.fragment:fragment-ktx:1.8.5")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+
+    // ============================================
+    // ⭐ NUEVO: WORKMANAGER (para notificaciones programadas)
+    // ============================================
+    implementation("androidx.work:work-runtime:2.9.0")
 }

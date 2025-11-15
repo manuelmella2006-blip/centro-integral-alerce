@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/bg_icon_circle.xml -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="@color/verde_claro" />
+    <solid android:color="@color/verdeClaro"/>
     <size
-        android:width="40dp"
-        android:height="40dp" />
+        android:width="64dp"
+        android:height="64dp"/>
 </shape>
