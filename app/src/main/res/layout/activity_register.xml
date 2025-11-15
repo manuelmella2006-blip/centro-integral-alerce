@@ -215,8 +215,26 @@
                     app:iconPadding="8dp"
                     app:cornerRadius="12dp"
                     app:backgroundTint="@color/verdeSantoTomas"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="12dp"
                     style="@style/Widget.Material3.Button" />
+
+                <!-- ✅ NUEVO: Botón Volver -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVolver"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Volver"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:icon="@drawable/ic_arrow_back"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/gris_medio"
+                    app:strokeWidth="2dp"
+                    android:textColor="@color/gris_medio"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- Divider -->
                 <View

@@ -26,7 +26,7 @@
 
             <!-- Celda para la columna de horas -->
             <TextView
-                android:layout_width="60dp"
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
                 android:text="Hora"
                 android:gravity="center"
@@ -36,10 +36,12 @@
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp" />
 
+            <!-- ✅ CORREGIDO: Todos los días con 110dp (igual que las celdas) -->
+
             <!-- Lunes -->
             <TextView
                 android:id="@+id/tv_day_0"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Lun"
                 android:gravity="center"
@@ -50,7 +52,7 @@
             <!-- Martes -->
             <TextView
                 android:id="@+id/tv_day_1"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Mar"
                 android:gravity="center"
@@ -61,7 +63,7 @@
             <!-- Miércoles -->
             <TextView
                 android:id="@+id/tv_day_2"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Mié"
                 android:gravity="center"
@@ -72,7 +74,7 @@
             <!-- Jueves -->
             <TextView
                 android:id="@+id/tv_day_3"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Jue"
                 android:gravity="center"
@@ -83,7 +85,7 @@
             <!-- Viernes -->
             <TextView
                 android:id="@+id/tv_day_4"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Vie"
                 android:gravity="center"
@@ -94,7 +96,7 @@
             <!-- Sábado -->
             <TextView
                 android:id="@+id/tv_day_5"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Sáb"
                 android:gravity="center"
@@ -105,7 +107,7 @@
             <!-- Domingo -->
             <TextView
                 android:id="@+id/tv_day_6"
-                android:layout_width="100dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:text="Dom"
                 android:gravity="center"

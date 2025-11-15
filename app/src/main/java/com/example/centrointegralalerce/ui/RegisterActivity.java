@@ -15,6 +15,7 @@ import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.UserSession;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,11 +24,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 import android.util.Log;
+
 public class RegisterActivity extends AppCompatActivity {
 
     private TextInputEditText etNombre, etEmail, etPassword, etConfirmPassword;
     private Spinner spinnerRol;
-    private Button btnRegistrar;
+    private MaterialButton btnRegistrar, btnVolver;
     private TextView tvVolverLogin;
 
     private FirebaseAuth auth;
@@ -56,11 +58,15 @@ public class RegisterActivity extends AppCompatActivity {
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         spinnerRol = findViewById(R.id.spinnerRol);
         btnRegistrar = findViewById(R.id.btnRegistrar);
+        btnVolver = findViewById(R.id.btnVolver); // ✅ NUEVO
         tvVolverLogin = findViewById(R.id.tvVolverLogin);
 
         // Configurar listeners
         btnRegistrar.setOnClickListener(v -> registrarUsuario());
         tvVolverLogin.setOnClickListener(v -> finish());
+
+        // ✅ NUEVO: Listener del botón volver
+        btnVolver.setOnClickListener(v -> onBackPressed());
     }
 
     private void registrarUsuario() {
@@ -107,10 +113,10 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (rolSeleccionado.equalsIgnoreCase("Administrador")) {
             rolId = "admin";
-            nombreRolFirestore = "Administrador"; // Nombre nuevo en Firestore
+            nombreRolFirestore = "Administrador";
         } else {
             rolId = "usuario";
-            nombreRolFirestore = "Usuario Normal"; // Nombre nuevo en Firestore
+            nombreRolFirestore = "Usuario Normal";
         }
 
         Log.d("REGISTER", "🎯 Guardando - Rol seleccionado: " + rolSeleccionado +
@@ -123,21 +129,18 @@ public class RegisterActivity extends AppCompatActivity {
         // ✅ NUEVO: Crear usuario en Firebase Authentication
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    // ✅ IMPORTANTE: Usar el UID de Authentication como document ID en Firestore
                     String userId = authResult.getUser().getUid();
                     Log.d("REGISTER", "✅ Usuario creado en Authentication - UID: " + userId);
 
-                    // ✅ NUEVO: Guardar datos en Firestore usando el UID de Authentication
                     Map<String, Object> datosUsuario = new HashMap<>();
                     datosUsuario.put("nombre", nombre);
                     datosUsuario.put("email", email);
                     datosUsuario.put("rolId", rolId);
-                    datosUsuario.put("nombreRol", nombreRolFirestore); // Nuevo campo para mostrar nombre amigable
+                    datosUsuario.put("nombreRol", nombreRolFirestore);
                     datosUsuario.put("activo", true);
                     datosUsuario.put("fechaCreacion", com.google.firebase.firestore.FieldValue.serverTimestamp());
                     datosUsuario.put("ultimaActualizacion", System.currentTimeMillis());
 
-                    // ✅ USAR EL UID COMO DOCUMENT ID
                     db.collection("usuarios").document(userId)
                             .set(datosUsuario)
                             .addOnSuccessListener(aVoid -> {
@@ -159,8 +162,6 @@ public class RegisterActivity extends AppCompatActivity {
                             })
                             .addOnFailureListener(e -> {
                                 Log.e("REGISTER", "❌ Error al guardar en Firestore: " + e.getMessage());
-
-                                // ✅ IMPORTANTE: Si falla Firestore, eliminar el usuario de Authentication
                                 authResult.getUser().delete();
 
                                 btnRegistrar.setEnabled(true);

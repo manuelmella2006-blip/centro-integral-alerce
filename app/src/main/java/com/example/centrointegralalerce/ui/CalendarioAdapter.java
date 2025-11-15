@@ -8,7 +8,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,9 +24,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Date;
+
 /**
- * Adaptador del calendario con sistema dinámico de filas
- * Solo muestra las horas donde hay citas programadas
+ * ✅ RESTAURADO: Citas con fecha amarilla abajo
+ * ✅ CORREGIDO: Cálculo de día de semana
  */
 public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.HourViewHolder> {
     private static final String TAG = "CalendarioAdapter";
@@ -47,9 +47,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         debugCitas();
     }
 
-    /**
-     * Debug: Imprime información de todas las citas
-     */
     private void debugCitas() {
         if (citas.isEmpty()) {
             Log.w(TAG, "⚠️ Lista de citas está vacía");
@@ -75,9 +72,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         return s == null ? "" : s;
     }
 
-    /**
-     * Actualiza la lista de citas y refresca la vista
-     */
     public void actualizarCitas(List<Cita> nuevasCitas) {
         this.citas = nuevasCitas != null ? nuevasCitas : new ArrayList<>();
         Log.d(TAG, "Citas actualizadas: " + citas.size() + " elementos");
@@ -100,8 +94,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
             clearCells(holder);
 
-            // DEBUG: Marcar cada celda con su número de columna (solo primera fila)
-
             int citasEncontradas = 0;
             for (Cita cita : citas) {
                 if (cita == null) continue;
@@ -112,9 +104,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
                 if (horaCita.equals(horaActual)) {
                     citasEncontradas++;
                     agregarCitaACelda(holder, cita);
-
-                    // 🔥 NUEVO: RESALTAR VISUALMENTE EL ENCABEZADO CORRECTO
-                    resaltarEncabezadoDia(cita.getFecha());
                 }
             }
 
@@ -127,26 +116,6 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         }
     }
 
-    // 🔥 NUEVO MÉTODO: Resaltar el encabezado del día donde está la cita
-    private void resaltarEncabezadoDia(Date fechaCita) {
-        try {
-            if (fechaCita == null) return;
-
-            int diaSemanaIndex = calcularDiaSemanaIndex(fechaCita);
-            Log.d(TAG, "🎯 RESALTANDO encabezado para día: " + diaSemanaIndex);
-
-            // Necesitamos acceso a los encabezados - esto requiere modificar el constructor
-            // Por ahora, solo log para debug
-            Log.d(TAG, "⚠️ Cita en día " + diaSemanaIndex + " pero indicador visual puede estar en otro día");
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error resaltando encabezado", e);
-        }
-    }
-
-    // Método para marcar visualmente cada columna con su número
-
-
     @Override
     public int getItemCount() {
         return horas.size();
@@ -154,39 +123,26 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
     private void clearCells(HourViewHolder holder) {
         try {
-            // Limpiar SOLO las vistas de cita, no los debug markers
-            clearCitasDeCeldas(holder.cellLun);
-            clearCitasDeCeldas(holder.cellMar);
-            clearCitasDeCeldas(holder.cellMie);
-            clearCitasDeCeldas(holder.cellJue);
-            clearCitasDeCeldas(holder.cellVie);
-            clearCitasDeCeldas(holder.cellSab);
-            clearCitasDeCeldas(holder.cellDom);
+            clearCeldaCompleta(holder.cellLun);
+            clearCeldaCompleta(holder.cellMar);
+            clearCeldaCompleta(holder.cellMie);
+            clearCeldaCompleta(holder.cellJue);
+            clearCeldaCompleta(holder.cellVie);
+            clearCeldaCompleta(holder.cellSab);
+            clearCeldaCompleta(holder.cellDom);
         } catch (Exception e) {
             Log.e(TAG, "Error al limpiar celdas: " + e.getMessage(), e);
         }
     }
-    private void clearCitasDeCeldas(LinearLayout celda) {
-        if (celda == null) return;
 
-        // Eliminar solo las vistas que no son debug markers (las que no tienen texto rojo)
-        for (int i = celda.getChildCount() - 1; i >= 0; i--) {
-            View child = celda.getChildAt(i);
-            if (child instanceof TextView) {
-                TextView textView = (TextView) child;
-                // Mantener los debug markers (texto rojo pequeño)
-                if (textView.getCurrentTextColor() != Color.RED || textView.getTextSize() > 10f) {
-                    celda.removeViewAt(i);
-                }
-            } else {
-                // Eliminar cualquier otra vista (LinearLayout de citas, etc.)
-                celda.removeViewAt(i);
-            }
+    private void clearCeldaCompleta(LinearLayout celda) {
+        if (celda != null) {
+            celda.removeAllViews();
         }
     }
 
     /**
-     * AGREGA LA CITA EN LA CELDA CORRECTA + DEBUG VISUAL DE COLUMNAS
+     * ✅ RESTAURADO: Cita con TÍTULO VERDE + FECHA AMARILLA
      */
     private void agregarCitaACelda(HourViewHolder holder, Cita cita) {
         try {
@@ -195,8 +151,10 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
                 return;
             }
 
-            Calendar cal = Calendar.getInstance();
+            Calendar cal = Calendar.getInstance(new Locale("es", "ES"));
+            cal.setFirstDayOfWeek(Calendar.MONDAY);
             cal.setTime(cita.getFecha());
+
             int diaSemanaIndex = calcularDiaSemanaIndex(cita.getFecha());
 
             Log.d(TAG, "🎯 AGREGANDO CITA - Índice: " + diaSemanaIndex + " para fecha: " + cita.getFecha());
@@ -214,7 +172,7 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             layoutCita.setBackgroundResource(R.drawable.bg_cita_gradient);
             layoutCita.setElevation(4f);
 
-            // Texto principal
+            // ✅ Texto principal (VERDE)
             TextView tvTitulo = new TextView(context);
             String titulo = cita.getActividadNombre() != null ? cita.getActividadNombre() : "Actividad";
             if (titulo.length() > 20) titulo = titulo.substring(0, 17) + "...";
@@ -225,7 +183,7 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             tvTitulo.setTypeface(null, Typeface.BOLD);
             tvTitulo.setGravity(Gravity.CENTER);
 
-            // Texto de fecha para debug
+            // ✅ Texto de fecha (AMARILLO) - RESTAURADO
             TextView tvFecha = new TextView(context);
             tvFecha.setText(cal.get(Calendar.DAY_OF_MONTH) + "/" + (cal.get(Calendar.MONTH) + 1));
             tvFecha.setTextSize(8f);
@@ -234,7 +192,7 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
             tvFecha.setTypeface(null, Typeface.BOLD);
 
             layoutCita.addView(tvTitulo);
-            layoutCita.addView(tvFecha);
+            layoutCita.addView(tvFecha); // ✅ RESTAURADO
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -257,9 +215,8 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
 
             LinearLayout celdaDestino = obtenerCeldaPorDia(holder, diaSemanaIndex);
             if (celdaDestino != null) {
-                // NO limpiar aquí - ya se limpió en clearCells()
                 celdaDestino.addView(layoutCita);
-                Log.d(TAG, "✅ Cita agregada SOLO en columna: " + diaSemanaIndex);
+                Log.d(TAG, "✅ Cita agregada en columna: " + diaSemanaIndex);
             }
 
         } catch (Exception e) {
@@ -267,116 +224,31 @@ public class CalendarioAdapter extends RecyclerView.Adapter<CalendarioAdapter.Ho
         }
     }
 
-    // Método para debug del orden de celdas
-    private void debugOrdenCeldas(HourViewHolder holder) {
-        try {
-            LinearLayout[] columnas = {
-                    holder.cellLun, holder.cellMar, holder.cellMie,
-                    holder.cellJue, holder.cellVie, holder.cellSab, holder.cellDom
-            };
-
-            String[] nombres = {"LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"};
-
-            Log.d(TAG, "=== 🧭 ORDEN DE CELDAS ===");
-            for (int i = 0; i < columnas.length; i++) {
-                boolean tieneCita = columnas[i].getChildCount() > 0;
-                Log.d(TAG, "Celda " + i + " (" + nombres[i] + "): " +
-                        (tieneCita ? "CON CITA" : "vacía"));
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error en debugOrdenCeldas", e);
-        }
-    }
-
     /**
-     * DEBUG VISUAL: Marcar cada columna con su número para identificar el orden REAL
+     * ✅ CORREGIDO: Cálculo de día con Calendar.MONDAY como primer día
      */
-    private void debugColumnas(HourViewHolder holder) {
+    private int calcularDiaSemanaIndex(Date fecha) {
         try {
-            LinearLayout[] columnas = {
-                    holder.cellLun, holder.cellMar, holder.cellMie,
-                    holder.cellJue, holder.cellVie, holder.cellSab, holder.cellDom
-            };
-
-            String[] nombres = {"LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"};
-
-            for (int i = 0; i < columnas.length; i++) {
-                if (columnas[i] != null) {
-                    TextView debugView = new TextView(context);
-                    debugView.setText("COL " + i + "\n" + nombres[i]);
-                    debugView.setTextSize(6f); // Más pequeño
-                    debugView.setTextColor(Color.RED);
-                    debugView.setTypeface(null, Typeface.BOLD);
-                    debugView.setGravity(Gravity.CENTER);
-                    debugView.setBackgroundColor(Color.parseColor("#10FF0000")); // Fondo semitransparente
-
-                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.WRAP_CONTENT
-                    );
-                    params.gravity = Gravity.TOP;
-                    debugView.setLayoutParams(params);
-
-                    columnas[i].addView(debugView);
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error en debugColumnas", e);
-        }
-    }
-
-    private int calcularDiaSemanaIndex(java.util.Date fecha) {
-        try {
-            Calendar cal = Calendar.getInstance();
+            Calendar cal = Calendar.getInstance(new Locale("es", "ES"));
+            cal.setFirstDayOfWeek(Calendar.MONDAY);
             cal.setTime(fecha);
 
-            // NO establecer firstDayOfWeek, usar la configuración por defecto
             int dow = cal.get(Calendar.DAY_OF_WEEK);
 
-            // Calendar.DAY_OF_WEEK:
-            // 1=DOMINGO, 2=LUNES, 3=MARTES, 4=MIÉRCOLES, 5=JUEVES, 6=VIERNES, 7=SÁBADO
-            // Nuestro índice: 0=LUNES, 1=MARTES, 2=MIÉRCOLES, 3=JUEVES, 4=VIERNES, 5=SÁBADO, 6=DOMINGO
-
-            // Mapeo directo:
-            // Calendar LUNES(2) -> nuestro 0, MARTES(3)->1, MIÉRCOLES(4)->2, JUEVES(5)->3,
-            // VIERNES(6)->4, SÁBADO(7)->5, DOMINGO(1)->6
-
             switch (dow) {
-                case Calendar.MONDAY:     // 2
-                    return 0;
-                case Calendar.TUESDAY:    // 3
-                    return 1;
-                case Calendar.WEDNESDAY:  // 4
-                    return 2;
-                case Calendar.THURSDAY:   // 5
-                    return 3;
-                case Calendar.FRIDAY:     // 6
-                    return 4;
-                case Calendar.SATURDAY:   // 7
-                    return 5;
-                case Calendar.SUNDAY:     // 1
-                    return 6;
-                default:
-                    return -1;
+                case Calendar.MONDAY:    return 0;
+                case Calendar.TUESDAY:   return 1;
+                case Calendar.WEDNESDAY: return 2;
+                case Calendar.THURSDAY:  return 3;
+                case Calendar.FRIDAY:    return 4;
+                case Calendar.SATURDAY:  return 5;
+                case Calendar.SUNDAY:    return 6;
+                default:                 return -1;
             }
 
         } catch (Exception e) {
             Log.e(TAG, "❌ Error calculando día de semana para fecha: " + fecha, e);
             return -1;
-        }
-    }
-
-    // Método auxiliar para debug
-    private String getDiaNombre(int dayOfWeek) {
-        switch (dayOfWeek) {
-            case Calendar.SUNDAY: return "DOMINGO";
-            case Calendar.MONDAY: return "LUNES";
-            case Calendar.TUESDAY: return "MARTES";
-            case Calendar.WEDNESDAY: return "MIÉRCOLES";
-            case Calendar.THURSDAY: return "JUEVES";
-            case Calendar.FRIDAY: return "VIERNES";
-            case Calendar.SATURDAY: return "SÁBADO";
-            default: return "DESCONOCIDO";
         }
     }
 
