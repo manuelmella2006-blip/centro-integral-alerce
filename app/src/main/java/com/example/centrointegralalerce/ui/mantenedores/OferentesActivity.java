@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.firebase.FirestoreRepository;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 
@@ -38,12 +40,18 @@ public class OferentesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_oferentes);
 
+        // ✅ Configurar toolbar con botón volver
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         recyclerView = findViewById(R.id.recyclerOferentes);
         btnAdd = findViewById(R.id.btnAddOferente);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Adaptador con funciones de editar y eliminar
         adapter = new OferentesAdapter(new ArrayList<>(), new OferentesAdapter.OnItemActionListener() {
             @Override
             public void onEditarClick(OferenteItem item) {
@@ -57,13 +65,20 @@ public class OferentesActivity extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(adapter);
-
         btnAdd.setOnClickListener(v -> mostrarDialogoAgregar());
-
         cargarOferentes();
     }
 
-    // Cargar los oferentes desde Firestore
+    // ✅ Manejar botón volver
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void cargarOferentes() {
         repo.obtenerDocumentos("oferentes", snapshot -> {
             List<OferenteItem> lista = new ArrayList<>();
@@ -77,15 +92,9 @@ public class OferentesActivity extends AppCompatActivity {
         });
     }
 
-    // ========================================
-    // DIÁLOGO PARA CREAR NUEVO OFERENTE
-    // ========================================
     private void mostrarDialogoAgregar() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_oferente, null);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
 
         try {
             if (dialog.getWindow() != null) {
@@ -140,15 +149,9 @@ public class OferentesActivity extends AppCompatActivity {
         etNombreOferente.requestFocus();
     }
 
-    // ========================================
-    // DIÁLOGO PARA EDITAR OFERENTE EXISTENTE
-    // ========================================
     private void mostrarDialogoEditar(OferenteItem item) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_oferente, null);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
 
         try {
             if (dialog.getWindow() != null) {
@@ -167,7 +170,6 @@ public class OferentesActivity extends AppCompatActivity {
             return;
         }
 
-        // Pre-llenar con el nombre actual
         etNombreOferente.setText(item.getNombre());
         etNombreOferente.setSelection(item.getNombre().length());
         btnGuardar.setText("✓ Actualizar");
@@ -207,9 +209,6 @@ public class OferentesActivity extends AppCompatActivity {
         etNombreOferente.requestFocus();
     }
 
-    // ========================================
-    // CONFIRMAR Y ELIMINAR OFERENTE
-    // ========================================
     private void confirmarEliminar(String id) {
         new AlertDialog.Builder(this)
                 .setTitle("⚠️ Confirmar eliminación")

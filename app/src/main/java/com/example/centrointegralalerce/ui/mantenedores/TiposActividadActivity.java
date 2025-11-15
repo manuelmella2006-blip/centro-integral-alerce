@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.firebase.FirestoreRepository;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 
@@ -38,12 +40,18 @@ public class TiposActividadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tipos_actividad);
 
+        // ✅ Configurar toolbar con botón volver
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         recyclerView = findViewById(R.id.recyclerTipos);
         btnAdd = findViewById(R.id.btnAddTipo);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Adaptador con funciones de editar y eliminar
         adapter = new TiposActividadAdapter(new ArrayList<>(), new TiposActividadAdapter.OnItemActionListener() {
             @Override
             public void onEditarClick(TipoActividadItem item) {
@@ -57,13 +65,20 @@ public class TiposActividadActivity extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(adapter);
-
         btnAdd.setOnClickListener(v -> mostrarDialogoAgregar());
-
         cargarTipos();
     }
 
-    // Cargar los tipos desde Firestore
+    // ✅ Manejar botón volver
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void cargarTipos() {
         repo.obtenerDocumentos("tiposActividad", snapshot -> {
             List<TipoActividadItem> lista = new ArrayList<>();
@@ -77,15 +92,9 @@ public class TiposActividadActivity extends AppCompatActivity {
         });
     }
 
-    // ========================================
-    // DIÁLOGO PARA CREAR NUEVO TIPO
-    // ========================================
     private void mostrarDialogoAgregar() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_tipo, null);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
 
         try {
             if (dialog.getWindow() != null) {
@@ -140,15 +149,9 @@ public class TiposActividadActivity extends AppCompatActivity {
         etNombreTipo.requestFocus();
     }
 
-    // ========================================
-    // DIÁLOGO PARA EDITAR TIPO EXISTENTE
-    // ========================================
     private void mostrarDialogoEditar(TipoActividadItem item) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_tipo, null);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
 
         try {
             if (dialog.getWindow() != null) {
@@ -167,9 +170,8 @@ public class TiposActividadActivity extends AppCompatActivity {
             return;
         }
 
-        // Pre-llenar con el nombre actual
         etNombreTipo.setText(item.getNombre());
-        etNombreTipo.setSelection(item.getNombre().length()); // Cursor al final
+        etNombreTipo.setSelection(item.getNombre().length());
         btnGuardar.setText("✓ Actualizar");
 
         btnCancelar.setOnClickListener(v -> dialog.dismiss());
@@ -207,9 +209,6 @@ public class TiposActividadActivity extends AppCompatActivity {
         etNombreTipo.requestFocus();
     }
 
-    // ========================================
-    // CONFIRMAR Y ELIMINAR TIPO
-    // ========================================
     private void confirmarEliminar(String id) {
         new AlertDialog.Builder(this)
                 .setTitle("⚠️ Confirmar eliminación")

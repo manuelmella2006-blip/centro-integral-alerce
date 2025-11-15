@@ -1,15 +1,16 @@
+
 package com.example.centrointegralalerce.ui.mantenedores;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
@@ -18,7 +19,6 @@ public class OferentesAdapter extends RecyclerView.Adapter<OferentesAdapter.View
     private List<OferenteItem> items;
     private OnItemActionListener listener;
 
-    // Interface para manejar las acciones
     public interface OnItemActionListener {
         void onEditarClick(OferenteItem item);
         void onEliminarClick(String id);
@@ -42,7 +42,7 @@ public class OferentesAdapter extends RecyclerView.Adapter<OferentesAdapter.View
         OferenteItem item = items.get(position);
 
         holder.tvNombre.setText(item.getNombre());
-        holder.tvDescripcion.setText("Toca para editar");
+        holder.tvDescripcion.setText("Responsable de actividades");
 
         // Click en editar
         holder.btnEditar.setOnClickListener(v -> {
@@ -79,8 +79,8 @@ public class OferentesAdapter extends RecyclerView.Adapter<OferentesAdapter.View
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvNombre;
         TextView tvDescripcion;
-        ImageButton btnEditar;
-        ImageButton btnEliminar;
+        MaterialButton btnEditar;  // ✅ CORREGIDO: MaterialButton en lugar de ImageButton
+        MaterialButton btnEliminar; // ✅ CORREGIDO: MaterialButton en lugar de ImageButton
 
         ViewHolder(View itemView) {
             super(itemView);

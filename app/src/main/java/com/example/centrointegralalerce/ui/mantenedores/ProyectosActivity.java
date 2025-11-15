@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.firebase.FirestoreRepository;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 
@@ -38,12 +40,18 @@ public class ProyectosActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_proyectos);
 
+        // ✅ Configurar toolbar con botón volver
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         recyclerView = findViewById(R.id.recyclerProyectos);
         btnAdd = findViewById(R.id.btnAddProyecto);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Adaptador con funciones de editar y eliminar
         adapter = new ProyectosAdapter(new ArrayList<>(), new ProyectosAdapter.OnItemActionListener() {
             @Override
             public void onEditarClick(ProyectoItem item) {
@@ -57,13 +65,20 @@ public class ProyectosActivity extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(adapter);
-
         btnAdd.setOnClickListener(v -> mostrarDialogoAgregar());
-
         cargarProyectos();
     }
 
-    // Cargar los proyectos desde Firestore
+    // ✅ Manejar botón volver
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void cargarProyectos() {
         repo.obtenerDocumentos("proyectos", snapshot -> {
             List<ProyectoItem> lista = new ArrayList<>();
@@ -81,15 +96,9 @@ public class ProyectosActivity extends AppCompatActivity {
         });
     }
 
-    // ========================================
-    // DIÁLOGO PARA CREAR NUEVO PROYECTO
-    // ========================================
     private void mostrarDialogoAgregar() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_proyecto, null);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
 
         try {
             if (dialog.getWindow() != null) {
@@ -153,15 +162,9 @@ public class ProyectosActivity extends AppCompatActivity {
         etNombreProyecto.requestFocus();
     }
 
-    // ========================================
-    // DIÁLOGO PARA EDITAR PROYECTO EXISTENTE
-    // ========================================
     private void mostrarDialogoEditar(ProyectoItem item) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_proyecto, null);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
 
         try {
             if (dialog.getWindow() != null) {
@@ -181,7 +184,6 @@ public class ProyectosActivity extends AppCompatActivity {
             return;
         }
 
-        // Pre-llenar con los datos actuales
         etNombreProyecto.setText(item.getNombre());
         etNombreProyecto.setSelection(item.getNombre().length());
         etDescripcion.setText(item.getDescripcion());
@@ -230,9 +232,6 @@ public class ProyectosActivity extends AppCompatActivity {
         etNombreProyecto.requestFocus();
     }
 
-    // ========================================
-    // CONFIRMAR Y ELIMINAR PROYECTO
-    // ========================================
     private void confirmarEliminar(String id) {
         new AlertDialog.Builder(this)
                 .setTitle("⚠️ Confirmar eliminación")
