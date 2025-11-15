@@ -1,40 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="@color/blanco">
 
     <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#2D6A3E"
+        android:background="@color/verde_santo_tomas"
         android:orientation="vertical"
         android:padding="24dp"
         android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="📁"
-            android:textSize="48sp"
-            android:layout_marginBottom="8dp"/>
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_icon_circle"
+            android:backgroundTint="@color/verde_secundario"
+            android:layout_marginBottom="12dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_file"
+                app:tint="@color/blanco" />
+
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Nuevo Proyecto"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/blanco"
             android:textSize="20sp"
             android:textStyle="bold"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Agrega un nuevo proyecto para las actividades"
-            android:textColor="#E0FFFFFF"
-            android:textSize="12sp"
+            android:text="Agrega una iniciativa del centro"
+            android:textColor="@color/verde_claro"
+            android:textSize="13sp"
             android:gravity="center"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
@@ -49,91 +59,140 @@
         android:padding="24dp">
 
         <!-- Campo Nombre -->
-        <EditText
-            android:id="@+id/etNombreProyecto"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:hint="Nombre del proyecto"
-            android:background="@drawable/input_background"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:textSize="16sp"
-            android:inputType="textCapWords"
-            android:maxLines="1"/>
-
-        <!-- Campo Descripción -->
-        <EditText
-            android:id="@+id/etDescripcion"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:hint="Descripción del proyecto"
-            android:background="@drawable/input_background"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingTop="16dp"
-            android:textSize="16sp"
-            android:inputType="textMultiLine|textCapSentences"
-            android:gravity="top"
-            android:maxLines="4"
-            android:layout_marginTop="12dp"/>
-
-        <!-- Mensaje info -->
-        <LinearLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            android:background="#E8F5E9"
-            android:layout_marginTop="16dp">
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:startIconDrawable="@drawable/ic_file"
+            app:startIconTint="@color/verde_santo_tomas"
+            app:helperText="Nombre del proyecto o iniciativa"
+            app:helperTextTextColor="@color/gris_medio"
+            app:boxStrokeColor="@color/verde_santo_tomas"
+            app:hintTextColor="@color/verde_santo_tomas"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNombreProyecto"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ℹ️"
+                android:hint="Nombre del proyecto"
+                android:inputType="textCapWords"
+                android:maxLines="1"
                 android:textSize="16sp"
-                android:layout_marginRight="8dp"/>
+                android:textColor="@color/gris_oscuro" />
 
-            <TextView
-                android:layout_width="0dp"
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Campo Descripción -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:helperText="Breve descripción del proyecto"
+            app:helperTextTextColor="@color/gris_medio"
+            app:boxStrokeColor="@color/verde_santo_tomas"
+            app:hintTextColor="@color/verde_santo_tomas"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescripcion"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Los proyectos creados estarán disponibles para asignar a las actividades"
-                android:textColor="#1B4D2A"
-                android:textSize="12sp"/>
-        </LinearLayout>
+                android:hint="Descripción"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="3"
+                android:maxLines="5"
+                android:gravity="top|start"
+                android:textSize="16sp"
+                android:textColor="@color/gris_oscuro" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Mensaje info -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="0dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/verde_claro">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_view"
+                    app:tint="@color/verde_santo_tomas"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Los proyectos creados podrán asociarse a las actividades del centro"
+                    android:textColor="@color/gris_oscuro"
+                    android:textSize="12sp"
+                    android:lineSpacingMultiplier="1.2" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Botones -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="24dp"
-            android:gravity="end">
+            android:gravity="end"
+            android:weightSum="2">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelar"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
                 android:text="Cancelar"
-                android:textColor="#2D6A3E"
-                android:background="@drawable/button_outline"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:layout_marginRight="12dp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textAllCaps="false"/>
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/gris_medio"
+                app:strokeWidth="2dp"
+                android:textColor="@color/gris_medio" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardar"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="✓ Guardar"
-                android:textColor="#FFFFFF"
-                android:background="@drawable/button_filled"
-                android:paddingLeft="32dp"
-                android:paddingRight="32dp"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Guardar"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textAllCaps="false"/>
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/verde_santo_tomas" />
 
         </LinearLayout>
 
