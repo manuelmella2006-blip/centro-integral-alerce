@@ -31,10 +31,10 @@ Desarrollar una aplicación que permita gestionar de manera eficiente las citas 
 | Integrante     | Rol Principal | Responsabilidades |
 |----------------|----------------|-------------------|
 | **Manuel Mella** | Líder de proyecto / Planificación / Desarrollo Web | Coordinación general, planificación, desarrollo de versión web |
-| **Maximiliano** | Desarrollador principal | Programación y desarrollo del software |
-| **Nayadhet** | Diseñadora | Diseño de interfaz y experiencia de usuario |
-| **Gabriela** | Encargada de reglas de negocio | Definición de flujos y lógica del sistema |
-| **Carlos** | Encargado de base de datos | Diseño y desarrollo del modelo de datos |
+| **Nayadhet** | Desarrolladora principal | Programación y desarrollo del software |
+| **Carlos** | Diseñador | Diseño de interfaz y experiencia de usuario |
+| **Maximiliano** | Encargado de reglas de negocio | Definición de flujos y lógica del sistema |
+| **Gabriela** | Encargada de base de datos | Diseño y desarrollo del modelo de datos |
 
 ## 🗂️ Estructura del Proyecto
 ```
