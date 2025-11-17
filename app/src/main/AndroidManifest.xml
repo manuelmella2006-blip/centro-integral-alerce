@@ -55,10 +55,13 @@
             android:name=".ui.ModificarActividadActivity"
             android:exported="false"
             android:theme="@style/Theme.CentroIntegralAlerce" />
+
+        <!-- ✅ CORREGIDO: Usar el tema SIN ActionBar -->
         <activity
             android:name=".ui.ReagendarActividadActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.CentroIntegralAlerce" />
+
         <activity
             android:name=".ui.GestionUsuariosActivity"
             android:parentActivityName=".ui.MainActivity" />
@@ -66,6 +69,7 @@
         <activity
             android:name=".ui.EditarUsuarioActivity"
             android:parentActivityName=".ui.GestionUsuariosActivity" />
+
         <!-- 🔹 Nueva actividad: CancelarActividadActivity -->
         <activity
             android:name=".ui.CancelarActividadActivity"

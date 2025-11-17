@@ -3,6 +3,7 @@ package com.example.centrointegralalerce.ui;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
 import com.example.centrointegralalerce.utils.AlertManager;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -35,6 +37,13 @@ public class ReagendarActividadActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reagendar_actividad);
+
+        // ✅ NUEVO: Configurar toolbar con botón volver
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         // Obtener datos de la actividad
         actividadId = getIntent().getStringExtra("actividadId");
@@ -64,6 +73,16 @@ public class ReagendarActividadActivity extends AppCompatActivity {
 
         // Configurar botón guardar
         btnGuardarNuevaFecha.setOnClickListener(v -> guardarNuevaFecha());
+    }
+
+    // ✅ NUEVO: Manejar botón volver
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void cargarActividad() {
