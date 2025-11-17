@@ -254,9 +254,59 @@ public class ConfiguracionFragment extends Fragment {
             }
         });
 
+        // 🔐 Cambiar contraseña
+        itemChangePassword.setOnClickListener(v -> {
+            AlertManager.showInfoDialog(requireContext(), "Cambiar Contraseña",
+                    "Función en desarrollo. Próximamente podrás cambiar tu contraseña desde aquí.");
+        });
+
+        // 🚪 CERRAR SESIÓN - CORREGIDO
+        itemLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
+
         itemAbout.setOnClickListener(v ->
                 AlertManager.showInfoDialog(requireContext(), "Acerca de",
                         "Centro Integral Alerce\nVersión 1.0"));
+    }
+
+    // -------------------------------------------------------------
+    // 🔐 MÉTODO PARA CERRAR SESIÓN
+    // -------------------------------------------------------------
+    private void showLogoutConfirmationDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Cerrar Sesión")
+                .setMessage("¿Estás seguro de que quieres cerrar sesión?")
+                .setIcon(R.drawable.ic_logout)
+                .setPositiveButton("Sí, cerrar sesión", (dialog, which) -> {
+                    performLogout();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void performLogout() {
+        Log.d(TAG, "🚪 Cerrando sesión desde ConfiguracionFragment");
+
+        // Cancelar todas las notificaciones programadas
+        if (notificationScheduler != null) {
+            notificationScheduler.cancelAllNotifications();
+        }
+
+        // Limpiar preferencias de notificaciones
+        prefs.edit()
+                .putBoolean(KEY_NOTIF_ENABLED, false)
+                .apply();
+
+        // Cerrar sesión en MainActivity
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).cerrarSesion();
+        } else {
+            // Fallback si no se puede acceder a MainActivity
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(requireContext(), LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            requireActivity().finish();
+        }
     }
 
     // -------------------------------------------------------------

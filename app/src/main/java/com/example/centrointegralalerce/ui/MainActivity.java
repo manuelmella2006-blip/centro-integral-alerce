@@ -526,19 +526,29 @@ public class MainActivity extends AppCompatActivity {
         return rolUsuario;
     }
 
+    // ✅ CORREGIDO: Método cerrarSesion sin usar clear()
     public void cerrarSesion() {
         View rootView = AlertManager.getRootView(this);
-        Log.d(TAG, "Cerrando sesión");
+        Log.d(TAG, "🚪 Cerrando sesión desde MainActivity");
 
+        // Limpiar sesión local
         prefsManager.clearSession();
+
+        // Cerrar sesión en Firebase
         FirebaseAuth.getInstance().signOut();
 
+        // Cancelar suscripciones FCM
         if (fcmTokenManager != null) {
             fcmTokenManager.eliminarToken();
         }
 
         AlertManager.showInfoSnackbar(rootView, "Sesión cerrada correctamente 👋");
-        redirectToLogin();
+
+        // Redirigir al login
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override
