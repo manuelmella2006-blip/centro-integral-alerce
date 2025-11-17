@@ -49,7 +49,7 @@ Desarrollar una aplicación que permita gestionar de manera eficiente las citas 
 ```
 
 ## 🧰 Tecnologías Utilizadas
-- **Lenguaje:** Java / HTML / CSS / JavaScript  
+- **Lenguaje:** Java
 - **Base de datos:** Firebase Firestore - Autenticación: Firebase Authentication   
 - **Entorno:** Android Studio
 - **Control de versiones:** Git y GitHub  
