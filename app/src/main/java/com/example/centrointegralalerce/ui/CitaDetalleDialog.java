@@ -26,7 +26,7 @@ import java.util.Locale;
 
 /**
  * Diálogo que muestra los detalles de una cita y permite marcarla como completada.
- * Ahora incluye validación de estado temporal (atrasada, hoy, próxima, futura)
+ * VERSIÓN CORREGIDA con callback para notificar cambios al Fragment padre
  */
 public class CitaDetalleDialog extends DialogFragment {
 
@@ -42,8 +42,22 @@ public class CitaDetalleDialog extends DialogFragment {
     private TextView tvAdvertenciaTexto;
     private MaterialButton btnMarcarCompletada;
 
+    // 🆕 CALLBACK para notificar al Fragment padre
+    private OnCitaActualizadaListener listener;
+
+    public interface OnCitaActualizadaListener {
+        void onCitaActualizada(Cita cita);
+    }
+
     public CitaDetalleDialog(Cita cita) {
         this.cita = cita;
+    }
+
+    /**
+     * 🆕 Método para establecer el listener desde el Fragment padre
+     */
+    public void setOnCitaActualizadaListener(OnCitaActualizadaListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -90,9 +104,10 @@ public class CitaDetalleDialog extends DialogFragment {
         tvHora.setText((hora == null || hora.isEmpty()) ? "Sin hora" : hora);
 
         // ---------- ESTADO ----------
+        Log.d(TAG, "Estado inicial de la cita: '" + cita.getEstado() + "'");
         actualizarChipEstado(cita.getEstado());
 
-        // 🎯 NUEVO: VALIDAR ESTADO TEMPORAL
+        // 🎯 VALIDAR ESTADO TEMPORAL
         validarYMostrarEstadoTemporal();
 
         // ---------- BOTONES ----------
@@ -112,7 +127,7 @@ public class CitaDetalleDialog extends DialogFragment {
     }
 
     /**
-     * 🎯 NUEVO: Valida el estado temporal de la cita y actualiza la UI
+     * Valida el estado temporal de la cita y actualiza la UI
      */
     private void validarYMostrarEstadoTemporal() {
         if (cita == null || cita.getFecha() == null) {
@@ -120,33 +135,26 @@ public class CitaDetalleDialog extends DialogFragment {
             return;
         }
 
-        // Obtener estado temporal
         CitaDateValidator.EstadoTemporal estadoTemporal =
                 CitaDateValidator.getEstadoTemporal(cita);
 
         Log.d(TAG, "Estado temporal de la cita: " + estadoTemporal);
 
-        // Actualizar chip de estado temporal (si existe en tu layout)
         if (chipEstadoTemporal != null) {
             String mensajeEstado = CitaDateValidator.getMensajeEstado(estadoTemporal);
             chipEstadoTemporal.setText(mensajeEstado);
             configurarColorChipTemporal(estadoTemporal);
         }
 
-        // Actualizar tiempo restante (si existe en tu layout)
         if (tvTiempoRestante != null) {
             String tiempoRestante = CitaDateValidator.getTiempoRestante(cita.getFecha());
             tvTiempoRestante.setText("⏰ " + tiempoRestante);
             configurarColorTiempoRestante(estadoTemporal);
         }
 
-        // Mostrar advertencia según el estado
         mostrarAdvertenciaSegunEstado(estadoTemporal);
     }
 
-    /**
-     * 🎯 NUEVO: Configura el color del chip temporal según el estado
-     */
     private void configurarColorChipTemporal(CitaDateValidator.EstadoTemporal estado) {
         if (chipEstadoTemporal == null || getContext() == null) return;
 
@@ -176,9 +184,6 @@ public class CitaDetalleDialog extends DialogFragment {
         chipEstadoTemporal.setTextColor(requireContext().getColor(android.R.color.white));
     }
 
-    /**
-     * 🎯 NUEVO: Configura el color del texto de tiempo restante
-     */
     private void configurarColorTiempoRestante(CitaDateValidator.EstadoTemporal estado) {
         if (tvTiempoRestante == null || getContext() == null) return;
 
@@ -205,9 +210,6 @@ public class CitaDetalleDialog extends DialogFragment {
         tvTiempoRestante.setTextColor(color);
     }
 
-    /**
-     * 🎯 NUEVO: Muestra advertencias según el estado temporal
-     */
     private void mostrarAdvertenciaSegunEstado(CitaDateValidator.EstadoTemporal estado) {
         if (cardAdvertencia == null || tvAdvertenciaTexto == null || getContext() == null) {
             return;
@@ -217,17 +219,13 @@ public class CitaDetalleDialog extends DialogFragment {
             case ATRASADA:
                 mostrarAdvertenciaAtrasada();
                 break;
-
             case HOY:
                 mostrarAdvertenciaHoy();
                 break;
-
             case PROXIMA_24H:
                 mostrarAdvertenciaProxima();
                 break;
-
             default:
-                // Ocultar advertencias para citas futuras normales
                 cardAdvertencia.setVisibility(View.GONE);
                 if (btnMarcarCompletada != null) {
                     btnMarcarCompletada.setVisibility(View.GONE);
@@ -236,9 +234,6 @@ public class CitaDetalleDialog extends DialogFragment {
         }
     }
 
-    /**
-     * 🎯 NUEVO: Muestra advertencia para citas atrasadas
-     */
     private void mostrarAdvertenciaAtrasada() {
         if (cardAdvertencia == null || tvAdvertenciaTexto == null) return;
 
@@ -250,23 +245,18 @@ public class CitaDetalleDialog extends DialogFragment {
 
         String mensaje;
         if (diasAtrasados == 0) {
-            mensaje = "⚠️ Esta cita era para hoy y ya pasó.\n\n" +
-                    "¿Asististe? Márcala como completada.";
+            mensaje = "⚠️ Esta cita era para hoy y ya pasó.\n\n¿Asististe? Márcala como completada.";
         } else if (diasAtrasados == 1) {
-            mensaje = "⚠️ Esta cita estaba programada para AYER.\n\n" +
-                    "📋 " + cita.getActividadNombre() + "\n\n" +
-                    "¿Asististe? Márcala como completada o reprograma.";
+            mensaje = "⚠️ Esta cita estaba programada para AYER.\n\n📋 " +
+                    cita.getActividadNombre() + "\n\n¿Asististe? Márcala como completada o reprograma.";
         } else {
-            mensaje = "⚠️ Esta cita estaba programada hace " + diasAtrasados + " días.\n\n" +
-                    "📋 " + cita.getActividadNombre() + "\n\n" +
-                    "¿Asististe? Márcala como completada o reprograma.";
+            mensaje = "⚠️ Esta cita estaba programada hace " + diasAtrasados + " días.\n\n📋 " +
+                    cita.getActividadNombre() + "\n\n¿Asististe? Márcala como completada o reprograma.";
         }
 
         tvAdvertenciaTexto.setText(mensaje);
-        tvAdvertenciaTexto.setTextColor(
-                requireContext().getColor(android.R.color.white));
+        tvAdvertenciaTexto.setTextColor(requireContext().getColor(android.R.color.white));
 
-        // Mostrar botón de marcar completada
         if (btnMarcarCompletada != null) {
             btnMarcarCompletada.setVisibility(View.VISIBLE);
         }
@@ -274,9 +264,6 @@ public class CitaDetalleDialog extends DialogFragment {
         Log.w(TAG, "Cita atrasada detectada: " + diasAtrasados + " días");
     }
 
-    /**
-     * 🎯 NUEVO: Muestra advertencia para citas de hoy
-     */
     private void mostrarAdvertenciaHoy() {
         if (cardAdvertencia == null || tvAdvertenciaTexto == null) return;
 
@@ -284,15 +271,12 @@ public class CitaDetalleDialog extends DialogFragment {
         cardAdvertencia.setCardBackgroundColor(
                 requireContext().getColor(android.R.color.holo_orange_light));
 
-        String mensaje = "📍 Esta cita es HOY a las " + cita.getHora() + "\n\n" +
-                "📋 " + cita.getActividadNombre() + "\n\n" +
-                "¡No olvides asistir!";
+        String mensaje = "📍 Esta cita es HOY a las " + cita.getHora() + "\n\n📋 " +
+                cita.getActividadNombre() + "\n\n¡No olvides asistir!";
 
         tvAdvertenciaTexto.setText(mensaje);
-        tvAdvertenciaTexto.setTextColor(
-                requireContext().getColor(android.R.color.white));
+        tvAdvertenciaTexto.setTextColor(requireContext().getColor(android.R.color.white));
 
-        // Ocultar botón de marcar completada (aún no está atrasada)
         if (btnMarcarCompletada != null) {
             btnMarcarCompletada.setVisibility(View.GONE);
         }
@@ -300,9 +284,6 @@ public class CitaDetalleDialog extends DialogFragment {
         Log.d(TAG, "Cita de hoy detectada");
     }
 
-    /**
-     * 🎯 NUEVO: Muestra advertencia para citas próximas (24h)
-     */
     private void mostrarAdvertenciaProxima() {
         if (cardAdvertencia == null || tvAdvertenciaTexto == null) return;
 
@@ -310,15 +291,12 @@ public class CitaDetalleDialog extends DialogFragment {
         cardAdvertencia.setCardBackgroundColor(
                 requireContext().getColor(android.R.color.holo_orange_dark));
 
-        String mensaje = "⏰ Esta cita es MAÑANA a las " + cita.getHora() + "\n\n" +
-                "📋 " + cita.getActividadNombre() + "\n\n" +
-                "Prepárate con anticipación.";
+        String mensaje = "⏰ Esta cita es MAÑANA a las " + cita.getHora() + "\n\n📋 " +
+                cita.getActividadNombre() + "\n\nPrepárate con anticipación.";
 
         tvAdvertenciaTexto.setText(mensaje);
-        tvAdvertenciaTexto.setTextColor(
-                requireContext().getColor(android.R.color.white));
+        tvAdvertenciaTexto.setTextColor(requireContext().getColor(android.R.color.white));
 
-        // Ocultar botón de marcar completada
         if (btnMarcarCompletada != null) {
             btnMarcarCompletada.setVisibility(View.GONE);
         }
@@ -326,9 +304,6 @@ public class CitaDetalleDialog extends DialogFragment {
         Log.d(TAG, "Cita próxima detectada (24h)");
     }
 
-    /**
-     * Carga el nombre del lugar desde Firestore basado en el lugarId
-     */
     private void cargarNombreLugar(String lugarId) {
         if (lugarId == null || lugarId.isEmpty() || db == null || tvLugar == null) {
             tvLugar.setText("Sin lugar");
@@ -365,9 +340,6 @@ public class CitaDetalleDialog extends DialogFragment {
                 });
     }
 
-    /**
-     * Diálogo de confirmación para marcar la cita como completada.
-     */
     private void confirmarMarcadoCompletada() {
         AlertManager.showConfirmDialog(
                 requireContext(),
@@ -388,11 +360,24 @@ public class CitaDetalleDialog extends DialogFragment {
     }
 
     /**
-     * Cambia el estado visual y el texto del chip a "Completada".
-     * También actualiza el estado en Firebase.
+     * 🔧 VERSIÓN CORREGIDA: Marca la cita como completada y notifica al padre
      */
     private void marcarComoCompletada() {
-        if (chipEstado == null || cita == null) return;
+        if (chipEstado == null || cita == null) {
+            Log.e(TAG, "Error: chipEstado o cita es null");
+            return;
+        }
+
+        // Deshabilitar botón mientras se procesa
+        if (btnMarcarCompletada != null) {
+            btnMarcarCompletada.setEnabled(false);
+            btnMarcarCompletada.setText("Actualizando...");
+        }
+
+        Log.d(TAG, "🔄 Iniciando actualización de estado a 'completada'");
+        Log.d(TAG, "   ActividadId: " + cita.getActividadId());
+        Log.d(TAG, "   CitaId: " + cita.getId());
+        Log.d(TAG, "   Estado anterior: '" + cita.getEstado() + "'");
 
         // Actualizar en Firebase
         db.collection("actividades")
@@ -401,13 +386,29 @@ public class CitaDetalleDialog extends DialogFragment {
                 .document(cita.getId())
                 .update("estado", "completada")
                 .addOnSuccessListener(aVoid -> {
-                    if (getContext() == null) return;
+                    if (getContext() == null) {
+                        Log.w(TAG, "⚠️ Contexto perdido después de actualización exitosa");
+                        return;
+                    }
 
-                    // Actualizar localmente
+                    Log.d(TAG, "✅ Estado actualizado en Firebase correctamente");
+
+                    // Actualizar objeto local
                     cita.setEstado("completada");
+                    Log.d(TAG, "   Estado nuevo en objeto: '" + cita.getEstado() + "'");
+
+                    // Actualizar UI
                     actualizarChipEstado("completada");
 
-                    // Ocultar advertencia
+                    // 🆕 NOTIFICAR AL FRAGMENT PADRE
+                    if (listener != null) {
+                        listener.onCitaActualizada(cita);
+                        Log.d(TAG, "🔔 Listener notificado de cambio de estado");
+                    } else {
+                        Log.w(TAG, "⚠️ No hay listener configurado");
+                    }
+
+                    // Ocultar advertencia y botón
                     if (cardAdvertencia != null) {
                         cardAdvertencia.setVisibility(View.GONE);
                     }
@@ -420,33 +421,50 @@ public class CitaDetalleDialog extends DialogFragment {
                             "✅ Cita marcada como completada"
                     );
 
-                    Log.d(TAG, "Cita marcada como completada en Firebase");
-
-                    // Cerrar diálogo después de un momento
+                    // Cerrar diálogo después de mostrar el mensaje
                     new android.os.Handler().postDelayed(this::dismiss, 1500);
                 })
                 .addOnFailureListener(e -> {
                     if (getContext() == null) return;
 
+                    Log.e(TAG, "❌ Error al actualizar estado en Firebase", e);
+
+                    // Restaurar botón
+                    if (btnMarcarCompletada != null) {
+                        btnMarcarCompletada.setEnabled(true);
+                        btnMarcarCompletada.setText("Marcar como completada");
+                    }
+
                     AlertManager.showErrorToast(requireContext(),
                             "Error al actualizar: " + e.getMessage());
-                    Log.e(TAG, "Error al actualizar estado en Firebase", e);
                 });
     }
 
     /**
-     * Actualiza el color y texto del chip según el estado de la cita.
+     * 🔧 VERSIÓN MEJORADA: Actualiza el chip con mejor manejo de estados
      */
     private void actualizarChipEstado(String estado) {
-        if (chipEstado == null || getContext() == null) return;
+        if (chipEstado == null || getContext() == null) {
+            Log.w(TAG, "⚠️ No se puede actualizar chip: chipEstado o contexto es null");
+            return;
+        }
 
-        String texto = (estado == null || estado.isEmpty()) ? "Sin estado" : estado;
-        chipEstado.setText(texto);
+        // Normalizar estado
+        String estadoNormalizado = (estado == null || estado.isEmpty())
+                ? "sin estado"
+                : estado.trim().toLowerCase();
+
+        Log.d(TAG, "📝 Actualizando chip con estado: '" + estadoNormalizado + "'");
+
+        // Texto para mostrar (primera letra mayúscula)
+        String textoMostrar = estadoNormalizado.substring(0, 1).toUpperCase()
+                + estadoNormalizado.substring(1);
 
         int color;
-        switch (texto.toLowerCase()) {
+        switch (estadoNormalizado) {
             case "completada":
                 color = requireContext().getColor(R.color.verde_exito);
+                Log.d(TAG, "✓ Estado 'completada' reconocido - aplicando color verde");
                 break;
             case "cancelada":
                 color = requireContext().getColor(R.color.rojo_error);
@@ -455,19 +473,29 @@ public class CitaDetalleDialog extends DialogFragment {
             case "programada":
                 color = requireContext().getColor(R.color.amarillo_advertencia);
                 break;
-            default:
+            case "reagendada":
                 color = requireContext().getColor(R.color.cian_info);
+                break;
+            default:
+                color = requireContext().getColor(R.color.grisMedio);
+                Log.w(TAG, "⚠️ Estado desconocido: '" + estadoNormalizado + "'");
                 break;
         }
 
+        // Actualizar chip (sin animación compleja que pueda fallar)
+        chipEstado.setText(textoMostrar);
         chipEstado.setChipBackgroundColor(ColorStateList.valueOf(color));
         chipEstado.setTextColor(requireContext().getColor(android.R.color.white));
 
-        // Pequeña animación visual
-        chipEstado.animate().alpha(0f).setDuration(100).withEndAction(() -> {
-            chipEstado.setText(texto);
-            chipEstado.setChipBackgroundColor(ColorStateList.valueOf(color));
-            chipEstado.animate().alpha(1f).setDuration(150).start();
-        }).start();
+        Log.d(TAG, "   Texto final en chip: '" + chipEstado.getText() + "'");
+
+        // Animación simple y segura
+        chipEstado.setScaleX(0.95f);
+        chipEstado.setScaleY(0.95f);
+        chipEstado.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(150)
+                .start();
     }
 }

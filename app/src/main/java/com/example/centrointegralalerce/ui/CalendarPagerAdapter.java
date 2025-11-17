@@ -25,9 +25,10 @@ import java.util.Set;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Date;
+
 /**
  * Adaptador para ViewPager2 que muestra una semana desplazable horizontalmente.
- * Se alinea con layout_week_page.xml actual (encabezado simple con tv_day_0 ... tv_day_6).
+ * VERSIÓN ACTUALIZADA con método updateCitas() para refrescar datos
  */
 public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdapter.WeekViewHolder> {
 
@@ -36,10 +37,10 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
     private static final int TOTAL_WEEKS = 1000;
     private static final int MIDDLE_POSITION = TOTAL_WEEKS / 2;
 
-    private final List<Cita> allCitas;
+    private List<Cita> allCitas; // ← Ya no es final para poder actualizarla
     private final FragmentManager fragmentManager;
     private final Calendar baseWeekStart;
-    private final Calendar today; // día actual real
+    private final Calendar today;
 
     public CalendarPagerAdapter(List<Cita> allCitas,
                                 FragmentManager fragmentManager,
@@ -48,21 +49,99 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
         this.allCitas = (allCitas != null) ? allCitas : new ArrayList<>();
         this.fragmentManager = fragmentManager;
 
-        // Semana base (normalizada a Lunes)
         this.baseWeekStart = (currentWeek != null)
                 ? (Calendar) currentWeek.clone()
                 : Calendar.getInstance();
         normalizeToMonday(this.baseWeekStart);
 
-        // Hoy (sin tocarlo a lunes, lo usamos para resaltar)
         this.today = Calendar.getInstance();
 
         Log.d(TAG, "✅ Adapter creado con " + this.allCitas.size() + " citas");
     }
 
-    // =============================
-    // MÉTODO MEJORADO normalizeToMonday
-    // =============================
+    // =====================================================
+    // 🆕 MÉTODO NUEVO: Actualizar lista de citas
+    // =====================================================
+
+    /**
+     * Actualiza la lista de citas y refresca todas las páginas visibles
+     *
+     * @param nuevasCitas Nueva lista de citas a mostrar
+     */
+    public void updateCitas(List<Cita> nuevasCitas) {
+        if (nuevasCitas == null) {
+            Log.w(TAG, "⚠️ Lista de citas es null, ignorando actualización");
+            return;
+        }
+
+        Log.d(TAG, "🔄 Actualizando lista de citas en adapter");
+        Log.d(TAG, "   Citas anteriores: " + this.allCitas.size());
+        Log.d(TAG, "   Citas nuevas: " + nuevasCitas.size());
+
+        // 🔄 Actualizar la referencia
+        this.allCitas = nuevasCitas;
+
+        // 🔔 Notificar que todos los items cambiaron
+        notifyDataSetChanged();
+
+        Log.d(TAG, "✅ Adapter actualizado - " + this.allCitas.size() + " citas cargadas");
+    }
+
+    /**
+     * Obtiene la lista actual de citas
+     *
+     * @return Lista de citas actual
+     */
+    public List<Cita> getCitas() {
+        return this.allCitas;
+    }
+
+    /**
+     * Busca y actualiza una cita específica en la lista
+     * Útil cuando solo cambia una cita
+     *
+     * @param citaActualizada Cita con datos actualizados
+     * @return true si se encontró y actualizó, false si no
+     */
+    public boolean actualizarCitaEspecifica(Cita citaActualizada) {
+        if (citaActualizada == null || citaActualizada.getId() == null) {
+            Log.w(TAG, "⚠️ Cita actualizada es null o sin ID");
+            return false;
+        }
+
+        boolean encontrada = false;
+
+        for (int i = 0; i < allCitas.size(); i++) {
+            Cita c = allCitas.get(i);
+            if (c != null && c.getId() != null &&
+                    c.getId().equals(citaActualizada.getId())) {
+
+                // Reemplazar la cita antigua
+                allCitas.set(i, citaActualizada);
+                encontrada = true;
+
+                Log.d(TAG, "✅ Cita actualizada en posición " + i);
+                Log.d(TAG, "   ID: " + citaActualizada.getId());
+                Log.d(TAG, "   Estado: '" + citaActualizada.getEstado() + "'");
+
+                break;
+            }
+        }
+
+        if (encontrada) {
+            // Solo notificar cambio en el dataset completo
+            notifyDataSetChanged();
+        } else {
+            Log.w(TAG, "⚠️ No se encontró la cita con ID: " + citaActualizada.getId());
+        }
+
+        return encontrada;
+    }
+
+    // =====================================================
+    // MÉTODOS EXISTENTES
+    // =====================================================
+
     private void normalizeToMonday(Calendar cal) {
         try {
             cal.setFirstDayOfWeek(Calendar.MONDAY);
@@ -121,7 +200,7 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
     }
 
     // =====================================================
-    // VIEWHOLDER
+    // VIEWHOLDER (SIN CAMBIOS)
     // =====================================================
     public static class WeekViewHolder extends RecyclerView.ViewHolder {
 
@@ -177,9 +256,6 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             Log.d(TAG, "✅ Scroll sincronizado configurado");
         }
 
-        // =====================================================
-        // MÉTODO MEJORADO bind()
-        // =====================================================
         public void bind(Calendar weekStart, List<Cita> allCitas, FragmentManager fragmentManager, Calendar todayOriginal) {
             if (weekStart == null) {
                 Log.e(TAG, "❌ weekStart es null en bind()");
@@ -189,7 +265,6 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             Calendar weekEnd = (Calendar) weekStart.clone();
             weekEnd.add(Calendar.DAY_OF_MONTH, 6);
 
-            // DEBUG CRÍTICO: Verificar la semana que se está mostrando
             SimpleDateFormat sdf = new SimpleDateFormat("EEE dd/MM", Locale.getDefault());
             Log.d(TAG, "🎯 SEMANA COMPLETA:");
             Calendar temp = (Calendar) weekStart.clone();
@@ -219,13 +294,9 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
                 rvCalendarWeek.setAdapter(adapter);
             }
 
-            // 🔥 NUEVO: Ajustar el scroll para mostrar el inicio de la semana
             ajustarScrollInicial();
         }
 
-        // =====================================================
-        // FILTRADO DE CITAS
-        // =====================================================
         private List<Cita> filterCitasForWeek(Calendar weekStart, List<Cita> allCitas) {
             List<Cita> citasSemana = new ArrayList<>();
             if (weekStart == null || allCitas == null) return citasSemana;
@@ -242,13 +313,11 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
                 for (Cita cita : allCitas) {
                     if (cita == null || cita.getFecha() == null) continue;
 
-                    // 🔥 NUEVO: Filtrar citas canceladas
                     if ("cancelada".equalsIgnoreCase(cita.getEstado())) {
                         Log.d(TAG, "⛔ Cita cancelada omitida: " + cita.getActividadNombre());
-                        continue; // Saltar citas canceladas
+                        continue;
                     }
 
-                    // Crear Calendar para la fecha de la cita
                     Calendar citaDate = Calendar.getInstance();
                     citaDate.setTime(cita.getFecha());
 
@@ -290,14 +359,11 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
         private void ajustarScrollInicial() {
             try {
                 if (horizontalScrollView != null) {
-                    // Esperar un momento para que el layout se renderice completamente
                     horizontalScrollView.postDelayed(() -> {
                         try {
-                            // Scroll al inicio (día lunes)
                             horizontalScrollView.scrollTo(0, 0);
                             Log.d(TAG, "🔧 Scroll ajustado al inicio (Lunes)");
 
-                            // DEBUG: Verificar posición actual del scroll
                             horizontalScrollView.post(() -> {
                                 int scrollX = horizontalScrollView.getScrollX();
                                 Log.d(TAG, "📏 Posición actual del scroll: " + scrollX);
@@ -311,14 +377,13 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
                 Log.e(TAG, "Error en ajustarScrollInicial", e);
             }
         }
-        // Método auxiliar para formatear Calendar
+
         private String formatCalendar(Calendar cal) {
             if (cal == null) return "null";
             SimpleDateFormat sdf = new SimpleDateFormat("EEE dd/MM/yyyy HH:mm", Locale.getDefault());
             return sdf.format(cal.getTime());
         }
 
-        // Método auxiliar para obtener nombre del día
         private String getDiaSemanaNombre(Calendar cal) {
             if (cal == null) return "null";
             String[] dias = {"DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"};
@@ -345,13 +410,9 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             }
         }
 
-        // =====================================================
-        // ENCABEZADO DE DÍAS
-        // =====================================================
         private void updateDayHeadersSimple(Calendar weekStart, Calendar todayOriginal) {
             try {
-                // CAMBIO: Quitar los números de los encabezados
-                String[] abrevs = {"LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"}; // ← QUITAR (0), (1), etc.
+                String[] abrevs = {"LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"};
 
                 Calendar cal = (Calendar) weekStart.clone();
                 Calendar todayNorm = (Calendar) todayOriginal.clone();
@@ -382,7 +443,6 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
                         case Calendar.SUNDAY: diaSemana = "DOMINGO"; break;
                     }
 
-                    // CAMBIO: Solo mostrar la abreviatura y el día del mes
                     String label = abrevs[i] + "\n" + cal.get(Calendar.DAY_OF_MONTH);
                     header.setText(label);
 
@@ -415,9 +475,6 @@ public class CalendarPagerAdapter extends RecyclerView.Adapter<CalendarPagerAdap
             }
         }
 
-        // =====================================================
-        // HORAS ÚNICAS ORDENADAS
-        // =====================================================
         private List<String> getHorasUnicasOrdenadas(List<Cita> citas) {
             Set<String> horasSet = new HashSet<>();
             for (Cita cita : citas) {

@@ -1,6 +1,7 @@
 package com.example.centrointegralalerce.utils;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,22 +110,22 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             tvLugar.setText(cita.getLugarId() != null ?
                     "📍 " + cita.getLugarId() : "📍 Sin lugar");
 
-            // 2️⃣ Obtener estado temporal usando CitaDateValidator
+            // 2️⃣ Obtener estado temporal
             CitaDateValidator.EstadoTemporal estado =
                     CitaDateValidator.getEstadoTemporal(cita);
 
-            // 3️⃣ Actualizar chip con badge text (usando CitaValidationDialog)
+            // 3️⃣ Actualizar texto del chip (badge)
             String badgeText = CitaValidationDialog.getBadgeText(cita);
             chipEstado.setText(badgeText);
 
-            // 4️⃣ Actualizar descripción temporal (usando CitaDateValidator)
+            // 4️⃣ Descripción del estado temporal
             String descripcion = CitaDateValidator.getMensajeDescriptivo(cita);
             tvEstadoTemporal.setText(descripcion);
 
-            // 5️⃣ Configurar colores y estilos según el estado
+            // 5️⃣ Aplicar estilos visuales
             configurarEstiloSegunEstado(estado);
 
-            // 6️⃣ Click listener
+            // 6️⃣ Listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onCitaClick(cita);
@@ -132,13 +133,18 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             });
         }
 
-        /**
-         * Configura los estilos visuales según el estado temporal de la cita
-         */
+        // =====================================================
+        //  🔧 NUEVA CONFIGURACIÓN COMPLETA DE ESTILOS
+        // =====================================================
         private void configurarEstiloSegunEstado(CitaDateValidator.EstadoTemporal estado) {
             Context context = itemView.getContext();
 
             switch (estado) {
+
+                case COMPLETADA:
+                    aplicarEstiloCompletada(context);
+                    break;
+
                 case ATRASADA:
                     aplicarEstiloAtrasada(context);
                     break;
@@ -161,6 +167,31 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             }
         }
 
+        // =====================================================
+        //  🆕 NUEVO ➜ Estilo para COMPLETADA
+        // =====================================================
+        private void aplicarEstiloCompletada(Context context) {
+            chipEstado.setChipBackgroundColorResource(R.color.verde_exito);
+            chipEstado.setTextColor(context.getColor(android.R.color.white));
+
+            viewEstadoIndicator.setBackgroundColor(
+                    context.getColor(R.color.verde_exito));
+
+            tvEstadoTemporal.setTextColor(
+                    context.getColor(R.color.verde_exito));
+
+            // Ocultar icono de urgencia
+            ivUrgencia.setVisibility(View.GONE);
+
+            // Transparencia suave
+            aplicarTransparencia(0.7f);
+
+            // 🟢 Tachado del nombre (opcional pero recomendado)
+            tvActividadNombre.setPaintFlags(
+                    tvActividadNombre.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG
+            );
+        }
+
         /**
          * Estilo para citas ATRASADAS (⚠️ ROJO)
          */
@@ -174,17 +205,20 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             tvEstadoTemporal.setTextColor(
                     context.getColor(android.R.color.holo_red_dark));
 
-            // Mostrar icono de urgencia
             ivUrgencia.setVisibility(View.VISIBLE);
             ivUrgencia.setColorFilter(
                     context.getColor(android.R.color.holo_red_dark));
 
-            // Aplicar transparencia a los textos
             aplicarTransparencia(0.6f);
+
+            // Remover tachado si lo tenía
+            tvActividadNombre.setPaintFlags(
+                    tvActividadNombre.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG)
+            );
         }
 
         /**
-         * Estilo para citas de HOY (🟠 NARANJA)
+         * Estilo para citas de HOY (🟠)
          */
         private void aplicarEstiloHoy(Context context) {
             chipEstado.setChipBackgroundColorResource(android.R.color.holo_orange_light);
@@ -196,17 +230,19 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             tvEstadoTemporal.setTextColor(
                     context.getColor(android.R.color.holo_orange_dark));
 
-            // Mostrar icono de urgencia
             ivUrgencia.setVisibility(View.VISIBLE);
             ivUrgencia.setColorFilter(
                     context.getColor(android.R.color.holo_orange_dark));
 
-            // Sin transparencia
             aplicarTransparencia(1.0f);
+
+            tvActividadNombre.setPaintFlags(
+                    tvActividadNombre.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG)
+            );
         }
 
         /**
-         * Estilo para citas PRÓXIMAS 24H (🟠 NARANJA OSCURO)
+         * Estilo para PRÓXIMAS 24H (🟠 oscuro)
          */
         private void aplicarEstiloProxima24h(Context context) {
             chipEstado.setChipBackgroundColorResource(android.R.color.holo_orange_dark);
@@ -218,15 +254,16 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             tvEstadoTemporal.setTextColor(
                     context.getColor(android.R.color.holo_orange_dark));
 
-            // Ocultar icono de urgencia
             ivUrgencia.setVisibility(View.GONE);
-
-            // Sin transparencia
             aplicarTransparencia(1.0f);
+
+            tvActividadNombre.setPaintFlags(
+                    tvActividadNombre.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG)
+            );
         }
 
         /**
-         * Estilo para citas PRÓXIMA SEMANA (🔵 AZUL)
+         * Estilo para PRÓXIMA SEMANA (🔵)
          */
         private void aplicarEstiloProximaSemana(Context context) {
             chipEstado.setChipBackgroundColorResource(android.R.color.holo_blue_light);
@@ -238,15 +275,16 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             tvEstadoTemporal.setTextColor(
                     context.getColor(android.R.color.holo_blue_dark));
 
-            // Ocultar icono de urgencia
             ivUrgencia.setVisibility(View.GONE);
-
-            // Sin transparencia
             aplicarTransparencia(1.0f);
+
+            tvActividadNombre.setPaintFlags(
+                    tvActividadNombre.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG)
+            );
         }
 
         /**
-         * Estilo para citas FUTURAS (🟢 VERDE)
+         * Estilo FUTURA (🟢)
          */
         private void aplicarEstiloFutura(Context context) {
             chipEstado.setChipBackgroundColorResource(android.R.color.holo_green_light);
@@ -258,15 +296,16 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.CitaViewHolder
             tvEstadoTemporal.setTextColor(
                     context.getColor(android.R.color.holo_green_dark));
 
-            // Ocultar icono de urgencia
             ivUrgencia.setVisibility(View.GONE);
-
-            // Sin transparencia
             aplicarTransparencia(1.0f);
+
+            tvActividadNombre.setPaintFlags(
+                    tvActividadNombre.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG)
+            );
         }
 
         /**
-         * Aplica transparencia a los textos principales
+         * Control de transparencia del item
          */
         private void aplicarTransparencia(float alpha) {
             tvActividadNombre.setAlpha(alpha);
