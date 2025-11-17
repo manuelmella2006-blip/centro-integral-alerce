@@ -250,7 +250,7 @@ public class ConfiguracionFragment extends Fragment {
 
         itemGestionarUsuarios.setOnClickListener(v -> {
             if (UserSession.getInstance().puede("gestionar_usuarios")) {
-                startActivity(new Intent(requireContext(), RegisterActivity.class));
+                startActivity(new Intent(requireContext(), GestionUsuariosActivity.class));
             }
         });
 
