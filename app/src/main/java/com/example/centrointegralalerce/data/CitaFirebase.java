@@ -11,7 +11,7 @@ import java.util.Locale;
 
 /**
  * Modelo que representa una cita tal como está en Firebase.
- * Puede venir de /citas o de /actividades/{actividadId}/citas/{citaId}.
+ * VERSIÓN CORREGIDA que copia TODOS los campos al convertir a Cita
  */
 public class CitaFirebase {
     private static final String TAG = "CitaFirebase";
@@ -19,19 +19,19 @@ public class CitaFirebase {
     @DocumentId
     private String id;
 
-    private String estado;        // "activo", "cancelado", etc.
-    private String fecha;         // ahora como String con formato "dd/MM/yyyy"
-    private String hora;          // "HH:mm"
-    private String lugarId;       // ID del lugar
+    private String estado;
+    private String fecha;
+    private String hora;
+    private String lugarId;
 
-    // Campos informativos de la actividad padre (opcionales)
+    // Campos informativos de la actividad padre
     private transient String actividadId;
     private transient String actividadNombre;
     private transient String tipoActividadId;
     private transient String estadoActividad;
     private transient Integer cupo;
 
-    // Nuevos campos
+    // Campos adicionales
     private String fechaInicio;
     private String fechaTermino;
     private String horaInicio;
@@ -45,16 +45,24 @@ public class CitaFirebase {
     public CitaFirebase() {}
 
     /**
-     * Convierte este DTO de Firestore al modelo de dominio Cita.
+     * 🔧 MÉTODO CORREGIDO: Convierte este DTO de Firestore al modelo de dominio Cita.
+     * Ahora copia TODOS los campos, especialmente los IDs
      */
     public Cita toCita() {
         try {
+            Log.d(TAG, "🔄 Iniciando conversión CitaFirebase -> Cita");
+            Log.d(TAG, "   ID: " + this.id);
+            Log.d(TAG, "   ActividadId: " + this.actividadId);
+            Log.d(TAG, "   Estado: " + this.estado);
+
+            // Parsear fecha
             Date fechaFinal = parsearFechaHora();
             if (fechaFinal == null) {
-                Log.e(TAG, "No se pudo parsear fecha: " + fecha + " " + hora);
+                Log.e(TAG, "❌ No se pudo parsear fecha: " + fecha + " " + hora);
                 return null;
             }
 
+            // Crear cita con datos básicos
             Cita cita = new Cita(
                     fechaFinal,
                     hora != null ? hora : "",
@@ -62,13 +70,52 @@ public class CitaFirebase {
                     estado != null ? estado : (estadoActividad != null ? estadoActividad : "")
             );
 
-            // Agregar información adicional
-            cita.setActividadNombre(actividadNombre);
-            cita.setTipoActividadId(tipoActividadId);
+            // 🔥 CRÍTICO: Copiar IDs primero
+            cita.setId(this.id);
+            cita.setActividadId(this.actividadId);
 
+            Log.d(TAG, "   ✅ IDs copiados:");
+            Log.d(TAG, "      cita.getId(): " + cita.getId());
+            Log.d(TAG, "      cita.getActividadId(): " + cita.getActividadId());
+
+            // Copiar información de la actividad
+            cita.setActividadNombre(this.actividadNombre);
+            cita.setTipoActividadId(this.tipoActividadId);
+
+            // 🆕 Copiar TODOS los campos adicionales
+            cita.setProyectoId(this.proyectoId);
+            cita.setOferenteId(this.oferenteId);
+            cita.setSocioComunitarioId(this.socioComunitarioId);
+            cita.setFechaInicio(this.fechaInicio);
+            cita.setFechaTermino(this.fechaTermino);
+            cita.setHoraInicio(this.horaInicio);
+            cita.setHoraTermino(this.horaTermino);
+            cita.setPeriodicidad(this.periodicidad);
+
+            if (this.cupo != null) {
+                cita.setCupo(this.cupo);
+            }
+
+            if (this.diasAvisoPrevio != null) {
+                cita.setDiasAvisoPrevio(this.diasAvisoPrevio);
+            }
+
+            // ✅ VERIFICACIÓN FINAL
+            if (cita.getId() == null || cita.getId().isEmpty()) {
+                Log.e(TAG, "❌ ADVERTENCIA: Cita convertida SIN ID");
+                Log.e(TAG, "   this.id era: " + this.id);
+            }
+
+            if (cita.getActividadId() == null || cita.getActividadId().isEmpty()) {
+                Log.e(TAG, "❌ ADVERTENCIA: Cita convertida SIN actividadId");
+                Log.e(TAG, "   this.actividadId era: " + this.actividadId);
+            }
+
+            Log.d(TAG, "✅ Conversión completada exitosamente");
             return cita;
+
         } catch (Exception e) {
-            Log.e(TAG, "Error toCita(): " + e.getMessage(), e);
+            Log.e(TAG, "❌ Error en toCita()", e);
             return null;
         }
     }
@@ -78,12 +125,15 @@ public class CitaFirebase {
      */
     private Date parsearFechaHora() {
         try {
-            if (fecha == null || fecha.isEmpty()) return null;
+            if (fecha == null || fecha.isEmpty()) {
+                Log.w(TAG, "⚠️ Fecha es null o vacía");
+                return null;
+            }
 
             // Parsear manualmente para evitar problemas de zona horaria
             String[] fechaParts = fecha.split("/");
             if (fechaParts.length != 3) {
-                Log.e(TAG, "Formato de fecha inválido: " + fecha);
+                Log.e(TAG, "❌ Formato de fecha inválido: " + fecha);
                 return null;
             }
 
@@ -120,9 +170,15 @@ public class CitaFirebase {
         }
     }
 
-    // Getters/Setters mínimos para Firebase
+    // ============================================
+    // GETTERS Y SETTERS
+    // ============================================
+
     public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public void setId(String id) {
+        this.id = id;
+        Log.d(TAG, "📝 setId llamado con: " + id);
+    }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
@@ -137,7 +193,10 @@ public class CitaFirebase {
     public void setLugarId(String lugarId) { this.lugarId = lugarId; }
 
     public String getActividadId() { return actividadId; }
-    public void setActividadId(String actividadId) { this.actividadId = actividadId; }
+    public void setActividadId(String actividadId) {
+        this.actividadId = actividadId;
+        Log.d(TAG, "📝 setActividadId llamado con: " + actividadId);
+    }
 
     public String getActividadNombre() { return actividadNombre; }
     public void setActividadNombre(String actividadNombre) { this.actividadNombre = actividadNombre; }
@@ -151,7 +210,6 @@ public class CitaFirebase {
     public Integer getCupo() { return cupo; }
     public void setCupo(Integer cupo) { this.cupo = cupo; }
 
-    // Setters adicionales
     public void setFechaString(String fecha) {
         this.fecha = fecha;
     }

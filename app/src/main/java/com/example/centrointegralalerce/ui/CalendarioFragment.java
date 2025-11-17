@@ -260,11 +260,12 @@ public class CalendarioFragment extends Fragment {
     }
 
     // ===========================================
-    // ⚠️ MÉTODOS DE VALIDACIÓN DE CITAS
+    // ⚠️ MÉTODOS DE VALIDACIÓN DE CITAS (ACTUALIZADOS)
     // ===========================================
 
     /**
-     * ⚠️ Valida el estado de todas las citas
+     * ⚠️ MÉTODO ACTUALIZADO: Valida el estado de todas las citas
+     * Ahora excluye citas completadas de las advertencias
      */
     private void validarEstadoCitas() {
         if (allCitas == null || allCitas.isEmpty()) {
@@ -281,6 +282,7 @@ public class CalendarioFragment extends Fragment {
             CitaDateValidator.EstadoTemporal estado =
                     CitaDateValidator.getEstadoTemporal(cita);
 
+            // 🔥 CRÍTICO: NO contar citas completadas
             switch (estado) {
                 case ATRASADA:
                     citasAtrasadas++;
@@ -291,14 +293,18 @@ public class CalendarioFragment extends Fragment {
                 case PROXIMA_24H:
                     citasProximas24h++;
                     break;
+                case COMPLETADA:
+                    // Ignorar citas completadas
+                    Log.d(TAG, "✅ Cita completada ignorada: " + cita.getActividadNombre());
+                    break;
             }
         }
 
-        // Mostrar notificaciones según el estado
+        // Mostrar notificaciones solo si hay citas pendientes
         if (citasAtrasadas > 0) {
             String mensaje = citasAtrasadas == 1 ?
-                    "⚠️ Tienes 1 cita atrasada" :
-                    "⚠️ Tienes " + citasAtrasadas + " citas atrasadas";
+                    "⚠️ Tienes 1 cita atrasada sin completar" :
+                    "⚠️ Tienes " + citasAtrasadas + " citas atrasadas sin completar";
 
             AlertManager.showWarningSnackbar(
                     AlertManager.getRootView(requireActivity()),
@@ -330,13 +336,13 @@ public class CalendarioFragment extends Fragment {
         }
 
         Log.d(TAG, "📊 Resumen de citas:");
-        Log.d(TAG, " - Atrasadas: " + citasAtrasadas);
+        Log.d(TAG, " - Atrasadas (sin completar): " + citasAtrasadas);
         Log.d(TAG, " - Hoy: " + citasHoy);
         Log.d(TAG, " - Próximas 24h: " + citasProximas24h);
     }
 
     /**
-     * ⚠️ Obtiene las citas atrasadas
+     * ⚠️ MÉTODO ACTUALIZADO: Obtiene las citas atrasadas (excluyendo completadas)
      */
     private List<Cita> getCitasAtrasadas() {
         List<Cita> citasAtrasadas = new ArrayList<>();
@@ -344,7 +350,11 @@ public class CalendarioFragment extends Fragment {
         if (allCitas != null) {
             for (Cita cita : allCitas) {
                 if (cita != null && cita.getFecha() != null) {
-                    if (CitaDateValidator.esFechaPasada(cita.getFecha())) {
+                    CitaDateValidator.EstadoTemporal estado =
+                            CitaDateValidator.getEstadoTemporal(cita);
+
+                    // Solo incluir si está ATRASADA (no completada)
+                    if (estado == CitaDateValidator.EstadoTemporal.ATRASADA) {
                         citasAtrasadas.add(cita);
                     }
                 }
@@ -355,7 +365,7 @@ public class CalendarioFragment extends Fragment {
     }
 
     /**
-     * ⚠️ Obtiene las citas de hoy
+     * ⚠️ MÉTODO ACTUALIZADO: Obtiene las citas de hoy (excluyendo completadas)
      */
     private List<Cita> getCitasHoy() {
         List<Cita> citasHoy = new ArrayList<>();
@@ -363,7 +373,11 @@ public class CalendarioFragment extends Fragment {
         if (allCitas != null) {
             for (Cita cita : allCitas) {
                 if (cita != null && cita.getFecha() != null) {
-                    if (CitaDateValidator.esFechaHoy(cita.getFecha())) {
+                    CitaDateValidator.EstadoTemporal estado =
+                            CitaDateValidator.getEstadoTemporal(cita);
+
+                    // Solo incluir si es HOY (no completada)
+                    if (estado == CitaDateValidator.EstadoTemporal.HOY) {
                         citasHoy.add(cita);
                     }
                 }
@@ -374,35 +388,14 @@ public class CalendarioFragment extends Fragment {
     }
 
     /**
-     * ⚠️ Método público para manejar clic en una cita
-     * Llama este método desde tu adapter o fragment de día
-     */
-    public void onCitaClicked(Cita cita) {
-        if (cita == null) return;
-
-        CitaDateValidator.EstadoTemporal estado =
-                CitaDateValidator.getEstadoTemporal(cita);
-
-        // Mostrar información diferente según el estado
-        if (estado == CitaDateValidator.EstadoTemporal.ATRASADA) {
-            CitaValidationDialog.mostrarInfoCitaAtrasada(requireContext(), cita);
-        } else if (estado == CitaDateValidator.EstadoTemporal.HOY ||
-                estado == CitaDateValidator.EstadoTemporal.PROXIMA_24H) {
-            CitaValidationDialog.mostrarAdvertenciaCitaProxima(requireContext(), cita);
-        } else {
-            CitaValidationDialog.mostrarResumenCita(requireContext(), cita);
-        }
-    }
-
-    /**
-     * ⚠️ Obtiene estadísticas completas de las citas
+     * ⚠️ MÉTODO ACTUALIZADO: Obtiene estadísticas completas de las citas
      */
     public String getEstadisticasCitas() {
         if (allCitas == null || allCitas.isEmpty()) {
             return "Sin citas registradas";
         }
 
-        int atrasadas = 0, hoy = 0, proximas = 0, futuras = 0;
+        int atrasadas = 0, hoy = 0, proximas = 0, futuras = 0, completadas = 0;
 
         for (Cita cita : allCitas) {
             if (cita == null || cita.getFecha() == null) continue;
@@ -411,16 +404,28 @@ public class CalendarioFragment extends Fragment {
                     CitaDateValidator.getEstadoTemporal(cita);
 
             switch (estado) {
-                case ATRASADA: atrasadas++; break;
-                case HOY: hoy++; break;
+                case COMPLETADA:
+                    completadas++;
+                    break;
+                case ATRASADA:
+                    atrasadas++;
+                    break;
+                case HOY:
+                    hoy++;
+                    break;
                 case PROXIMA_24H:
-                case PROXIMA_SEMANA: proximas++; break;
-                case FUTURA: futuras++; break;
+                case PROXIMA_SEMANA:
+                    proximas++;
+                    break;
+                case FUTURA:
+                    futuras++;
+                    break;
             }
         }
 
         StringBuilder stats = new StringBuilder();
         stats.append("📊 Total: ").append(allCitas.size()).append(" citas\n");
+        if (completadas > 0) stats.append("✅ Completadas: ").append(completadas).append("\n");
         if (atrasadas > 0) stats.append("⚠️ Atrasadas: ").append(atrasadas).append("\n");
         if (hoy > 0) stats.append("📍 Hoy: ").append(hoy).append("\n");
         if (proximas > 0) stats.append("⏰ Próximas: ").append(proximas).append("\n");
@@ -508,6 +513,7 @@ public class CalendarioFragment extends Fragment {
                 .whereNotEqualTo("estado", "cancelada")
                 .get()
                 .addOnSuccessListener(actividadesSnapshot -> {
+
                     if (!isAdded() || getActivity() == null) {
                         showLoading(false);
                         return;
@@ -527,6 +533,7 @@ public class CalendarioFragment extends Fragment {
                     allCitas.clear();
 
                     for (QueryDocumentSnapshot actividadDoc : actividadesSnapshot) {
+
                         String actividadId = actividadDoc.getId();
 
                         String actividadNombre = actividadDoc.getString("nombre");
@@ -548,24 +555,40 @@ public class CalendarioFragment extends Fragment {
                                 .collection("citas")
                                 .get()
                                 .addOnSuccessListener(citasSnapshot -> {
+
                                     if (!isAdded() || getActivity() == null) {
                                         return;
                                     }
 
                                     for (QueryDocumentSnapshot citaDoc : citasSnapshot) {
                                         try {
+
+                                            // ====================================================
+                                            //   🔧 **CORRECCIÓN CRÍTICA: MAPEADOR FIJO**
+                                            // ====================================================
+
                                             String citaId = citaDoc.getId();
                                             String estadoCita = citaDoc.getString("estado");
                                             String fechaCita = citaDoc.getString("fecha");
                                             String horaCita = citaDoc.getString("hora");
 
+                                            Log.d(TAG, "📝 Procesando cita:");
+                                            Log.d(TAG, "   CitaId: " + citaId);
+                                            Log.d(TAG, "   ActividadId: " + actividadId);
+                                            Log.d(TAG, "   Estado: " + estadoCita);
+
                                             CitaFirebase cf = new CitaFirebase();
+
+                                            // **IDs primero (esto evita errores graves)**
                                             cf.setId(citaId);
+                                            cf.setActividadId(actividadId);
+
+                                            // Campos básicos
                                             cf.setEstado(estadoCita);
                                             cf.setFechaString(fechaCita);
                                             cf.setHora(horaCita);
 
-                                            cf.setActividadId(actividadId);
+                                            // Campos extendidos
                                             cf.setActividadNombre(actividadNombre);
                                             cf.setTipoActividadId(tipoActividadId);
                                             cf.setEstadoActividad(estadoActividad);
@@ -581,29 +604,50 @@ public class CalendarioFragment extends Fragment {
                                             cf.setCupo(cupo != null ? cupo.intValue() : 0);
                                             cf.setDiasAvisoPrevio(diasAvisoPrevio != null ? diasAvisoPrevio.intValue() : 0);
 
+                                            // Convertir a Cita
                                             Cita c = cf.toCita();
+
                                             if (c != null) {
+
+                                                // 🔎 Validación de IDs
+                                                if (c.getId() == null || c.getId().isEmpty()) {
+                                                    Log.e(TAG, "❌ ADVERTENCIA: toCita() no asignó ID, corrigiendo...");
+                                                    c.setId(citaId);
+                                                }
+                                                if (c.getActividadId() == null || c.getActividadId().isEmpty()) {
+                                                    Log.e(TAG, "❌ ADVERTENCIA: toCita() no asignó actividadId, corrigiendo...");
+                                                    c.setActividadId(actividadId);
+                                                }
+
+                                                Log.d(TAG, "✅ Cita verificada:");
+                                                Log.d(TAG, "   CitaId final: " + c.getId());
+                                                Log.d(TAG, "   ActividadId final: " + c.getActividadId());
+
                                                 allCitas.add(c);
-                                                Log.d(TAG, "✅ Cita agregada: " + c.getActividadNombre() + " - " + c.getFecha() + " " + c.getHora());
+
+                                                Log.d(TAG, "🟢 Cita agregada: " +
+                                                        c.getActividadNombre() +
+                                                        " - " + c.getFecha() +
+                                                        " " + c.getHora());
+                                            } else {
+                                                Log.e(TAG, "❌ toCita() retornó null para citaId: " + citaId);
                                             }
+
                                         } catch (Exception ex) {
                                             Log.e(TAG, "❌ Error mapeando cita", ex);
                                         }
                                     }
 
                                     procesadas[0]++;
-                                    Log.d(TAG, "📊 Procesadas " + procesadas[0] + "/" + totalActividades + " actividades");
+                                    Log.d(TAG, "📊 Procesadas " + procesadas[0] + "/" + totalActividades);
 
                                     if (procesadas[0] == totalActividades) {
-                                        Log.d(TAG, "✅ Carga completada. Total citas: " + allCitas.size());
+                                        Log.d(TAG, "🎉 Carga de citas completada");
                                         finalizarCargaYActualizarUI();
                                     }
                                 })
                                 .addOnFailureListener(e -> {
-                                    if (!isAdded() || getActivity() == null) {
-                                        return;
-                                    }
-                                    Log.e(TAG, "❌ Error al cargar citas de actividad " + actividadId, e);
+                                    Log.e(TAG, "❌ Error cargando citas de actividad " + actividadId, e);
                                     procesadas[0]++;
                                     if (procesadas[0] == totalActividades) {
                                         finalizarCargaYActualizarUI();
@@ -616,15 +660,14 @@ public class CalendarioFragment extends Fragment {
                         showLoading(false);
                         return;
                     }
-
                     showLoading(false);
                     if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                     setupViewPager();
                     AlertManager.showErrorSnackbar(AlertManager.getRootView(requireActivity()),
                             "Error al obtener las actividades: " + e.getMessage());
-                    Log.e(TAG, "❌ Error en loadCitasFromFirebase", e);
                 });
     }
+
 
     private void finalizarCargaYActualizarUI() {
         if (!isAdded() || getActivity() == null) {
@@ -864,6 +907,103 @@ public class CalendarioFragment extends Fragment {
             allCitas.clear();
 
         loadCitasFromFirebase();
+    }
+
+    /**
+     * 🔧 VERSIÓN CORREGIDA: Abre el CitaDetalleDialog con callback
+     *
+     * Llama este método desde tu adapter o fragment de día cuando se hace clic en una cita
+     */
+    public void onCitaClicked(Cita cita) {
+        if (cita == null) {
+            Log.w(TAG, "⚠️ Cita es null, no se puede abrir el diálogo");
+            return;
+        }
+
+        Log.d(TAG, "📱 Abriendo CitaDetalleDialog para: " + cita.getActividadNombre());
+        Log.d(TAG, "   Estado actual: '" + cita.getEstado() + "'");
+        Log.d(TAG, "   Fecha: " + cita.getFecha());
+
+        // Crear el diálogo
+        CitaDetalleDialog dialog = new CitaDetalleDialog(cita);
+
+        // 🆕 CONFIGURAR EL CALLBACK para actualizar la lista cuando se marque como completada
+        dialog.setOnCitaActualizadaListener(citaActualizada -> {
+            if (!isAdded() || getActivity() == null) {
+                Log.w(TAG, "⚠️ Fragment no está activo, no se puede actualizar");
+                return;
+            }
+
+            Log.d(TAG, "🔔 Callback recibido - Actualizando cita en la lista");
+            Log.d(TAG, "   Nuevo estado: '" + citaActualizada.getEstado() + "'");
+
+            // 🔄 Buscar y actualizar la cita en la lista local
+            boolean encontrada = false;
+            if (allCitas != null) {
+                for (int i = 0; i < allCitas.size(); i++) {
+                    Cita c = allCitas.get(i);
+                    if (c != null && c.getId() != null &&
+                            c.getId().equals(citaActualizada.getId())) {
+
+                        // Reemplazar la cita antigua con la actualizada
+                        allCitas.set(i, citaActualizada);
+                        encontrada = true;
+
+                        Log.d(TAG, "✅ Cita actualizada en posición " + i);
+                        Log.d(TAG, "   Estado actualizado: '" + allCitas.get(i).getEstado() + "'");
+                        break;
+                    }
+                }
+            }
+
+            if (encontrada) {
+                // 🔄 Actualizar el ViewPager para reflejar el cambio
+                if (pagerAdapter != null) {
+                    pagerAdapter.updateCitas(allCitas);
+                    Log.d(TAG, "📊 Adapter actualizado con nueva lista de citas");
+                }
+
+                // ✅ Mostrar mensaje de confirmación
+                AlertManager.showSuccessToast(requireContext(),
+                        "✅ Cita actualizada correctamente");
+
+                // 🔔 Reprogramar notificaciones si la cita se marcó como completada
+                if ("completada".equalsIgnoreCase(citaActualizada.getEstado())) {
+                    if (notificationScheduler != null) {
+                        notificationScheduler.cancelNotification(citaActualizada);
+                        Log.d(TAG, "🔕 Notificación cancelada para cita completada");
+                    }
+                }
+            } else {
+                Log.w(TAG, "⚠️ No se encontró la cita en la lista local");
+                // Como fallback, recargar todas las citas
+                reloadCitas();
+            }
+        });
+
+        // Mostrar el diálogo
+        try {
+            dialog.show(getChildFragmentManager(), "CitaDetalleDialog");
+            Log.d(TAG, "✅ Diálogo mostrado correctamente");
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error al mostrar el diálogo", e);
+            AlertManager.showErrorToast(requireContext(),
+                    "Error al abrir los detalles de la cita");
+        }
+    }
+
+    /**
+     * 🆕 MÉTODO AUXILIAR: Busca una cita por ID en la lista
+     */
+    private Cita buscarCitaPorId(String citaId) {
+        if (citaId == null || allCitas == null) return null;
+
+        for (Cita c : allCitas) {
+            if (c != null && citaId.equals(c.getId())) {
+                return c;
+            }
+        }
+        return null;
     }
 
     @Override
