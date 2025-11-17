@@ -93,7 +93,7 @@ public class AdjuntarComunicacionActivity extends AppCompatActivity {
 
     private void cargarActividades() {
         db.collection("actividades")
-                .whereEqualTo("estado", "activa")
+                .whereEqualTo("estado", "activa") // ✅ Ya solo carga actividades activas
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     actividadesNombres.clear();
@@ -125,6 +125,31 @@ public class AdjuntarComunicacionActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String nombre = documentSnapshot.getString("nombre");
+                        String estado = documentSnapshot.getString("estado");
+
+                        // ✅ NUEVA VALIDACIÓN: Verificar si la actividad está cancelada
+                        if ("cancelada".equalsIgnoreCase(estado)) {
+                            AlertManager.showDestructiveDialog(
+                                    this,
+                                    "Actividad Cancelada",
+                                    "No se pueden adjuntar archivos a una actividad cancelada.",
+                                    "Aceptar",
+                                    new AlertManager.OnConfirmListener() {
+                                        @Override
+                                        public void onConfirm() {
+                                            finish();
+                                        }
+
+                                        @Override
+                                        public void onCancel() {
+                                            finish();
+                                        }
+                                    }
+                            );
+                            deshabilitarControles();
+                            return;
+                        }
+
                         if (nombre != null) {
                             // Agregar a las listas si no existe
                             if (!actividadesIds.contains(id)) {
@@ -137,6 +162,15 @@ public class AdjuntarComunicacionActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    // ✅ NUEVO MÉTODO: Deshabilitar controles cuando la actividad está cancelada
+    private void deshabilitarControles() {
+        spActividad.setEnabled(false);
+        etDescripcion.setEnabled(false);
+        btnSeleccionarArchivo.setEnabled(false);
+        btnGuardar.setEnabled(false);
+        btnGuardar.setVisibility(View.GONE);
     }
 
     private void seleccionarActividadPorId(String id) {

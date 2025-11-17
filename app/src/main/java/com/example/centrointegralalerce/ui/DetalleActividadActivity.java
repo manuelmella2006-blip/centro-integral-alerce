@@ -182,31 +182,31 @@ public class DetalleActividadActivity extends AppCompatActivity {
             return;
         }
 
-        // Controlar visibilidad de botones según permisos
+        // ✅ NUEVO: Ocultar botones si la actividad está cancelada
+        boolean actividadCancelada = actividadActual != null &&
+                "cancelada".equalsIgnoreCase(actividadActual.getEstado());
+
         if (btnModificar != null) {
-            boolean puedeModificar = session.puede("modificar_actividades");
+            boolean puedeModificar = session.puede("modificar_actividades") && !actividadCancelada;
             btnModificar.setVisibility(puedeModificar ? View.VISIBLE : View.GONE);
         }
 
         if (btnCancelar != null) {
-            boolean puedeCancelar = session.puede("cancelar_actividades");
+            boolean puedeCancelar = session.puede("cancelar_actividades") && !actividadCancelada;
             btnCancelar.setVisibility(puedeCancelar ? View.VISIBLE : View.GONE);
         }
 
         if (btnReagendar != null) {
-            boolean puedeReagendar = session.puede("reagendar_actividades");
+            boolean puedeReagendar = session.puede("reagendar_actividades") && !actividadCancelada;
             btnReagendar.setVisibility(puedeReagendar ? View.VISIBLE : View.GONE);
         }
 
         if (fabAdjuntar != null) {
-            boolean puedeAdjuntar = session.puede("adjuntar_comunicaciones");
+            boolean puedeAdjuntar = session.puede("adjuntar_comunicaciones") && !actividadCancelada;
             fabAdjuntar.setVisibility(puedeAdjuntar ? View.VISIBLE : View.GONE);
         }
 
-        Log.d("DETALLE_ACTIVIDAD", "🎯 Permisos - Modificar: " + session.puede("modificar_actividades") +
-                ", Cancelar: " + session.puede("cancelar_actividades") +
-                ", Reagendar: " + session.puede("reagendar_actividades") +
-                ", Adjuntar: " + session.puede("adjuntar_comunicaciones"));
+        Log.d("DETALLE_ACTIVIDAD", "🎯 Permisos - Actividad cancelada: " + actividadCancelada);
     }
 
     // ✅ Método existente intacto

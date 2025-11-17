@@ -1,4 +1,3 @@
-// ActividadesListAdapter.java
 package com.example.centrointegralalerce.ui;
 
 import android.view.LayoutInflater;
@@ -13,6 +12,8 @@ import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.data.Actividad;
 
 import java.util.List;
+import android.graphics.Color;
+import android.graphics.Typeface;
 
 public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesListAdapter.ActividadViewHolder> {
 
@@ -80,6 +81,16 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
             // Nombre
             tvNombre.setText(actividad.getNombre() != null ? actividad.getNombre() : "Sin nombre");
 
+            // ✅ NUEVO: Aplicar estilo diferente para actividades canceladas
+            if ("cancelada".equalsIgnoreCase(actividad.getEstado())) {
+                // Cambiar colores para indicar estado cancelado
+                tvNombre.setTextColor(Color.GRAY);
+                itemView.setAlpha(0.6f);
+            } else {
+                tvNombre.setTextColor(Color.BLACK);
+                itemView.setAlpha(1.0f);
+            }
+
             // Tipo: ahora muestra el nombre si está disponible
             String tipoDisplay;
             if (actividad.getTipoActividadNombre() != null && !actividad.getTipoActividadNombre().isEmpty()) {
@@ -116,9 +127,17 @@ public class ActividadesListAdapter extends RecyclerView.Adapter<ActividadesList
             }
             tvLugar.setText(lugarDisplay);
 
-            // Estado
+            // Estado - destacar si está cancelada
             String estadoDisplay = actividad.getEstado() != null ? actividad.getEstado() : "Sin estado";
             tvEstado.setText(estadoDisplay);
+
+            if ("cancelada".equalsIgnoreCase(actividad.getEstado())) {
+                tvEstado.setTextColor(Color.RED);
+                tvEstado.setTypeface(tvEstado.getTypeface(), Typeface.BOLD);
+            } else {
+                tvEstado.setTextColor(Color.BLACK);
+                tvEstado.setTypeface(Typeface.DEFAULT);
+            }
         }
     }
 }

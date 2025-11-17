@@ -22,7 +22,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CentroIntegralAlerce">
+        android:theme="@style/Theme.CentroIntegralAlerce"
+        android:enableOnBackInvokedCallback="true"> <!-- 🆕 AGREGADO: Para manejar back navigation -->
 
         <!-- 🔹 Activities existentes -->
         <activity android:name=".ui.mantenedores.TiposActividadActivity" />
@@ -60,6 +61,13 @@
         <activity
             android:name=".ui.ReagendarActividadActivity"
             android:exported="false"
+            android:theme="@style/Theme.CentroIntegralAlerce" />
+
+        <!-- 🆕 NUEVA ACTIVIDAD: ReagendarCitaActivity -->
+        <activity
+            android:name=".ui.ReagendarCitaActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity"
             android:theme="@style/Theme.CentroIntegralAlerce" />
 
         <activity

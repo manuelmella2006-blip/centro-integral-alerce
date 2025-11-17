@@ -293,7 +293,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         style="@style/Widget.Material3.Button"
-                        android:text="Ver Detalle"
+                        android:text="Reagendar cita"
                         android:textColor="@color/blanco"
                         app:backgroundTint="@color/verde_santo_tomas"
                         app:cornerRadius="8dp" />

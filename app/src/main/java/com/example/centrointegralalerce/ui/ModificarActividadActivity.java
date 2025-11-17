@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import android.util.Log;
+
 public class ModificarActividadActivity extends AppCompatActivity {
 
     // Text inputs simples
@@ -75,6 +76,8 @@ public class ModificarActividadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_modificar_actividad);
 
         db = FirebaseFirestore.getInstance();
+        // 🔥 Configurar dispatcher de retroceso
+        setupBackPressDispatcher();
 
         // 🔥 NUEVO: Configurar toolbar con botón de retroceso
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -136,7 +139,6 @@ public class ModificarActividadActivity extends AppCompatActivity {
         }
 
         Log.d("MODIFICAR_ACTIVIDAD", "✅ Usuario tiene permiso para modificar actividades. Rol: " + session.getRolId());
-
 
         setupEmptyAdapters();
         cargarPeriodicidad();
@@ -211,12 +213,15 @@ public class ModificarActividadActivity extends AppCompatActivity {
         }
     }
 
-    // 🔥 NUEVO: Override del botón físico de retroceso
-    @Override
-    public void onBackPressed() {
-        handleBackPress();
+    // 🔥 NUEVO: Override del botón físico de retroceso - CORREGIDO
+    private void setupBackPressDispatcher() {
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPress();
+            }
+        });
     }
-
     private void setupEmptyAdapters() {
         adapterTipoActividad = makeAdapter(tipoActividadList);
         adapterOferente = makeAdapter(oferentesList);
@@ -294,6 +299,31 @@ public class ModificarActividadActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         actividadActual = documentSnapshot.toObject(Actividad.class);
                         if (actividadActual != null) {
+                            // ✅ NUEVA VALIDACIÓN: Verificar si la actividad está cancelada
+                            if ("cancelada".equalsIgnoreCase(actividadActual.getEstado())) {
+                                // ✅ CORREGIDO: Usar showDestructiveDialog en lugar de showErrorDialog
+                                AlertManager.showDestructiveDialog(
+                                        this,
+                                        "Actividad Cancelada",
+                                        "No se puede modificar una actividad que ha sido cancelada.",
+                                        "Aceptar",
+                                        new AlertManager.OnConfirmListener() {
+                                            @Override
+                                            public void onConfirm() {
+                                                finish();
+                                            }
+
+                                            @Override
+                                            public void onCancel() {
+                                                finish();
+                                            }
+                                        }
+                                );
+                                // Deshabilitar todos los controles
+                                deshabilitarControles();
+                                return;
+                            }
+
                             // Pre-cargar datos si los spinners ya están listos
                             if (!tipoActividadList.isEmpty()) {
                                 precargarDatosActividad();
@@ -311,6 +341,34 @@ public class ModificarActividadActivity extends AppCompatActivity {
                     AlertManager.showErrorToast(this, "Error al cargar la actividad");
                     finish();
                 });
+    }
+
+    // ✅ NUEVO MÉTODO: Deshabilitar controles cuando la actividad está cancelada
+    private void deshabilitarControles() {
+        etNombreActividad.setEnabled(false);
+        etCupo.setEnabled(false);
+        etDiasAvisoPrevio.setEnabled(false);
+        spTipoActividad.setEnabled(false);
+        spPeriodicidad.setEnabled(false);
+        spOferente.setEnabled(false);
+        spSocioComunitario.setEnabled(false);
+        spProyecto.setEnabled(false);
+        spLugar.setEnabled(false);
+        btnFechaInicio.setEnabled(false);
+        btnHoraInicio.setEnabled(false);
+        btnFechaTermino.setEnabled(false);
+        btnHoraTermino.setEnabled(false);
+        btnGuardarCambios.setEnabled(false);
+        btnGuardarCambios.setVisibility(View.GONE);
+
+        // También deshabilitar checkboxes de días si están visibles
+        cbLunes.setEnabled(false);
+        cbMartes.setEnabled(false);
+        cbMiercoles.setEnabled(false);
+        cbJueves.setEnabled(false);
+        cbViernes.setEnabled(false);
+        cbSabado.setEnabled(false);
+        cbDomingo.setEnabled(false);
     }
 
     private void precargarDatosActividad() {
@@ -382,6 +440,15 @@ public class ModificarActividadActivity extends AppCompatActivity {
 
     private void guardarCambios() {
         if (actividadActual == null) return;
+
+        // ✅ NUEVA VALIDACIÓN: Verificar estado antes de guardar
+        if ("cancelada".equalsIgnoreCase(actividadActual.getEstado())) {
+            AlertManager.showErrorSnackbar(
+                    AlertManager.getRootView(this),
+                    "❌ No se puede modificar una actividad cancelada"
+            );
+            return;
+        }
 
         String nombre = etNombreActividad.getText().toString().trim();
         String periodicidadTxt = spPeriodicidad.getText().toString().trim();

@@ -1,5 +1,5 @@
 package com.example.centrointegralalerce.ui;
-
+import android.view.View;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
@@ -25,6 +25,8 @@ import java.util.Map;
 
 public class ReagendarActividadActivity extends AppCompatActivity {
 
+    private static final String TAG = "ReagendarActividad";
+
     private TextView tvActividadNombre;
     private EditText etMotivo;
     private Button btnNuevaFechaInicio, btnNuevaHoraInicio, btnNuevaFechaTermino, btnNuevaHoraTermino, btnGuardarNuevaFecha;
@@ -33,17 +35,25 @@ public class ReagendarActividadActivity extends AppCompatActivity {
     private String actividadId;
     private Actividad actividadActual;
 
+    // 🆕 NUEVAS VARIABLES
+    private String citaId; // ID de la cita específica a reagendar
+    private boolean esReagendarCita = false; // Flag para saber si es reagendar cita o actividad
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reagendar_actividad);
 
-        // ✅ NUEVO: Configurar toolbar con botón volver
+        // ✅ Configurar toolbar con botón volver
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        // 🆕 Obtener datos de la cita (si viene del diálogo)
+        citaId = getIntent().getStringExtra("citaId");
+        esReagendarCita = citaId != null && !citaId.isEmpty();
 
         // Obtener datos de la actividad
         actividadId = getIntent().getStringExtra("actividadId");
@@ -53,7 +63,14 @@ public class ReagendarActividadActivity extends AppCompatActivity {
             return;
         }
 
-        // Inicializar Firebase
+        // 🆕 Actualizar título según contexto
+        if (esReagendarCita) {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Reagendar Cita");
+            }
+        }
+
+        // Resto del código sin cambios...
         db = FirebaseFirestore.getInstance();
 
         // Inicializar vistas
@@ -93,6 +110,30 @@ public class ReagendarActividadActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         actividadActual = documentSnapshot.toObject(Actividad.class);
                         if (actividadActual != null) {
+                            // ✅ NUEVA VALIDACIÓN: Verificar si la actividad está cancelada
+                            if ("cancelada".equalsIgnoreCase(actividadActual.getEstado())) {
+                                AlertManager.showDestructiveDialog(
+                                        this,
+                                        "Actividad Cancelada",
+                                        "No se puede reagendar una actividad que ha sido cancelada.",
+                                        "Aceptar",
+                                        new AlertManager.OnConfirmListener() {
+                                            @Override
+                                            public void onConfirm() {
+                                                finish();
+                                            }
+
+                                            @Override
+                                            public void onCancel() {
+                                                finish();
+                                            }
+                                        }
+                                );
+                                // Deshabilitar todos los controles
+                                deshabilitarControles();
+                                return;
+                            }
+
                             mostrarDatosActividad();
                         } else {
                             AlertManager.showErrorToast(this, "Error al cargar datos de la actividad");
@@ -107,6 +148,17 @@ public class ReagendarActividadActivity extends AppCompatActivity {
                     AlertManager.showErrorToast(this, "Error al cargar la actividad");
                     finish();
                 });
+    }
+
+    // ✅ NUEVO MÉTODO: Deshabilitar controles cuando la actividad está cancelada
+    private void deshabilitarControles() {
+        etMotivo.setEnabled(false);
+        btnNuevaFechaInicio.setEnabled(false);
+        btnNuevaHoraInicio.setEnabled(false);
+        btnNuevaFechaTermino.setEnabled(false);
+        btnNuevaHoraTermino.setEnabled(false);
+        btnGuardarNuevaFecha.setEnabled(false);
+        btnGuardarNuevaFecha.setVisibility(View.GONE);
     }
 
     private void mostrarDatosActividad() {
@@ -212,15 +264,51 @@ public class ReagendarActividadActivity extends AppCompatActivity {
                 .document(actividadId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    // También actualizar las citas asociadas
-                    actualizarCitasAsociadas(nuevaFechaInicio, nuevaHoraInicio);
+                    // 🆕 ACTUALIZAR SOLO LA CITA ESPECÍFICA SI ES REAGENDAR CITA
+                    if (esReagendarCita && citaId != null) {
+                        actualizarCitaEspecifica(nuevaFechaInicio, nuevaHoraInicio);
+                    } else {
+                        // Actualizar todas las citas asociadas (comportamiento original)
+                        actualizarCitasAsociadas(nuevaFechaInicio, nuevaHoraInicio);
+                    }
 
-                    Toast.makeText(this, "Actividad reagendada correctamente", Toast.LENGTH_SHORT).show();
+                    String mensaje = esReagendarCita ?
+                            "Cita reagendada correctamente" :
+                            "Actividad reagendada correctamente";
+
+                    Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al actualizar la actividad: " + e.getMessage(),
+                    Toast.makeText(this, "Error al actualizar: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
+                });
+    }
+
+    /**
+     * 🆕 Actualiza solo una cita específica en lugar de todas
+     */
+    private void actualizarCitaEspecifica(String nuevaFecha, String nuevaHora) {
+        if (citaId == null || actividadId == null) {
+            Log.e(TAG, "❌ No se puede actualizar cita específica - IDs nulos");
+            return;
+        }
+
+        Map<String, Object> citaUpdates = new HashMap<>();
+        citaUpdates.put("fecha", nuevaFecha);
+        citaUpdates.put("hora", nuevaHora);
+        citaUpdates.put("estado", "reagendada");
+
+        db.collection("actividades")
+                .document(actividadId)
+                .collection("citas")
+                .document(citaId)
+                .update(citaUpdates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Cita específica actualizada: " + citaId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error al actualizar cita específica: " + e.getMessage());
                 });
     }
 

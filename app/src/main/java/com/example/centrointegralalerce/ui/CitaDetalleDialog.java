@@ -1,5 +1,6 @@
 package com.example.centrointegralalerce.ui;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Log;
@@ -113,17 +114,42 @@ public class CitaDetalleDialog extends DialogFragment {
         // ---------- BOTONES ----------
         btnCerrar.setOnClickListener(v -> dismiss());
 
+        // 🆕 CAMBIAR EL TEXTO DEL BOTÓN Y MODIFICAR EL LISTENER
+        btnVerDetalle.setText("Reagendar cita");
         btnVerDetalle.setOnClickListener(v -> {
-            AlertManager.showInfoSnackbar(
-                    AlertManager.getRootViewSafe(this),
-                    "Funcionalidad de detalle aún no implementada."
-            );
+            // Abrir actividad de reagendar
+            abrirReagendarCita();
             dismiss();
         });
 
         btnMarcarCompletada.setOnClickListener(v -> confirmarMarcadoCompletada());
 
         return view;
+    }
+
+    /**
+     * 🆕 Abre la actividad para reagendar la cita
+     */
+    private void abrirReagendarCita() {
+        try {
+            if (getActivity() == null || cita == null) {
+                AlertManager.showErrorToast(getActivity(), "No se puede reagendar la cita");
+                return;
+            }
+
+            // Crear intent para reagendar CITA (no actividad)
+            Intent intent = new Intent(getActivity(), ReagendarCitaActivity.class);
+
+            // Pasar los datos necesarios
+            intent.putExtra("actividadId", cita.getActividadId());
+            intent.putExtra("citaId", cita.getId());
+
+            startActivity(intent);
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error al abrir reagendar cita", e);
+            AlertManager.showErrorToast(getActivity(), "Error al abrir reagendar cita");
+        }
     }
 
     /**

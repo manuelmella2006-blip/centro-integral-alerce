@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <TextView
+        android:id="@+id/tv_cita_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Información de la cita"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/et_motivo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="Motivo del reagendamiento"
+        android:inputType="textMultiLine"
+        android:minLines="3" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btn_nueva_fecha"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Seleccionar fecha" />
+
+        <Button
+            android:id="@+id/btn_nueva_hora"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Seleccionar hora" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_guardar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reagendar Cita"
+        android:backgroundTint="@color/verde_santo_tomas"
+        android:textColor="@color/blanco" />
+
+</LinearLayout>

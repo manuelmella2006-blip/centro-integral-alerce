@@ -104,6 +104,9 @@ public class CancelarActividadActivity extends AppCompatActivity {
                             int index = actividadesList.indexOf(nombreActividadPrecargada);
                             if (index >= 0) {
                                 spActividad.setText(nombreActividadPrecargada, false);
+                            } else {
+                                // ✅ NUEVA VALIDACIÓN: Verificar si la actividad precargada está cancelada
+                                verificarEstadoActividadPrecargada();
                             }
                         }
 
@@ -112,6 +115,40 @@ public class CancelarActividadActivity extends AppCompatActivity {
                         }
                     } else {
                         AlertManager.showErrorToast(this, "Error cargando actividades");
+                    }
+                });
+    }
+
+    // ✅ NUEVO MÉTODO: Verificar estado de actividad precargada
+    private void verificarEstadoActividadPrecargada() {
+        if (actividadIdPrecargada == null) return;
+
+        db.collection("actividades")
+                .document(actividadIdPrecargada)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String estado = documentSnapshot.getString("estado");
+                        if ("cancelada".equalsIgnoreCase(estado)) {
+                            AlertManager.showDestructiveDialog(
+                                    this,
+                                    "Actividad Cancelada",
+                                    "La actividad '" + nombreActividadPrecargada + "' ya está cancelada y no puede cancelarse nuevamente.",
+                                    "Aceptar",
+                                    new AlertManager.OnConfirmListener() {
+                                        @Override
+                                        public void onConfirm() {
+                                            finish();
+                                        }
+
+                                        @Override
+                                        public void onCancel() {
+                                            finish();
+                                        }
+                                    }
+                            );
+                            btnCancelarActividad.setEnabled(false);
+                        }
                     }
                 });
     }
