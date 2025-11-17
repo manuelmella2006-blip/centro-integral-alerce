@@ -30,6 +30,8 @@ import com.example.centrointegralalerce.data.CitaFirebase;
 import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.utils.AlertManager;
 import com.example.centrointegralalerce.utils.NotificationScheduler;
+import com.example.centrointegralalerce.utils.CitaDateValidator;
+import com.example.centrointegralalerce.utils.CitaValidationDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -258,7 +260,177 @@ public class CalendarioFragment extends Fragment {
     }
 
     // ===========================================
-    // MÉTODOS EXISTENTES (sin cambios significativos)
+    // ⚠️ MÉTODOS DE VALIDACIÓN DE CITAS
+    // ===========================================
+
+    /**
+     * ⚠️ Valida el estado de todas las citas
+     */
+    private void validarEstadoCitas() {
+        if (allCitas == null || allCitas.isEmpty()) {
+            return;
+        }
+
+        int citasAtrasadas = 0;
+        int citasHoy = 0;
+        int citasProximas24h = 0;
+
+        for (Cita cita : allCitas) {
+            if (cita == null || cita.getFecha() == null) continue;
+
+            CitaDateValidator.EstadoTemporal estado =
+                    CitaDateValidator.getEstadoTemporal(cita);
+
+            switch (estado) {
+                case ATRASADA:
+                    citasAtrasadas++;
+                    break;
+                case HOY:
+                    citasHoy++;
+                    break;
+                case PROXIMA_24H:
+                    citasProximas24h++;
+                    break;
+            }
+        }
+
+        // Mostrar notificaciones según el estado
+        if (citasAtrasadas > 0) {
+            String mensaje = citasAtrasadas == 1 ?
+                    "⚠️ Tienes 1 cita atrasada" :
+                    "⚠️ Tienes " + citasAtrasadas + " citas atrasadas";
+
+            AlertManager.showWarningSnackbar(
+                    AlertManager.getRootView(requireActivity()),
+                    mensaje
+            );
+
+            Log.w(TAG, mensaje);
+        }
+
+        if (citasHoy > 0) {
+            String mensaje = citasHoy == 1 ?
+                    "📍 Tienes 1 cita HOY" :
+                    "📍 Tienes " + citasHoy + " citas HOY";
+
+            AlertManager.showInfoSnackbar(
+                    AlertManager.getRootView(requireActivity()),
+                    mensaje
+            );
+
+            Log.d(TAG, mensaje);
+        }
+
+        if (citasProximas24h > 0) {
+            String mensaje = citasProximas24h == 1 ?
+                    "⏰ Tienes 1 cita mañana" :
+                    "⏰ Tienes " + citasProximas24h + " citas mañana";
+
+            Log.d(TAG, mensaje);
+        }
+
+        Log.d(TAG, "📊 Resumen de citas:");
+        Log.d(TAG, " - Atrasadas: " + citasAtrasadas);
+        Log.d(TAG, " - Hoy: " + citasHoy);
+        Log.d(TAG, " - Próximas 24h: " + citasProximas24h);
+    }
+
+    /**
+     * ⚠️ Obtiene las citas atrasadas
+     */
+    private List<Cita> getCitasAtrasadas() {
+        List<Cita> citasAtrasadas = new ArrayList<>();
+
+        if (allCitas != null) {
+            for (Cita cita : allCitas) {
+                if (cita != null && cita.getFecha() != null) {
+                    if (CitaDateValidator.esFechaPasada(cita.getFecha())) {
+                        citasAtrasadas.add(cita);
+                    }
+                }
+            }
+        }
+
+        return citasAtrasadas;
+    }
+
+    /**
+     * ⚠️ Obtiene las citas de hoy
+     */
+    private List<Cita> getCitasHoy() {
+        List<Cita> citasHoy = new ArrayList<>();
+
+        if (allCitas != null) {
+            for (Cita cita : allCitas) {
+                if (cita != null && cita.getFecha() != null) {
+                    if (CitaDateValidator.esFechaHoy(cita.getFecha())) {
+                        citasHoy.add(cita);
+                    }
+                }
+            }
+        }
+
+        return citasHoy;
+    }
+
+    /**
+     * ⚠️ Método público para manejar clic en una cita
+     * Llama este método desde tu adapter o fragment de día
+     */
+    public void onCitaClicked(Cita cita) {
+        if (cita == null) return;
+
+        CitaDateValidator.EstadoTemporal estado =
+                CitaDateValidator.getEstadoTemporal(cita);
+
+        // Mostrar información diferente según el estado
+        if (estado == CitaDateValidator.EstadoTemporal.ATRASADA) {
+            CitaValidationDialog.mostrarInfoCitaAtrasada(requireContext(), cita);
+        } else if (estado == CitaDateValidator.EstadoTemporal.HOY ||
+                estado == CitaDateValidator.EstadoTemporal.PROXIMA_24H) {
+            CitaValidationDialog.mostrarAdvertenciaCitaProxima(requireContext(), cita);
+        } else {
+            CitaValidationDialog.mostrarResumenCita(requireContext(), cita);
+        }
+    }
+
+    /**
+     * ⚠️ Obtiene estadísticas completas de las citas
+     */
+    public String getEstadisticasCitas() {
+        if (allCitas == null || allCitas.isEmpty()) {
+            return "Sin citas registradas";
+        }
+
+        int atrasadas = 0, hoy = 0, proximas = 0, futuras = 0;
+
+        for (Cita cita : allCitas) {
+            if (cita == null || cita.getFecha() == null) continue;
+
+            CitaDateValidator.EstadoTemporal estado =
+                    CitaDateValidator.getEstadoTemporal(cita);
+
+            switch (estado) {
+                case ATRASADA: atrasadas++; break;
+                case HOY: hoy++; break;
+                case PROXIMA_24H:
+                case PROXIMA_SEMANA: proximas++; break;
+                case FUTURA: futuras++; break;
+            }
+        }
+
+        StringBuilder stats = new StringBuilder();
+        stats.append("📊 Total: ").append(allCitas.size()).append(" citas\n");
+        if (atrasadas > 0) stats.append("⚠️ Atrasadas: ").append(atrasadas).append("\n");
+        if (hoy > 0) stats.append("📍 Hoy: ").append(hoy).append("\n");
+        if (proximas > 0) stats.append("⏰ Próximas: ").append(proximas).append("\n");
+        if (futuras > 0) stats.append("📅 Futuras: ").append(futuras);
+
+        return stats.toString();
+    }
+
+    // ===========================================
+    // MÉTODOS EXISTENTES
     // ===========================================
 
     private void verificarPermisosCreacion() {
@@ -472,6 +644,9 @@ public class CalendarioFragment extends Fragment {
 
         // 🔔 Programar notificaciones después de cargar las citas
         programarNotificacionesParaCitas();
+
+        // ⚠️ NUEVO: Validar citas atrasadas y próximas
+        validarEstadoCitas();
 
         if (allCitas.isEmpty()) {
             AlertManager.showInfoSnackbar(AlertManager.getRootView(requireActivity()),
