@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -19,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.centrointegralalerce.R;
 import com.example.centrointegralalerce.firebase.FirestoreRepository;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
@@ -33,18 +33,19 @@ public class TiposActividadActivity extends AppCompatActivity {
     private FirestoreRepository repo = new FirestoreRepository();
     private RecyclerView recyclerView;
     private TiposActividadAdapter adapter;
-    private FloatingActionButton btnAdd;
+    private View btnAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tipos_actividad);
 
-        // ✅ Configurar toolbar con botón volver
+        // Toolbar
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Tipos de Actividad");
         }
 
         recyclerView = findViewById(R.id.recyclerTipos);
@@ -66,10 +67,10 @@ public class TiposActividadActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
         btnAdd.setOnClickListener(v -> mostrarDialogoAgregar());
+
         cargarTipos();
     }
 
-    // ✅ Manejar botón volver
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -89,38 +90,59 @@ public class TiposActividadActivity extends AppCompatActivity {
                 lista.add(new TipoActividadItem(id, nombre));
             }
             adapter.actualizarDatos(lista);
+
+            Log.d(TAG, "✅ Cargados " + lista.size() + " tipos de actividad");
         });
     }
 
+    // ============================================================
+    //     🔵 MÉTODO REEMPLAZADO COMPLETAMENTE — VERSIÓN SIMPLE
+    // ============================================================
+
+    /**
+     * ✅ VERSIÓN ULTRA SIMPLE CON BUTTON Y EDITTEXT NORMALES
+     */
     private void mostrarDialogoAgregar() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_tipo, null);
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
+        Log.d(TAG, "🔵 Iniciando mostrarDialogoAgregar()");
 
-        try {
-            if (dialog.getWindow() != null) {
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error al configurar ventana del diálogo", e);
-        }
+        View dialogView = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_agregar_tipo, null);
 
+        Log.d(TAG, "🔵 Layout inflado");
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        Log.d(TAG, "🔵 Diálogo creado");
+
+        // Vistas normales: EditText + Button
         EditText etNombreTipo = dialogView.findViewById(R.id.etNombreTipo);
         Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
         Button btnGuardar = dialogView.findViewById(R.id.btnGuardar);
 
+        Log.d(TAG, "🔍 Verificando vistas...");
+        Log.d(TAG, "etNombreTipo: " + (etNombreTipo != null ? "OK" : "NULL"));
+        Log.d(TAG, "btnCancelar: " + (btnCancelar != null ? "OK" : "NULL"));
+        Log.d(TAG, "btnGuardar: " + (btnGuardar != null ? "OK" : "NULL"));
+
         if (etNombreTipo == null || btnCancelar == null || btnGuardar == null) {
+            Log.e(TAG, "❌ ERROR: Alguna vista es null");
             Toast.makeText(this, "Error al cargar el diálogo", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        btnCancelar.setOnClickListener(v -> dialog.dismiss());
+        btnCancelar.setOnClickListener(v -> {
+            Log.d(TAG, "🔵 Cancelar");
+            dialog.dismiss();
+        });
 
         btnGuardar.setOnClickListener(v -> {
             String nombre = etNombreTipo.getText().toString().trim();
+            Log.d(TAG, "🔵 Guardar presionado - Nombre: " + nombre);
 
             if (nombre.isEmpty()) {
-                etNombreTipo.setError("Por favor ingresa un nombre");
-                etNombreTipo.requestFocus();
+                etNombreTipo.setError("Ingresa un nombre");
                 return;
             }
 
@@ -132,47 +154,60 @@ public class TiposActividadActivity extends AppCompatActivity {
             datos.put("activo", true);
             datos.put("fechaCreacion", System.currentTimeMillis());
 
+            Log.d(TAG, "💾 Guardando en Firebase...");
+
             repo.crearDocumento("tiposActividad", datos)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "✓ Tipo creado: " + nombre, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "✅ Guardado exitoso");
+                        Toast.makeText(this, "Tipo creado: " + nombre, Toast.LENGTH_SHORT).show();
                         cargarTipos();
                         dialog.dismiss();
                     })
                     .addOnFailureListener(e -> {
+                        Log.e(TAG, "❌ Error al guardar", e);
                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         btnGuardar.setEnabled(true);
-                        btnGuardar.setText("✓ Guardar");
+                        btnGuardar.setText("Guardar");
                     });
         });
 
         dialog.show();
+        Log.d(TAG, "🔵 Diálogo mostrado");
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
         etNombreTipo.requestFocus();
     }
 
-    private void mostrarDialogoEditar(TipoActividadItem item) {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_agregar_tipo, null);
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
+    // ============================================================
+    //          🟦 VERSIÓN SIMPLE PARA EDITAR
+    // ============================================================
 
-        try {
-            if (dialog.getWindow() != null) {
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error al configurar ventana del diálogo", e);
-        }
+    private void mostrarDialogoEditar(TipoActividadItem item) {
+        Log.d(TAG, "🔵 Iniciando mostrarDialogoEditar(): " + item.getNombre());
+
+        View dialogView = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_agregar_tipo, null);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
 
         EditText etNombreTipo = dialogView.findViewById(R.id.etNombreTipo);
         Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
         Button btnGuardar = dialogView.findViewById(R.id.btnGuardar);
 
         if (etNombreTipo == null || btnCancelar == null || btnGuardar == null) {
-            Toast.makeText(this, "Error al cargar el diálogo", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "❌ ERROR: Vistas null en diálogo editar");
+            Toast.makeText(this, "Error cargando diálogo", Toast.LENGTH_SHORT).show();
             return;
         }
 
         etNombreTipo.setText(item.getNombre());
         etNombreTipo.setSelection(item.getNombre().length());
-        btnGuardar.setText("✓ Actualizar");
+        btnGuardar.setText("Actualizar");
 
         btnCancelar.setOnClickListener(v -> dialog.dismiss());
 
@@ -180,8 +215,7 @@ public class TiposActividadActivity extends AppCompatActivity {
             String nuevoNombre = etNombreTipo.getText().toString().trim();
 
             if (nuevoNombre.isEmpty()) {
-                etNombreTipo.setError("Por favor ingresa un nombre");
-                etNombreTipo.requestFocus();
+                etNombreTipo.setError("Ingresa un nombre");
                 return;
             }
 
@@ -194,34 +228,42 @@ public class TiposActividadActivity extends AppCompatActivity {
 
             repo.actualizarDocumento("tiposActividad", item.getId(), datos)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "✓ Tipo actualizado", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "✅ Actualización exitosa");
+                        Toast.makeText(this, "Tipo actualizado", Toast.LENGTH_SHORT).show();
                         cargarTipos();
                         dialog.dismiss();
                     })
                     .addOnFailureListener(e -> {
+                        Log.e(TAG, "❌ Error al actualizar", e);
                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         btnGuardar.setEnabled(true);
-                        btnGuardar.setText("✓ Actualizar");
+                        btnGuardar.setText("Actualizar");
                     });
         });
 
         dialog.show();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
         etNombreTipo.requestFocus();
     }
 
+    /**
+     * Confirmación antes de eliminar
+     */
     private void confirmarEliminar(String id) {
         new AlertDialog.Builder(this)
-                .setTitle("⚠️ Confirmar eliminación")
-                .setMessage("¿Estás seguro de eliminar este tipo de actividad?\n\nEsta acción no se puede deshacer.")
-                .setPositiveButton("Eliminar", (dialog, which) -> {
+                .setTitle("Eliminar tipo")
+                .setMessage("¿Eliminar este tipo de actividad?")
+                .setPositiveButton("Eliminar", (d, w) -> {
                     repo.eliminarDocumento("tiposActividad", id)
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, "✓ Eliminado correctamente", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Eliminado correctamente", Toast.LENGTH_SHORT).show();
                                 cargarTipos();
                             })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(this, "Error al eliminar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
+                            .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
