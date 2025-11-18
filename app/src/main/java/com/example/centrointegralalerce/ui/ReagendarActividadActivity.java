@@ -22,7 +22,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
+import com.example.centrointegralalerce.data.UserSession;
 public class ReagendarActividadActivity extends AppCompatActivity {
 
     private static final String TAG = "ReagendarActividad";
@@ -44,18 +44,24 @@ public class ReagendarActividadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reagendar_actividad);
 
-        // ✅ Configurar toolbar con botón volver
+        // ---------------------------------------------------------
+        // ✅ CONFIGURAR TOOLBAR
+        // ---------------------------------------------------------
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // 🆕 Obtener datos de la cita (si viene del diálogo)
+        // ---------------------------------------------------------
+        // 🆕 OBTENER DATOS DE LA CITA (si viene desde el diálogo)
+        // ---------------------------------------------------------
         citaId = getIntent().getStringExtra("citaId");
         esReagendarCita = citaId != null && !citaId.isEmpty();
 
-        // Obtener datos de la actividad
+        // ---------------------------------------------------------
+        // OBTENER ID DE LA ACTIVIDAD
+        // ---------------------------------------------------------
         actividadId = getIntent().getStringExtra("actividadId");
         if (actividadId == null || actividadId.isEmpty()) {
             AlertManager.showErrorToast(this, "No se recibió la actividad a reagendar");
@@ -63,34 +69,75 @@ public class ReagendarActividadActivity extends AppCompatActivity {
             return;
         }
 
-        // 🆕 Actualizar título según contexto
+        // ---------------------------------------------------------
+        // 🆕 CAMBIAR TÍTULO SI ES UNA CITA
+        // ---------------------------------------------------------
         if (esReagendarCita) {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setTitle("Reagendar Cita");
             }
         }
 
-        // Resto del código sin cambios...
-        db = FirebaseFirestore.getInstance();
+        // ---------------------------------------------------------
+        // 🆕 VERIFICACIÓN DE PERMISOS
+        // ---------------------------------------------------------
+        UserSession session = UserSession.getInstance();
 
-        // Inicializar vistas
-        tvActividadNombre = findViewById(R.id.tv_actividad_nombre);
-        etMotivo = findViewById(R.id.et_motivo);
-        btnNuevaFechaInicio = findViewById(R.id.btn_nueva_fecha_inicio);
-        btnNuevaHoraInicio = findViewById(R.id.btn_nueva_hora_inicio);
-        btnNuevaFechaTermino = findViewById(R.id.btn_nueva_fecha_termino);
-        btnNuevaHoraTermino = findViewById(R.id.btn_nueva_hora_termino);
-        btnGuardarNuevaFecha = findViewById(R.id.btn_guardar_nueva_fecha);
+        Log.d("REAGENDAR_ACTIVIDAD", "🔍 Verificando permisos para reagendar actividades...");
 
-        // Configurar pickers
-        configurarPickers();
+        session.esperarPermisos(new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 
-        // Cargar datos de la actividad
-        cargarActividad();
+                        if (!session.puede("reagendar_actividades")) {
+                            Log.w("REAGENDAR_ACTIVIDAD", "❌ Usuario sin permiso para reagendar actividades");
+                            Toast.makeText(ReagendarActividadActivity.this,
+                                    "No tienes permiso para reagendar actividades", Toast.LENGTH_LONG).show();
+                            finish();
+                            return;
+                        }
 
-        // Configurar botón guardar
-        btnGuardarNuevaFecha.setOnClickListener(v -> guardarNuevaFecha());
+                        Log.d("REAGENDAR_ACTIVIDAD", "✅ Usuario tiene permiso, continuando...");
+
+                        // ---------------------------------------------------------
+                        // INICIALIZAR FIREBASE
+                        // ---------------------------------------------------------
+                        db = FirebaseFirestore.getInstance();
+
+                        // ---------------------------------------------------------
+                        // INICIALIZAR VISTAS
+                        // ---------------------------------------------------------
+                        tvActividadNombre = findViewById(R.id.tv_actividad_nombre);
+                        etMotivo = findViewById(R.id.et_motivo);
+                        btnNuevaFechaInicio = findViewById(R.id.btn_nueva_fecha_inicio);
+                        btnNuevaHoraInicio = findViewById(R.id.btn_nueva_hora_inicio);
+                        btnNuevaFechaTermino = findViewById(R.id.btn_nueva_fecha_termino);
+                        btnNuevaHoraTermino = findViewById(R.id.btn_nueva_hora_termino);
+                        btnGuardarNuevaFecha = findViewById(R.id.btn_guardar_nueva_fecha);
+
+                        // ---------------------------------------------------------
+                        // CONFIGURAR PICKERS
+                        // ---------------------------------------------------------
+                        configurarPickers();
+
+                        // ---------------------------------------------------------
+                        // CARGAR DATOS DE LA ACTIVIDAD
+                        // ---------------------------------------------------------
+                        cargarActividad();
+
+                        // ---------------------------------------------------------
+                        // CONFIGURAR BOTÓN GUARDAR
+                        // ---------------------------------------------------------
+                        btnGuardarNuevaFecha.setOnClickListener(v -> guardarNuevaFecha());
+                    }
+                });
+            }
+        });
     }
+
 
     // ✅ NUEVO: Manejar botón volver
     @Override

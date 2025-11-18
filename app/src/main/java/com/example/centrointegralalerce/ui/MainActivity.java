@@ -1,5 +1,5 @@
 package com.example.centrointegralalerce.ui;
-
+import java.util.HashMap;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,7 +9,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
+import android.widget.Button;
+import android.widget.Toast;
+import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -64,12 +66,14 @@ public class MainActivity extends AppCompatActivity {
 
         View rootView = AlertManager.getRootView(this);
 
+        // 🔹 Leer si el usuario es invitado o tiene rol asignado
         esInvitado = getIntent().getBooleanExtra("INVITADO", false);
         String rolId = getIntent().getStringExtra("ROL");
         if (rolId != null) {
             rolUsuario = rolId;
         }
 
+        // 🔹 Mensajes según tipo de usuario
         if (esInvitado) {
             AlertManager.showWarningSnackbar(rootView, "Modo invitado - Funcionalidad limitada");
         } else if ("admin".equals(rolUsuario)) {
@@ -78,15 +82,46 @@ public class MainActivity extends AppCompatActivity {
             AlertManager.showInfoSnackbar(rootView, "Bienvenido Usuario 👋");
         }
 
+        // 🔹 Inicializar toolbar + bottomNavigation
         toolbar = findViewById(R.id.toolbar);
         bottomNavigation = findViewById(R.id.bottomNavigation);
         setSupportActionBar(toolbar);
 
+        // 🔧 AGREGAR BOTÓN DEBUG PARA PERMISOS
+        setupBotonDebug();
+
+        // 🔥 FORZAR RECARGA DE PERMISOS AL INICIAR (solo para pruebas)
+        recargarPermisosManual();
+        Log.d("MAIN_DEBUG", "🚀 recargarPermisosManual() ejecutado automáticamente");
+
+        // 🔔 Notificaciones
         inicializarNotificaciones();
+
+        // 🔐 Cargar permisos del usuario
         cargarRolYPermisos(rolUsuario);
+
+        // 🔽 Activar navegación inferior
         setupBottomNavigation();
+
+        // 🔴 Badges (número de citas)
         actualizarBadges();
     }
+
+    private void setupBotonDebug() {
+        Button btnDebug = findViewById(R.id.btnDebugPermisos);
+        if (btnDebug != null) {
+            // Cambia a View.VISIBLE cuando quieras debuggear
+            btnDebug.setVisibility(View.VISIBLE); // o View.GONE para ocultar
+
+            btnDebug.setOnClickListener(v -> {
+                diagnosticarProblemaPermisos();
+                Toast.makeText(this, "🔧 Recargando permisos...", Toast.LENGTH_SHORT).show();
+            });
+
+            Log.d("MAIN_DEBUG", "✅ Botón debug de permisos configurado");
+        }
+    }
+
 
     private void redirectToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
@@ -106,10 +141,14 @@ public class MainActivity extends AppCompatActivity {
         session.esperarPermisos(new Runnable() {
             @Override
             public void run() {
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Log.d("MAIN_DEBUG", "✅ PERMISOS CONFIRMADOS - Iniciando UI");
+
+                        // 🔥 NUEVO: Ejecutar diagnóstico de permisos
+                        verificarEstructuraPermisos();
 
                         // 🔥 NUEVO: Mostrar confirmación en logs
                         UserSession session = UserSession.getInstance();
@@ -134,41 +173,125 @@ public class MainActivity extends AppCompatActivity {
             cargarPermisosDesdeFirestore(rolId != null ? rolId : "usuario");
         } else {
             Log.d("MAIN_DEBUG", "✅ Permisos ya estaban cargados previamente");
+
+            // 🔥 IMPORTANTE: También puedes verificar aquí si quieres
+            verificarEstructuraPermisos();
         }
     }
 
     private void cargarPermisosDesdeFirestore(String rolId) {
+        Log.d("MAIN_DEBUG", "🔄 Cargando permisos desde Firestore para rol: " + rolId);
+
         FirebaseFirestore.getInstance().collection("roles").document(rolId)
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists() && doc.getData() != null) {
                         Map<String, Object> data = doc.getData();
-                        Map<String, Boolean> permisos = new java.util.HashMap<>();
+                        Map<String, Boolean> permisos = new HashMap<>();
 
-                        Object permisosObj = data.get("permisos");
-                        if (permisosObj instanceof Map) {
-                            for (Map.Entry<String, Object> entry : ((Map<String, Object>) permisosObj).entrySet()) {
-                                if (entry.getValue() instanceof Boolean) {
-                                    permisos.put(entry.getKey(), (Boolean) entry.getValue());
+                        // 🔥 CORRECCIÓN COMPLETA: Extraer todos los campos booleanos como permisos
+                        Log.d("MAIN_DEBUG", "📊 Todos los campos en el documento:");
+
+                        for (Map.Entry<String, Object> entry : data.entrySet()) {
+                            String key = entry.getKey();
+                            Object value = entry.getValue();
+
+                            Log.d("MAIN_DEBUG", "   Campo: " + key + " = " + value + " (tipo: " + (value != null ? value.getClass().getSimpleName() : "null") + ")");
+
+                            // Si es un mapa de permisos, procesarlo
+                            if ("permisos".equals(key) && value instanceof Map) {
+                                Map<?, ?> permisosMap = (Map<?, ?>) value;
+                                Log.d("MAIN_DEBUG", "📊 Procesando mapa de permisos: " + permisosMap.size() + " elementos");
+
+                                for (Map.Entry<?, ?> permisoEntry : permisosMap.entrySet()) {
+                                    if (permisoEntry.getKey() instanceof String && permisoEntry.getValue() instanceof Boolean) {
+                                        String permisoKey = (String) permisoEntry.getKey();
+                                        Boolean permisoValue = (Boolean) permisoEntry.getValue();
+                                        permisos.put(permisoKey, permisoValue);
+                                        Log.d("MAIN_DEBUG", "   ✅ Permiso: " + permisoKey + ": " + permisoValue);
+                                    }
                                 }
+                            }
+                            // Si es un campo booleano directo, también agregarlo como permiso
+                            else if (value instanceof Boolean) {
+                                permisos.put(key, (Boolean) value);
+                                Log.d("MAIN_DEBUG", "   ✅ Campo directo como permiso: " + key + ": " + value);
                             }
                         }
 
+                        // 🔥 VERIFICACIÓN CRÍTICA: Asegurar que tenemos los permisos esenciales
+                        verificarPermisosCriticos(permisos, rolId);
+
                         UserSession.getInstance().setRol(rolId, permisos);
-                        Log.d("MAIN_DEBUG", "✅ Permisos cargados manualmente desde Firestore");
+                        Log.d("MAIN_DEBUG", "✅ " + permisos.size() + " permisos cargados desde Firestore");
+
                     } else {
-                        Log.w("MAIN_DEBUG", "⚠️ Rol no encontrado en Firestore");
+                        Log.w("MAIN_DEBUG", "⚠️ Rol no encontrado en Firestore: " + rolId);
+                        cargarPermisosPorDefecto(rolId);
                     }
-                    cargarFragmentoInicial();
-                    actualizarMenuNavigation();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("MAIN_DEBUG", "❌ Error al cargar permisos desde Firestore", e);
-                    cargarFragmentoInicial();
-                    actualizarMenuNavigation();
+                    cargarPermisosPorDefecto(rolId);
                 });
     }
 
+    // 🔥 NUEVO MÉTODO: Verificar que tenemos los permisos críticos
+    private void verificarPermisosCriticos(Map<String, Boolean> permisos, String rolId) {
+        String[] permisosCriticos = {
+                "modificar_actividades", "cancelar_actividades", "reagendar_actividades",
+                "adjuntar_comunicaciones", "crear_actividades", "eliminar_actividades"
+        };
+
+        Log.d("MAIN_DEBUG", "🎯 VERIFICACIÓN CRÍTICA DE PERMISOS PARA: " + rolId);
+
+        for (String permiso : permisosCriticos) {
+            boolean tienePermiso = permisos.getOrDefault(permiso, false);
+            Log.d("MAIN_DEBUG", "   " + permiso + ": " + tienePermiso +
+                    " (en mapa: " + permisos.containsKey(permiso) + ")");
+        }
+
+        // Si faltan permisos críticos, cargar desde defaults
+        if (!permisos.containsKey("modificar_actividades") || !permisos.containsKey("cancelar_actividades")) {
+            Log.w("MAIN_DEBUG", "⚠️ Faltan permisos críticos, usando valores por defecto");
+            cargarPermisosPorDefecto(rolId);
+        }
+    }
+    private void diagnosticarProblemaPermisos() {
+        Log.d("MAIN_DEBUG", "🔍 DIAGNÓSTICO DE PERMISOS");
+
+        // Verificar si ya hay permisos cargados
+        UserSession session = UserSession.getInstance();
+        if (session.permisosCargados()) {
+            Map<String, Boolean> permisosActuales = session.getPermisos();
+            Log.d("MAIN_DEBUG", "📊 Permisos actualmente en UserSession: " + permisosActuales.size());
+            for (Map.Entry<String, Boolean> entry : permisosActuales.entrySet()) {
+                Log.d("MAIN_DEBUG", "   " + entry.getKey() + ": " + entry.getValue());
+            }
+        } else {
+            Log.d("MAIN_DEBUG", "❌ No hay permisos cargados en UserSession");
+        }
+
+        // Forzar recarga desde Firestore
+        String rolId = getIntent().getStringExtra("ROL");
+        if (rolId != null) {
+            Log.d("MAIN_DEBUG", "🔄 Forzando recarga de permisos para rol: " + rolId);
+            cargarPermisosDesdeFirestore(rolId);
+        }
+    }
+
+    private void agregarBotonDebug() {
+        // Solo para desarrollo - quitar después
+        Button btnDebug = new Button(this);
+        btnDebug.setText("🔧 Recargar Permisos");
+        btnDebug.setOnClickListener(v -> {
+            diagnosticarProblemaPermisos();
+            Toast.makeText(this, "Recargando permisos...", Toast.LENGTH_SHORT).show();
+        });
+
+        // Agregar a la interfaz (puedes ponerlo en un menú o layout temporal)
+        // O simplemente usar el logcat para ver los resultados
+    }
     private void actualizarMenuNavigation() {
         if (bottomNavigation == null) return;
 
@@ -211,27 +334,62 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void cargarPermisosPorDefecto(String rolId) {
-        Map<String, Boolean> permisosPorDefecto = new java.util.HashMap<>();
+        Map<String, Boolean> permisosPorDefecto = new HashMap<>();
 
         if ("admin".equals(rolId)) {
             permisosPorDefecto.put("crear_usuarios", true);
             permisosPorDefecto.put("gestionar_usuarios", true);
             permisosPorDefecto.put("gestionar_mantenedores", true);
             permisosPorDefecto.put("crear_actividades", true);
+            permisosPorDefecto.put("modificar_actividades", true);
+            permisosPorDefecto.put("cancelar_actividades", true);
+            permisosPorDefecto.put("reagendar_actividades", true);
+            permisosPorDefecto.put("adjuntar_comunicaciones", true);
             permisosPorDefecto.put("eliminar_actividades", true);
             permisosPorDefecto.put("ver_todas_actividades", true);
         } else {
+            // 🔥 PERMISOS COMPLETOS PARA USUARIO NORMAL (igual que en Firebase)
             permisosPorDefecto.put("crear_usuarios", false);
             permisosPorDefecto.put("gestionar_usuarios", false);
             permisosPorDefecto.put("gestionar_mantenedores", false);
             permisosPorDefecto.put("crear_actividades", true);
-            permisosPorDefecto.put("eliminar_actividades", false);
+            permisosPorDefecto.put("modificar_actividades", true);
+            permisosPorDefecto.put("cancelar_actividades", true);
+            permisosPorDefecto.put("reagendar_actividades", true);
+            permisosPorDefecto.put("adjuntar_comunicaciones", true);
+            permisosPorDefecto.put("eliminar_actividades", true);
             permisosPorDefecto.put("ver_todas_actividades", true);
         }
 
         UserSession.getInstance().setRol(rolId, permisosPorDefecto);
-        cargarFragmentoInicialConPermisos(permisosPorDefecto);
-        actualizarMenuNavigation();
+        Log.d("MAIN_DEBUG", "✅ Permisos por defecto cargados para: " + rolId);
+    }
+
+    private void recargarPermisosManual() {
+        UserSession.getInstance().limpiarSesion();
+        String rolId = getIntent().getStringExtra("ROL");
+        if (rolId != null) {
+            cargarPermisosDesdeFirestore(rolId);
+        }
+    }
+    private void verificarEstructuraPermisos() {
+        Log.d("MAIN_DEBUG", "🔍 Verificando estructura de permisos en UserSession...");
+        UserSession session = UserSession.getInstance();
+
+        if (session.permisosCargados()) {
+            Map<String, Boolean> permisos = session.getPermisos();
+            if (permisos != null) {
+                Log.d("MAIN_DEBUG", "=== ESTRUCTURA DE PERMISOS ACTUAL ===");
+                for (Map.Entry<String, Boolean> entry : permisos.entrySet()) {
+                    Log.d("MAIN_DEBUG", entry.getKey() + ": " + entry.getValue());
+                }
+                Log.d("MAIN_DEBUG", "=====================================");
+            } else {
+                Log.e("MAIN_DEBUG", "❌ permisos es NULL en UserSession");
+            }
+        } else {
+            Log.e("MAIN_DEBUG", "❌ Permisos no cargados en UserSession");
+        }
     }
 
     // ✅ ACTUALIZADO: Ahora usa tag para el CalendarioFragment

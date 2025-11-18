@@ -60,14 +60,37 @@ public class CancelarActividadActivity extends AppCompatActivity {
         actividadIdPrecargada = getIntent().getStringExtra("actividadId");
         nombreActividadPrecargada = getIntent().getStringExtra("nombreActividad");
 
-        // Verificar permisos
-        if (!UserSession.getInstance().puede("cancelar_actividades")) {
-            btnCancelarActividad.setEnabled(false);
-            btnCancelarActividad.setVisibility(View.GONE);
-            Toast.makeText(this, "No tienes permiso para cancelar actividades", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        UserSession session = UserSession.getInstance();
+
+        Log.d("CANCELAR_ACTIVIDAD", "🔍 Verificando permisos para cancelar actividades...");
+
+        session.esperarPermisos(new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!session.puede("cancelar_actividades")) {
+                            Log.w("CANCELAR_ACTIVIDAD", "❌ Usuario sin permiso para cancelar actividades");
+                            btnCancelarActividad.setEnabled(false);
+                            btnCancelarActividad.setVisibility(View.GONE);
+                            Toast.makeText(CancelarActividadActivity.this,
+                                    "No tienes permiso para cancelar actividades", Toast.LENGTH_LONG).show();
+                            finish();
+                            return;
+                        }
+
+                        Log.d("CANCELAR_ACTIVIDAD", "✅ Usuario tiene permiso, continuando con configuración...");
+
+                        // Continuar con la configuración normal solo si tiene permisos
+                        setupAdapter();
+                        cargarActividadesActivas();
+
+                        btnCancelarActividad.setOnClickListener(v -> cancelarActividad());
+                    }
+                });
+            }
+        });
 
         setupAdapter();
         cargarActividadesActivas();

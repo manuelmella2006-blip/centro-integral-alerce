@@ -121,22 +121,56 @@ public class ModificarActividadActivity extends AppCompatActivity {
 
         // ✅ Verificar permisos
         // ✅ VERIFICACIÓN MEJORADA DE PERMISOS
+        // ✅ NUEVA VERIFICACIÓN DE PERMISOS (igual que AdjuntarComunicacionActivity)
         UserSession session = UserSession.getInstance();
 
-        if (!session.permisosCargados()) {
-            Log.w("MODIFICAR_ACTIVIDAD", "⚠️ Permisos no cargados en UserSession");
-            Toast.makeText(this, "Error: Permisos no cargados. Intenta nuevamente.", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        Log.d("MODIFICAR_ACTIVIDAD", "🔍 Verificando permisos para modificar actividades...");
 
-        if (!session.puede("modificar_actividades")) {
-            Log.w("MODIFICAR_ACTIVIDAD", "❌ Usuario sin permiso para modificar actividades. Rol: " + session.getRolId());
-            btnGuardarCambios.setEnabled(false);
-            btnGuardarCambios.setVisibility(View.GONE);
-            Toast.makeText(this, "No tienes permiso para modificar actividades", Toast.LENGTH_LONG).show();
-            return;
-        }
+        session.esperarPermisos(new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!session.puede("modificar_actividades")) {
+                            Log.w("MODIFICAR_ACTIVIDAD", "❌ Usuario sin permiso para modificar actividades");
+                            Toast.makeText(ModificarActividadActivity.this,
+                                    "No tienes permiso para modificar actividades", Toast.LENGTH_LONG).show();
+                            finish();
+                            return;
+                        }
+
+                        Log.d("MODIFICAR_ACTIVIDAD", "✅ Usuario tiene permiso, continuando con configuración...");
+
+                        // Continuar con la configuración normal solo si tiene permisos
+                        setupEmptyAdapters();
+                        cargarPeriodicidad();
+                        cargarSpinnersDesdeFirebase();
+                        configurarPickers();
+
+                        // Cargar datos de la actividad
+                        cargarActividad(actividadId);
+
+                        // Configurar detección de cambios
+                        setupChangeDetection();
+
+                        btnGuardarCambios.setOnClickListener(v -> guardarCambios());
+
+                        if (btnVolverAtras != null) {
+                            btnVolverAtras.setOnClickListener(v -> handleBackPress());
+                        }
+
+                        btnReagendarActividad.setOnClickListener(v -> {
+                            if (actividadActual != null) {
+                                Intent intent = new Intent(ModificarActividadActivity.this, ReagendarActividadActivity.class);
+                                intent.putExtra("actividadId", actividadId);
+                                startActivity(intent);
+                            }
+                        });
+                    }
+                });
+            }
+        });
 
         Log.d("MODIFICAR_ACTIVIDAD", "✅ Usuario tiene permiso para modificar actividades. Rol: " + session.getRolId());
 
