@@ -94,24 +94,47 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
+    // EN MainActivity.java - REEMPLAZAR el método cargarRolYPermisos
     private void cargarRolYPermisos(String rolId) {
-        Log.d("MAIN_DEBUG", "🔍 Verificando estado de UserSession...");
+        Log.d("MAIN_DEBUG", "🔍 Iniciando carga de permisos...");
+        Log.d("MAIN_DEBUG", "Rol recibido: " + rolId);
 
-        if (UserSession.getInstance().permisosCargados()) {
-            Log.d("MAIN_DEBUG", "✅ Nivel 1: Permisos YA cargados en UserSession");
-            cargarFragmentoInicial();
-            actualizarMenuNavigation();
-            return;
+        UserSession session = UserSession.getInstance();
+        session.debugPermisos();
+
+        // 🔥 NUEVO: Usar el nuevo método de espera
+        session.esperarPermisos(new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("MAIN_DEBUG", "✅ PERMISOS CONFIRMADOS - Iniciando UI");
+
+                        // 🔥 NUEVO: Mostrar confirmación en logs
+                        UserSession session = UserSession.getInstance();
+                        Log.d("MAIN_DEBUG", "🎯 Permisos finales cargados:");
+                        Log.d("MAIN_DEBUG", " - Rol: " + session.getRolId());
+                        Log.d("MAIN_DEBUG", " - Crear actividades: " + session.puedeCrearActividades());
+                        Log.d("MAIN_DEBUG", " - Modificar actividades: " + session.puedeModificarActividades());
+                        Log.d("MAIN_DEBUG", " - Cancelar actividades: " + session.puedeCancelarActividades());
+                        Log.d("MAIN_DEBUG", " - Reagendar actividades: " + session.puedeReagendarActividades());
+                        Log.d("MAIN_DEBUG", " - Adjuntar archivos: " + session.puedeAdjuntarComunicaciones());
+
+                        cargarFragmentoInicial();
+                        actualizarMenuNavigation();
+                    }
+                });
+            }
+        });
+
+        // 🔥 NUEVO: Cargar permisos si no están cargados
+        if (!session.permisosCargados()) {
+            Log.d("MAIN_DEBUG", "🔄 Permisos no cargados, iniciando carga desde Firestore...");
+            cargarPermisosDesdeFirestore(rolId != null ? rolId : "usuario");
+        } else {
+            Log.d("MAIN_DEBUG", "✅ Permisos ya estaban cargados previamente");
         }
-
-        if (UserSession.getInstance().getRolId() != null && !UserSession.getInstance().getRolId().isEmpty()) {
-            Log.d("MAIN_DEBUG", "🔄 Nivel 2: Rol presente pero permisos faltantes, recargando...");
-            cargarPermisosDesdeFirestore(UserSession.getInstance().getRolId());
-            return;
-        }
-
-        Log.w("MAIN_DEBUG", "⚠️ Nivel 3: Sin datos de sesión, cargando desde Firestore...");
-        cargarPermisosDesdeFirestore(rolId);
     }
 
     private void cargarPermisosDesdeFirestore(String rolId) {

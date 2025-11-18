@@ -2,11 +2,20 @@ package com.example.centrointegralalerce.data;
 
 import android.util.Log;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserSession {
     private static UserSession instance;
     private String rolId;
     private Map<String, Boolean> permisos;
+
+    // 🔥 NUEVO: Callback para notificar cuando los permisos estén cargados
+    private List<OnPermisosCargadosListener> listeners = new ArrayList<>();
+
+    public interface OnPermisosCargadosListener {
+        void onPermisosCargados();
+    }
 
     private UserSession() {}
 
@@ -17,18 +26,58 @@ public class UserSession {
         return instance;
     }
 
-    // ===============================
-    // 🔹 ASIGNACIÓN DE ROL Y PERMISOS
-    // ===============================
+    // 🔥 NUEVO: Método para registrar listeners
+    public void setOnPermisosCargadosListener(OnPermisosCargadosListener listener) {
+        if (permisosCargados()) {
+            // Si ya están cargados, notificar inmediatamente
+            listener.onPermisosCargados();
+        } else {
+            this.listeners.add(listener);
+        }
+    }
+
+    // 🔥 NUEVO: Notificar a todos los listeners
+    private void notificarPermisosCargados() {
+        Log.d("USER_SESSION", "🔔 Notificando " + listeners.size() + " listeners de permisos cargados");
+        for (OnPermisosCargadosListener listener : listeners) {
+            listener.onPermisosCargados();
+        }
+        listeners.clear();
+    }
+
+    // 🔥 MODIFICADO: setRol para notificar cuando se carguen los permisos
     public void setRol(String rolId, Map<String, Boolean> permisos) {
         this.rolId = rolId;
         this.permisos = permisos;
-        Log.d("USER_SESSION", "✅ Rol asignado: " + rolId);
-        Log.d("USER_SESSION", "✅ Permisos cargados: " + permisos);
+
+        // DEBUG: Mostrar todos los permisos cargados
+        Log.d("USER_SESSION_DEBUG", "=== PERMISOS CARGADOS PARA ROL: " + rolId + " ===");
+        if (permisos != null) {
+            for (Map.Entry<String, Boolean> entry : permisos.entrySet()) {
+                Log.d("USER_SESSION_DEBUG", entry.getKey() + ": " + entry.getValue());
+            }
+        } else {
+            Log.d("USER_SESSION_DEBUG", "❌ permisos es NULL");
+        }
+
+        notificarPermisosCargados();
     }
 
-    public String getRolId() {
-        return rolId;
+    // 🔥 NUEVO: Método para esperar permisos de forma asíncrona
+    public void esperarPermisos(Runnable onCargados) {
+        if (permisosCargados()) {
+            Log.d("USER_SESSION", "✅ Permisos YA cargados, ejecutando callback inmediatamente");
+            onCargados.run();
+        } else {
+            Log.d("USER_SESSION", "⏳ Permisos NO cargados, registrando callback para ejecutar después");
+            setOnPermisosCargadosListener(new OnPermisosCargadosListener() {
+                @Override
+                public void onPermisosCargados() {
+                    Log.d("USER_SESSION", "🎯 Ejecutando callback de permisos cargados");
+                    onCargados.run();
+                }
+            });
+        }
     }
 
     // ===============================
@@ -106,6 +155,7 @@ public class UserSession {
     public void limpiarSesion() {
         this.rolId = null;
         this.permisos = null;
+        this.listeners.clear();
         Log.d("USER_SESSION", "🧹 Sesión limpiada");
     }
 
@@ -119,6 +169,7 @@ public class UserSession {
         Log.d("USER_SESSION_DEBUG", "Rol: " + rolId);
         Log.d("USER_SESSION_DEBUG", "Permisos cargados: " + permisosCargados());
         Log.d("USER_SESSION_DEBUG", "Autenticado: " + estaAutenticado());
+        Log.d("USER_SESSION_DEBUG", "Listeners esperando: " + listeners.size());
 
         if (permisos != null) {
             Log.d("USER_SESSION_DEBUG", "=== 📊 PERMISOS DISPONIBLES ===");
@@ -138,5 +189,9 @@ public class UserSession {
             }
         }
         return true;
+    }
+
+    public String getRolId() {
+        return rolId;
     }
 }

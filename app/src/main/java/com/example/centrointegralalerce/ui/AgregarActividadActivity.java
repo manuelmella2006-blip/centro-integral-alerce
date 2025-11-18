@@ -109,31 +109,56 @@ public class AgregarActividadActivity extends AppCompatActivity {
         cbSabado = findViewById(R.id.cbSabado);
         cbDomingo = findViewById(R.id.cbDomingo);
 
-        // Permisos
+        // 🔥 REEMPLAZAR esta parte de permisos:
+        // UserSession session = UserSession.getInstance();
+        // if (!session.permisosCargados() || !session.puede("crear_actividades")) {
+        //     Toast.makeText(this, "No tienes permiso para crear actividades", Toast.LENGTH_LONG).show();
+        //     finish();
+        //     return;
+        // }
+
+        // 🔥 CON ESTA NUEVA VERSIÓN:
         UserSession session = UserSession.getInstance();
 
-        if (!session.permisosCargados() || !session.puede("crear_actividades")) {
-            Toast.makeText(this, "No tienes permiso para crear actividades", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        Log.d("AGREGAR_ACTIVIDAD", "🔍 Verificando permisos para crear actividades...");
 
-        setupEmptyAdapters();
-        cargarPeriodicidad();
-        cargarSpinnersDesdeFirebase();
-        configurarPickers();
+        session.esperarPermisos(new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!session.puede("crear_actividades")) {
+                            Log.w("AGREGAR_ACTIVIDAD", "❌ Usuario sin permiso para crear actividades");
+                            Toast.makeText(AgregarActividadActivity.this,
+                                    "No tienes permiso para crear actividades", Toast.LENGTH_LONG).show();
+                            finish();
+                            return;
+                        }
 
-        btnGuardarActividad.setOnClickListener(v -> validarYGuardarActividad());
+                        Log.d("AGREGAR_ACTIVIDAD", "✅ Usuario tiene permiso, continuando con configuración...");
 
-        btnCancelarActividad.setOnClickListener(v ->
-                AlertManager.showDestructiveDialog(
-                        this,
-                        "Descartar actividad",
-                        "¿Seguro que quieres descartar esta actividad?",
-                        "Sí, salir",
-                        this::finish
-                )
-        );
+                        // Continuar con la configuración normal solo si tiene permisos
+                        setupEmptyAdapters();
+                        cargarPeriodicidad();
+                        cargarSpinnersDesdeFirebase();
+                        configurarPickers();
+
+                        btnGuardarActividad.setOnClickListener(v -> validarYGuardarActividad());
+
+                        btnCancelarActividad.setOnClickListener(v ->
+                                AlertManager.showDestructiveDialog(
+                                        AgregarActividadActivity.this,
+                                        "Descartar actividad",
+                                        "¿Seguro que quieres descartar esta actividad?",
+                                        "Sí, salir",
+                                        AgregarActividadActivity.this::finish
+                                )
+                        );
+                    }
+                });
+            }
+        });
     }
 
     // ===========================================

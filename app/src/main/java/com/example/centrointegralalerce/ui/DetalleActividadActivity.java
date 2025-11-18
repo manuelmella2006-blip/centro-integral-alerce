@@ -165,48 +165,60 @@ public class DetalleActividadActivity extends AppCompatActivity {
             btnCancelar.setOnClickListener(v -> abrirCancelarActividad());
         }
 
-        // ✅ NUEVO: Verificar permisos al iniciar
-        verificarPermisos();
-
         // ==== Cargar datos desde Firestore ====
         loadActividad(actividadId);
+
+        // 🔥 NUEVO: Verificar permisos DESPUÉS de cargar la actividad
+        // Esto se hará automáticamente cuando los permisos estén listos
     }
 
     // ✅ NUEVO MÉTODO DE CONTROL DE PERMISOS
     private void verificarPermisos() {
         UserSession session = UserSession.getInstance();
 
-        if (!session.permisosCargados()) {
-            Log.w("DETALLE_ACTIVIDAD", "⚠️ Permisos no cargados, reintentando...");
-            new Handler().postDelayed(this::verificarPermisos, 1000);
-            return;
-        }
+        Log.d("DETALLE_ACTIVIDAD", "🔍 Iniciando verificación de permisos...");
 
-        // ✅ NUEVO: Ocultar botones si la actividad está cancelada
-        boolean actividadCancelada = actividadActual != null &&
-                "cancelada".equalsIgnoreCase(actividadActual.getEstado());
+        // 🔥 NUEVO: Esperar a que los permisos estén cargados
+        session.esperarPermisos(new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("DETALLE_ACTIVIDAD", "✅ Permisos cargados, actualizando UI");
 
-        if (btnModificar != null) {
-            boolean puedeModificar = session.puede("modificar_actividades") && !actividadCancelada;
-            btnModificar.setVisibility(puedeModificar ? View.VISIBLE : View.GONE);
-        }
+                        boolean actividadCancelada = actividadActual != null &&
+                                "cancelada".equalsIgnoreCase(actividadActual.getEstado());
 
-        if (btnCancelar != null) {
-            boolean puedeCancelar = session.puede("cancelar_actividades") && !actividadCancelada;
-            btnCancelar.setVisibility(puedeCancelar ? View.VISIBLE : View.GONE);
-        }
+                        if (btnModificar != null) {
+                            boolean puedeModificar = session.puede("modificar_actividades") && !actividadCancelada;
+                            btnModificar.setVisibility(puedeModificar ? View.VISIBLE : View.GONE);
+                            Log.d("DETALLE_ACTIVIDAD", "🔧 Modificar visible: " + puedeModificar);
+                        }
 
-        if (btnReagendar != null) {
-            boolean puedeReagendar = session.puede("reagendar_actividades") && !actividadCancelada;
-            btnReagendar.setVisibility(puedeReagendar ? View.VISIBLE : View.GONE);
-        }
+                        if (btnCancelar != null) {
+                            boolean puedeCancelar = session.puede("cancelar_actividades") && !actividadCancelada;
+                            btnCancelar.setVisibility(puedeCancelar ? View.VISIBLE : View.GONE);
+                            Log.d("DETALLE_ACTIVIDAD", "❌ Cancelar visible: " + puedeCancelar);
+                        }
 
-        if (fabAdjuntar != null) {
-            boolean puedeAdjuntar = session.puede("adjuntar_comunicaciones") && !actividadCancelada;
-            fabAdjuntar.setVisibility(puedeAdjuntar ? View.VISIBLE : View.GONE);
-        }
+                        if (btnReagendar != null) {
+                            boolean puedeReagendar = session.puede("reagendar_actividades") && !actividadCancelada;
+                            btnReagendar.setVisibility(puedeReagendar ? View.VISIBLE : View.GONE);
+                            Log.d("DETALLE_ACTIVIDAD", "📅 Reagendar visible: " + puedeReagendar);
+                        }
 
-        Log.d("DETALLE_ACTIVIDAD", "🎯 Permisos - Actividad cancelada: " + actividadCancelada);
+                        if (fabAdjuntar != null) {
+                            boolean puedeAdjuntar = session.puede("adjuntar_comunicaciones") && !actividadCancelada;
+                            fabAdjuntar.setVisibility(puedeAdjuntar ? View.VISIBLE : View.GONE);
+                            Log.d("DETALLE_ACTIVIDAD", "📎 Adjuntar visible: " + puedeAdjuntar);
+                        }
+
+                        Log.d("DETALLE_ACTIVIDAD", "🎯 Verificación completada - Actividad cancelada: " + actividadCancelada);
+                    }
+                });
+            }
+        });
     }
 
     // ✅ Método existente intacto
