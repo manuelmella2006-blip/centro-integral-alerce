@@ -23,7 +23,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CentroIntegralAlerce"
-        android:enableOnBackInvokedCallback="true"> <!-- 🆕 AGREGADO: Para manejar back navigation -->
+        android:enableOnBackInvokedCallback="true">
 
         <!-- 🔹 Activities existentes -->
         <activity android:name=".ui.mantenedores.TiposActividadActivity" />
@@ -36,9 +36,17 @@
         <activity
             android:name=".ui.mantenedores.ProyectosActivity"
             android:exported="false" />
+
+        <!-- 🆕 Agregada: LugaresActivity -->
+        <activity
+            android:name=".ui.mantenedores.LugaresActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CentroIntegralAlerce" />
+
         <activity android:name=".ui.RecoverPasswordActivity" />
         <activity android:name=".ui.RegisterActivity" />
-        <activity android:name=".ui.DetalleActividadActivity"
+        <activity
+            android:name=".ui.DetalleActividadActivity"
             android:exported="true" />
         <activity
             android:name=".ui.AgregarActividadActivity"
@@ -57,13 +65,13 @@
             android:exported="false"
             android:theme="@style/Theme.CentroIntegralAlerce" />
 
-        <!-- ✅ CORREGIDO: Usar el tema SIN ActionBar -->
+        <!-- 🆕 SIN ActionBar -->
         <activity
             android:name=".ui.ReagendarActividadActivity"
             android:exported="false"
             android:theme="@style/Theme.CentroIntegralAlerce" />
 
-        <!-- 🆕 NUEVA ACTIVIDAD: ReagendarCitaActivity -->
+        <!-- 🆕 NUEVA ACTIVIDAD -->
         <activity
             android:name=".ui.ReagendarCitaActivity"
             android:exported="false"
@@ -78,13 +86,12 @@
             android:name=".ui.EditarUsuarioActivity"
             android:parentActivityName=".ui.GestionUsuariosActivity" />
 
-        <!-- 🔹 Nueva actividad: CancelarActividadActivity -->
         <activity
             android:name=".ui.CancelarActividadActivity"
             android:exported="false"
             android:theme="@style/Theme.CentroIntegralAlerce" />
 
-        <!-- 🔹 Activity principal: LoginActivity -->
+        <!-- 🔹 Activity principal -->
         <activity
             android:name=".ui.LoginActivity"
             android:exported="true"
@@ -95,7 +102,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 🔹 Servicio de Firebase Cloud Messaging -->
+        <!-- 🔹 Firebase Messaging -->
         <service
             android:name=".services.MyFirebaseMessagingService"
             android:exported="false">
@@ -104,7 +111,7 @@
             </intent-filter>
         </service>
 
-        <!-- 🔹 Metadata para personalizar notificaciones -->
+        <!-- 🔹 Notificaciones -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />

@@ -14,13 +14,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.centrointegralalerce.R;
+import com.example.centrointegralalerce.data.UserSession;
+
+// 🔹 Import de todas las Activities
 import com.example.centrointegralalerce.ui.mantenedores.ProyectosActivity;
 import com.example.centrointegralalerce.ui.mantenedores.TiposActividadActivity;
 import com.example.centrointegralalerce.ui.mantenedores.OferentesActivity;
 import com.example.centrointegralalerce.ui.mantenedores.SociosComunitariosActivity;
+import com.example.centrointegralalerce.ui.mantenedores.LugaresActivity;   // 🆕 NUEVO
 
-import com.example.centrointegralalerce.R;
-import com.example.centrointegralalerce.data.UserSession;
 import com.example.centrointegralalerce.ui.CrearLugarActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -53,7 +56,7 @@ public class MantenedoresFragment extends Fragment {
         cardSociosComunitarios = view.findViewById(R.id.card_socios_comunitarios);
         cardProyectos = view.findViewById(R.id.card_proyectos);
 
-        // ✅ Verificar permisos con UserSession
+        // Verificar permisos de usuario
         verificarPermisos();
 
         // Configurar listeners
@@ -63,7 +66,7 @@ public class MantenedoresFragment extends Fragment {
     }
 
     // ============================================================
-    // ✅ NUEVA VERSIÓN USANDO USERSESSION
+    // ✅ PERMISOS CON USERSESSION
     // ============================================================
     private void verificarPermisos() {
         UserSession session = UserSession.getInstance();
@@ -81,6 +84,7 @@ public class MantenedoresFragment extends Fragment {
             Toast.makeText(requireContext(),
                     "❌ Solo los administradores pueden acceder a mantenedores",
                     Toast.LENGTH_LONG).show();
+
             Log.d("MANTENEDORES", "🚫 Usuario sin permiso para gestionar mantenedores. Rol: " + session.getRolId());
         } else {
             Log.d("MANTENEDORES", "✅ Usuario con permiso para gestionar mantenedores. Rol: " + session.getRolId());
@@ -101,33 +105,36 @@ public class MantenedoresFragment extends Fragment {
         cardProyectos.setAlpha(0.5f);
     }
 
+    // ============================================================
+    // ✅ LISTENERS COMPLETOS (LugaresActivity integrado)
+    // ============================================================
     private void setupListeners() {
-        // Card Crear Lugar
+
+        // 🆕 Abrir Gestión de Lugares (LugaresActivity)
         cardCrearLugar.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), CrearLugarActivity.class);
+            Intent intent = new Intent(requireContext(), LugaresActivity.class);
             startActivity(intent);
         });
 
-        // Card Tipos de Actividad
+        // Tipos de Actividad
         cardTiposActividad.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), TiposActividadActivity.class);
             startActivity(intent);
         });
 
-
-        // Card Oferentes
+        // Oferentes
         cardOferentes.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), OferentesActivity.class);
             startActivity(intent);
         });
 
-        // Card Socios Comunitarios
+        // Socios Comunitarios
         cardSociosComunitarios.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), SociosComunitariosActivity.class);
             startActivity(intent);
         });
 
-        // Card Proyectos
+        // Proyectos
         cardProyectos.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), ProyectosActivity.class);
             startActivity(intent);
