@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -86,10 +87,47 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
+        // ✅ VALIDACIÓN 1: Campos vacíos
         if (email.isEmpty() || password.isEmpty()) {
             AlertManager.showWarningSnackbar(
                     AlertManager.getRootView(this),
                     "Por favor ingresa correo y contraseña"
+            );
+            return;
+        }
+
+        // ✅ VALIDACIÓN 2: Formato de email válido
+        if (!isValidEmail(email)) {
+            AlertManager.showWarningSnackbar(
+                    AlertManager.getRootView(this),
+                    "Por favor ingresa un correo electrónico válido"
+            );
+            return;
+        }
+
+        // ✅ VALIDACIÓN 3: Longitud mínima de contraseña
+        if (password.length() < 6) {
+            AlertManager.showWarningSnackbar(
+                    AlertManager.getRootView(this),
+                    "La contraseña debe tener al menos 6 caracteres"
+            );
+            return;
+        }
+
+        // ✅ VALIDACIÓN 4: Contraseña no debe contener espacios
+        if (password.contains(" ")) {
+            AlertManager.showWarningSnackbar(
+                    AlertManager.getRootView(this),
+                    "La contraseña no puede contener espacios"
+            );
+            return;
+        }
+
+        // ✅ VALIDACIÓN 5: Email no debe exceder longitud máxima
+        if (email.length() > 100) {
+            AlertManager.showWarningSnackbar(
+                    AlertManager.getRootView(this),
+                    "El correo electrónico es demasiado largo"
             );
             return;
         }
@@ -103,21 +141,125 @@ public class LoginActivity extends AppCompatActivity {
                     loginButton.setText("Iniciar Sesión");
 
                     if (task.isSuccessful()) {
-                        prefsManager.setLoggedIn(true);
-                        prefsManager.saveUserEmail(email);
-                        checkUserRoleAndRedirect();
+                        // ✅ VALIDACIÓN 6: Verificar si el usuario existe y está activo en Firestore
+                        verifyUserInFirestore(email);
                     } else {
                         String errorMsg = task.getException() != null ?
                                 task.getException().getMessage() : "Error al iniciar sesión";
+
+                        // ✅ VALIDACIÓN 7: Mensajes de error específicos de Firebase Auth
+                        String userFriendlyError = getFirebaseAuthErrorMessage(errorMsg);
                         AlertManager.showErrorSnackbar(
                                 AlertManager.getRootView(this),
-                                "Error: " + errorMsg
+                                userFriendlyError
                         );
                     }
                 });
     }
 
-    // ✅ NUEVA VERSIÓN del método
+    // ✅ NUEVO MÉTODO: Validación de formato de email
+    private boolean isValidEmail(String email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    // ✅ NUEVO MÉTODO: Verificar usuario en Firestore después de autenticación exitosa
+    private void verifyUserInFirestore(String email) {
+        String uid = mAuth.getCurrentUser().getUid();
+
+        db.collection("usuarios").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // ✅ VALIDACIÓN 8: Verificar si el usuario está activo
+                        Boolean activo = documentSnapshot.getBoolean("activo");
+                        if (activo != null && !activo) {
+                            // Usuario inactivo, cerrar sesión y mostrar mensaje
+                            mAuth.signOut();
+                            prefsManager.clearSession();
+                            AlertManager.showErrorSnackbar(
+                                    AlertManager.getRootView(this),
+                                    "Tu cuenta está desactivada. Contacta al administrador."
+                            );
+                            return;
+                        }
+
+                        // ✅ VALIDACIÓN 9: Verificar que tenga rol asignado
+                        String rolId = documentSnapshot.getString("rolId");
+                        if (rolId == null || rolId.isEmpty()) {
+                            // Usuario sin rol asignado
+                            mAuth.signOut();
+                            prefsManager.clearSession();
+                            AlertManager.showErrorSnackbar(
+                                    AlertManager.getRootView(this),
+                                    "Tu cuenta no tiene permisos asignados. Contacta al administrador."
+                            );
+                            return;
+                        }
+
+                        // ✅ Usuario válido, proceder con login
+                        prefsManager.setLoggedIn(true);
+                        prefsManager.saveUserEmail(email);
+                        checkUserRoleAndRedirect();
+                    } else {
+                        // ✅ VALIDACIÓN 10: Usuario no existe en Firestore
+                        mAuth.signOut();
+                        prefsManager.clearSession();
+                        AlertManager.showErrorSnackbar(
+                                AlertManager.getRootView(this),
+                                "Usuario no encontrado en el sistema. Contacta al administrador."
+                        );
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // ✅ VALIDACIÓN 11: Error al consultar Firestore
+                    mAuth.signOut();
+                    prefsManager.clearSession();
+                    AlertManager.showErrorSnackbar(
+                            AlertManager.getRootView(this),
+                            "Error al verificar usuario. Intenta nuevamente."
+                    );
+                });
+    }
+
+    // ✅ MÉTODO MEJORADO: Mensajes de error amigables para Firebase Auth
+    private String getFirebaseAuthErrorMessage(String errorMessage) {
+        if (errorMessage == null) {
+            return "Error desconocido al iniciar sesión";
+        }
+
+        // Convertir a minúsculas para facilitar la comparación
+        String errorLower = errorMessage.toLowerCase();
+
+        if (errorLower.contains("invalid-email")) {
+            return "El formato del correo electrónico no es válido";
+        } else if (errorLower.contains("user-not-found")) {
+            return "No existe una cuenta con este correo electrónico";
+        } else if (errorLower.contains("wrong-password")) {
+            return "Contraseña incorrecta. Verifica tu contraseña e intenta nuevamente";
+        } else if (errorLower.contains("invalid-credential") || errorLower.contains("invalid-password")) {
+            return "Contraseña inválida. Verifica tus credenciales";
+        } else if (errorLower.contains("network-error") || errorLower.contains("network_error")) {
+            return "Error de conexión. Verifica tu conexión a internet";
+        } else if (errorLower.contains("too-many-requests")) {
+            return "Demasiados intentos fallidos. Tu cuenta ha sido temporalmente bloqueada. Intenta más tarde o restablece tu contraseña";
+        } else if (errorLower.contains("user-disabled")) {
+            return "Esta cuenta ha sido deshabilitada. Contacta al administrador";
+        } else if (errorLower.contains("email-already-in-use")) {
+            return "Este correo electrónico ya está registrado";
+        } else if (errorLower.contains("weak-password")) {
+            return "La contraseña es demasiado débil";
+        } else if (errorLower.contains("operation-not-allowed")) {
+            return "Operación no permitida. Contacta al administrador";
+        } else if (errorLower.contains("requires-recent-login")) {
+            return "Esta operación requiere que inicies sesión nuevamente";
+        } else {
+            // Para errores desconocidos, mostrar un mensaje genérico
+            Log.e("LOGIN_ERROR", "Error de Firebase Auth: " + errorMessage);
+            return "Error al iniciar sesión. Verifica tus credenciales";
+        }
+    }
+
+    // ✅ Método existente mejorado
     private void checkUserRoleAndRedirect() {
         String uid = mAuth.getCurrentUser().getUid();
 
@@ -134,7 +276,7 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> handleInvalidSession());
     }
 
-    // ✅ NUEVO: Cargar permisos del rol antes de entrar al MainActivity
+    // ✅ Método existente
     private void cargarPermisosYRedirigir(String rolId) {
         FirebaseFirestore.getInstance().collection("roles").document(rolId)
                 .get()
@@ -185,7 +327,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    // ✅ NUEVO: Permisos por defecto si falla la carga
+    // ✅ Método existente
     private void cargarPermisosPorDefectoYRedirigir(String rolId) {
         Map<String, Boolean> permisosPorDefecto = new HashMap<>();
 
