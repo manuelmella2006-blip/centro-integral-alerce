@@ -1,10 +1,30 @@
 {
   "project_info": {
     "project_number": "994511946231",
+    "firebase_url": "https://centrointegralalercedb-default-rtdb.firebaseio.com",
     "project_id": "centrointegralalercedb",
     "storage_bucket": "centrointegralalercedb.firebasestorage.app"
   },
   "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:994511946231:android:d0a96c40e13b491087aef2",
+        "android_client_info": {
+          "package_name": "cl.LosMuchachos.centrointegralalerce"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm9F24xsBkt_n5BOtHtjxfH9UNmOO0tzQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
     {
       "client_info": {
         "mobilesdk_app_id": "1:994511946231:android:768b4b4b3749d8eb87aef2",
