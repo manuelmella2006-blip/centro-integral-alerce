@@ -27,6 +27,7 @@ import java.util.List;
 public class GestionUsuariosActivity extends AppCompatActivity {
 
     private static final String TAG = "GestionUsuariosActivity";
+    private boolean usuariosCargados = false; // Bandera para controlar carga duplicada
 
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
@@ -50,7 +51,7 @@ public class GestionUsuariosActivity extends AppCompatActivity {
 
         initViews();
         setupFirebase();
-        cargarUsuarios();
+        cargarUsuarios(); // Carga inicial
     }
 
     private void initViews() {
@@ -88,6 +89,7 @@ public class GestionUsuariosActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     progressBar.setVisibility(View.GONE);
+                    usuariosCargados = true; // Marcar como cargados
 
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
@@ -187,7 +189,10 @@ public class GestionUsuariosActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Recargar usuarios cuando la actividad se reanude
-        cargarUsuarios();
+        // Solo recargar si ya se cargaron los usuarios previamente
+        // Esto evita la carga duplicada cuando la actividad se crea por primera vez
+        if (usuariosCargados) {
+            cargarUsuarios();
+        }
     }
 }
